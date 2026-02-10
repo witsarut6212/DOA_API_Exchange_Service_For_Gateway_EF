@@ -1,0 +1,10 @@
+[Bb]in/
+[Oo]bj/
+.vs/
+*.user
+appsettings.Development.json
+.vscode/
+*.swp
+*.~
+out/
+.DS_Store

@@ -1,0 +1,125 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "xc_document": {
+      "type": "object",
+      "properties": {
+        "doc_name": { "type": "string" },
+        "doc_id": { "type": "string" },
+        "doc_type": { "type": "string" },
+        "status_code": { "type": "string" },
+        "issue_date": { "type": "string", "format": "date-time" },
+        "issue_party_name": { "type": "string" },
+        "include_notes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "properties": {
+              "subject": { "type": "string" },
+              "contents": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "content": { "type": "string" }
+                  },
+                  "required": ["content"]
+                }
+              }
+            },
+            "required": ["subject", "contents"]
+          }
+        },
+        "signatory_authen": {
+          "type": "object",
+          "properties": {
+            "actual_datetime": { "type": "string" },
+            "issue_location": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" }
+              },
+              "required": ["name"]
+            },
+            "provider_party": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" }
+              },
+              "required": ["name"]
+            },
+            "include_clauses": {
+              "type": "array",
+              "minItems": 1
+            }
+          },
+          "required": ["actual_datetime", "issue_location", "provider_party", "include_clauses"]
+        }
+      },
+      "required": ["doc_name", "doc_id", "doc_type", "status_code", "issue_date", "issue_party_name", "include_notes", "signatory_authen"]
+    },
+    "consignment": {
+      "type": "object",
+      "properties": {
+        "consignor_party": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "adress_line1": { "type": "string" }
+          },
+          "required": ["name", "adress_line1"]
+        },
+        "consignee_party": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "adress_line1": { "type": "string" }
+          },
+          "required": ["name", "adress_line1"]
+        },
+        "export_country": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string" },
+            "name": { "type": "string" }
+          },
+          "required": ["id", "name"]
+        },
+        "import_country": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string" },
+            "name": { "type": "string" }
+          },
+          "required": ["id", "name"]
+        },
+        "examination_event": {
+          "type": "object",
+          "properties": {
+            "occur_location_name": { "type": "string" }
+          },
+          "required": ["occur_location_name"]
+        }
+      },
+      "required": ["consignor_party", "consignee_party", "export_country", "import_country", "examination_event"]
+    },
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "intend_uses": {
+            "type": "array",
+            "minItems": 1
+          }
+        },
+        "required": ["intend_uses"]
+      }
+    }
+  },
+  "required": ["xc_document", "consignment", "items"]
+}

@@ -1,0 +1,6 @@
+@DOA_API_Exchange_Service_For_Gateway_HostAddress = http://localhost:5110
+
+GET {{DOA_API_Exchange_Service_For_Gateway_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
