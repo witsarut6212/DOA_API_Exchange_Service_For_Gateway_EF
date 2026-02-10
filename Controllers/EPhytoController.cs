@@ -22,6 +22,9 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
             _logger = logger;
         }
 
+        /// <summary>
+        /// ASW-ePhytoNormal: รับข้อมูล E-Phyto จาก ASW และบันทึกลง Database
+        /// </summary>
         [HttpPost("ASW-ePhytoNormal")]
         public async Task<IActionResult> AswEPhytoNormal([FromBody] JObject jsonData)
         {
@@ -58,8 +61,24 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                     return BadRequest(new { message = "Missing required objects: xc_document, consignment, or items" });
                 }
 
-                // Generate unique message ID string
+                // Generate basic info
                 string messageIdStr = Guid.NewGuid().ToString();
+                string docId = docData["doc_id"]?.ToString() ?? "";
+                string docType = docData["doc_type"]?.ToString() ?? "";
+                string docStatus = docData["status_code"]?.ToString() ?? "";
+
+                // Check for existing document to avoid duplicate entry error
+                var existingDoc = await _context.TabMessageThphytos
+                    .AnyAsync(t => t.DocId == docId && t.DocType == docType && t.DocStatus == docStatus);
+
+                if (existingDoc)
+                {
+                    return Conflict(new
+                    {
+                        status = "Duplicate",
+                        message = $"Document with ID '{docId}', Type '{docType}', and Status '{docStatus}' already exists."
+                    });
+                }
 
                 // Step 3: Map to TabMessageThphyto (Main Document)
                 var thphytoEntity = new TabMessageThphyto
@@ -68,10 +87,10 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                     MessageStatus = "NEW",
                     PhytoTo = "ASW",
                     DocName = docData["doc_name"]?.ToString(),
-                    DocId = docData["doc_id"]?.ToString() ?? "",
+                    DocId = docId,
                     DocDescription = docData["doc_description"]?.ToString(),
-                    DocType = docData["doc_type"]?.ToString() ?? "",
-                    DocStatus = docData["status_code"]?.ToString() ?? "",
+                    DocType = docType,
+                    DocStatus = docStatus,
                     IssueDateTime = DateTime.TryParse(docData["issue_date"]?.ToString(), out var issueDate) 
                         ? issueDate : DateTime.Now,
                     IssuerId = docData["issue_party_id"]?.ToString(),
@@ -124,19 +143,42 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
 
                 _context.TabMessageThphytos.Add(thphytoEntity);
 
-                // 4.1 Include Notes
+                // Step 4: Map Related Entities
+                
+                // 4.1 Reference Documents
+                var refDocs = docData["reference_docs"] as JArray;
+                if (refDocs != null)
+                {
+                    foreach (var refDoc in refDocs)
+                    {
+                        var refEntity = new TabMessageThphytoReferenceDoc
+                        {
+                            MessageId = messageIdStr,
+                            DocId = docId,
+                            RefDocId = refDoc["id"]?.ToString() ?? "",
+                            TypeCode = refDoc["type_code"]?.ToString(),
+                            RelationTypeCode = refDoc["relation_type_code"]?.ToString(),
+                            Filename = refDoc["filename"]?.ToString(),
+                            IssueDate = DateTime.TryParse(refDoc["issue_date"]?.ToString(), out var refDate) ? refDate : (DateTime?)null,
+                            CreatedAt = DateTime.Now
+                        };
+                        _context.TabMessageThphytoReferenceDocs.Add(refEntity);
+                    }
+                }
+
+                // 4.2 Include Notes
                 var includeNotes = docData["include_notes"] as JArray;
                 if (includeNotes != null)
                 {
                     foreach (var note in includeNotes)
                     {
-                        var contents = note["contents"] as JArray;
+                        var noteContents = note["contents"] as JArray;
                         var noteEntity = new TabMessageThphytoIncludedNote
                         {
                             MessageId = messageIdStr,
                             Subject = note["subject"]?.ToString() ?? "",
-                            Content = contents != null 
-                                ? string.Join(", ", contents.Select(c => c["content"]?.ToString()))
+                            Content = noteContents != null 
+                                ? string.Join(", ", noteContents.Select(c => c["content"]?.ToString()))
                                 : "",
                             CreatedAt = DateTime.Now
                         };
@@ -144,7 +186,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                     }
                 }
 
-                // 4.2 Include Clauses
+                // 4.3 Include Clauses
                 var signatoryAuth = docData["signatory_authen"] as JObject;
                 var includeClauses = signatoryAuth?["include_clauses"] as JArray;
                 if (includeClauses != null)
@@ -165,7 +207,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                     }
                 }
 
-                // 4.3 Transit Countries
+                // 4.4 Transit Countries
                 var transitCountries = consignmentData["transit_countries"] as JArray;
                 if (transitCountries != null)
                 {
@@ -182,7 +224,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                     }
                 }
 
-                // 4.4 Main Carriages
+                // 4.5 Main Carriages
                 var mainCarriages = consignmentData["main_carriages"] as JArray;
                 if (mainCarriages != null)
                 {
@@ -200,7 +242,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                     }
                 }
 
-                // 4.5 Items
+                // 4.6 Items
                 if (itemsData != null)
                 {
                     foreach (var item in itemsData)
@@ -231,7 +273,26 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                         
                         _context.TabMessageThphytoItems.Add(itemEntity);
 
-                        // Item Descriptions
+                        // 4.6.1 Physical Packages
+                        var physicalPackages = item["physical_packages"] as JArray;
+                        if (physicalPackages != null)
+                        {
+                            foreach (var pkg in physicalPackages)
+                            {
+                                var pkgEntity = new TabMessageThphytoItemPhysicalPackage
+                                {
+                                    MessageId = messageIdStr,
+                                    ItemId = itemIdStr,
+                                    TypeCode = pkg["type_code"]?.ToString(),
+                                    Quantity = pkg["quantity"]?.Value<int?>(),
+                                    ShippingMarks = pkg["shipping_marks"]?.ToString(),
+                                    CreatedAt = DateTime.Now
+                                };
+                                _context.TabMessageThphytoItemPhysicalPackages.Add(pkgEntity);
+                            }
+                        }
+
+                        // 4.6.2 Item Descriptions
                         var descriptions = item["descriptions"] as JArray;
                         if (descriptions != null)
                         {
@@ -248,7 +309,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                             }
                         }
 
-                        // Item Common Names
+                        // 4.6.3 Item Common Names
                         var commonNames = item["common_names"] as JArray;
                         if (commonNames != null)
                         {
@@ -265,7 +326,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                             }
                         }
 
-                        // Item Origin Countries
+                        // 4.6.4 Item Origin Countries
                         var originCountries = item["origin_countries"] as JArray;
                         if (originCountries != null)
                         {
@@ -285,7 +346,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                             }
                         }
 
-                        // Item Intended Uses
+                        // 4.6.5 Item Intended Uses
                         var intendUses = item["intend_uses"] as JArray;
                         if (intendUses != null)
                         {
@@ -302,7 +363,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                             }
                         }
 
-                        // Item Additional Notes
+                        // 4.6.6 Item Additional Notes
                         var additionalNotes = item["additional_notes"] as JArray;
                         if (additionalNotes != null)
                         {
@@ -338,7 +399,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                             }
                         }
 
-                        // Item Applied Processes
+                        // 4.6.7 Item Applied Processes
                         var appliedProcesses = item["applied_processes"] as JArray;
                         if (appliedProcesses != null)
                         {
@@ -414,6 +475,35 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                     innerException = ex.InnerException?.Message
                 });
             }
+        }
+
+        /// <summary>
+        /// ดึงข้อมูลเอกสารตาม DocId (เพื่อการตรวจสอบ)
+        /// </summary>
+        [HttpGet("document/{docId}")]
+        public async Task<IActionResult> GetDocument(string docId)
+        {
+            var document = await _context.TabMessageThphytos
+                .Where(d => d.DocId == docId)
+                .OrderByDescending(d => d.TimeStamp)
+                .FirstOrDefaultAsync();
+
+            if (document == null) return NotFound(new { message = "Document not found" });
+
+            var items = await _context.TabMessageThphytoItems
+                .Where(i => i.MessageId == document.MessageId)
+                .ToListAsync();
+
+            var notes = await _context.TabMessageThphytoIncludedNotes
+                .Where(n => n.MessageId == document.MessageId)
+                .ToListAsync();
+
+            return Ok(new
+            {
+                Document = document,
+                Items = items,
+                Notes = notes
+            });
         }
 
         [HttpGet("test")]
