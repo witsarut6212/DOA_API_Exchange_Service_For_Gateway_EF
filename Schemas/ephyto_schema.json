@@ -5,119 +5,83 @@
     "xc_document": {
       "type": "object",
       "properties": {
-        "doc_name": { "type": "string" },
+        "doc_name": { "type": ["string", "null"] },
         "doc_id": { "type": "string" },
-        "doc_type": { "type": "string" },
-        "status_code": { "type": "string" },
-        "issue_date": { "type": "string", "format": "date-time" },
+        "doc_type": { "type": ["string", "integer"] },
+        "status_code": { "type": ["string", "integer"] },
+        "issue_date": { "type": "string" },
         "issue_party_name": { "type": "string" },
         "include_notes": {
           "type": "array",
-          "minItems": 1,
           "items": {
             "type": "object",
             "properties": {
               "subject": { "type": "string" },
               "contents": {
                 "type": "array",
-                "minItems": 1,
                 "items": {
                   "type": "object",
                   "properties": {
                     "content": { "type": "string" }
-                  },
-                  "required": ["content"]
+                  }
                 }
               }
-            },
-            "required": ["subject", "contents"]
+            }
           }
         },
         "signatory_authen": {
           "type": "object",
           "properties": {
-            "actual_datetime": { "type": "string" },
-            "issue_location": {
-              "type": "object",
-              "properties": {
-                "name": { "type": "string" }
-              },
-              "required": ["name"]
-            },
+            "actual_datetime": { "type": ["string", "null"] },
+            "issue_location": { "type": ["string", "object"] },
             "provider_party": {
               "type": "object",
               "properties": {
-                "name": { "type": "string" }
-              },
-              "required": ["name"]
+                "name": { "type": ["string", "null"] },
+                "specfied_person_name": { "type": ["string", "null"] }
+              }
             },
             "include_clauses": {
-              "type": "array",
-              "minItems": 1
+              "type": "array"
             }
-          },
-          "required": ["actual_datetime", "issue_location", "provider_party", "include_clauses"]
+          }
         }
       },
-      "required": ["doc_name", "doc_id", "doc_type", "status_code", "issue_date", "issue_party_name", "include_notes", "signatory_authen"]
+      "required": ["doc_id", "doc_type", "status_code", "issue_date"]
     },
     "consignment": {
       "type": "object",
       "properties": {
+        "export_country_id": { "type": "string" },
+        "import_country_id": { "type": "string" },
         "consignor_party": {
           "type": "object",
           "properties": {
             "name": { "type": "string" },
             "adress_line1": { "type": "string" }
-          },
-          "required": ["name", "adress_line1"]
+          }
         },
         "consignee_party": {
           "type": "object",
           "properties": {
             "name": { "type": "string" },
             "adress_line1": { "type": "string" }
-          },
-          "required": ["name", "adress_line1"]
-        },
-        "export_country": {
-          "type": "object",
-          "properties": {
-            "id": { "type": "string" },
-            "name": { "type": "string" }
-          },
-          "required": ["id", "name"]
-        },
-        "import_country": {
-          "type": "object",
-          "properties": {
-            "id": { "type": "string" },
-            "name": { "type": "string" }
-          },
-          "required": ["id", "name"]
-        },
-        "examination_event": {
-          "type": "object",
-          "properties": {
-            "occur_location_name": { "type": "string" }
-          },
-          "required": ["occur_location_name"]
+          }
         }
       },
-      "required": ["consignor_party", "consignee_party", "export_country", "import_country", "examination_event"]
+      "required": ["export_country_id", "import_country_id"]
     },
     "items": {
       "type": "array",
-      "minItems": 1,
       "items": {
         "type": "object",
         "properties": {
+          "sequence_no": { "type": "integer" },
+          "scient_name": { "type": ["string", "null"] },
           "intend_uses": {
-            "type": "array",
-            "minItems": 1
+            "type": "array"
           }
-        },
-        "required": ["intend_uses"]
+        }
       }
     }
   },
