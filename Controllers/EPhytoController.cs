@@ -31,24 +31,34 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
         [HttpPost("IPPC-ePhytoReexport")]
         public async Task<IActionResult> IppcEPhytoReexport([FromBody] JObject jsonData) => await ProcessEPhytoSubmission(jsonData, "IPPC_REEXPORT");
 
+        [HttpPost("IPPC-ePhytoToWithdraw")]
+        public async Task<IActionResult> IppcEPhytoToWithdraw([FromBody] JObject jsonData) => await ProcessEPhytoSubmission(jsonData, "IPPC_WITHDRAW");
+
         private async Task<IActionResult> ProcessEPhytoSubmission(JObject jsonData, string source)
         {
             try
             {
-                // Step 1: Validation (Fixed Build Error)
+                // Step 1: Validation (Using Reader to avoid extension method ambiguity)
                 string schemaPath = Path.Combine(_env.ContentRootPath, "Schemas", "ephyto_schema.json");
                 if (System.IO.File.Exists(schemaPath))
                 {
                     string schemaJson = await System.IO.File.ReadAllTextAsync(schemaPath);
                     JSchema schema = JSchema.Parse(schemaJson);
                     
-                    // ประกาศตัวแปรแยกเพื่อให้ Compiler ไม่สับสน
-                    IList<string> errorMessages;
-                    if (!jsonData.IsValid(schema, out errorMessages))
+                    IList<string> errorMessages = new List<string>();
+                    using (var reader = jsonData.CreateReader())
+                    using (var validatingReader = new JSchemaValidatingReader(reader))
+                    {
+                        validatingReader.Schema = schema;
+                        validatingReader.ValidationEventHandler += (o, a) => errorMessages.Add(a.Message);
+                        while (validatingReader.Read()) { }
+                    }
+
+                    if (errorMessages.Count > 0)
                         return BadRequest(new { status = "Validation Failed", errors = errorMessages });
                 }
 
-                // Step 2: Read Data
+                // Step 2: Extract Core Data
                 var docData = jsonData["xc_document"] as JObject;
                 var consignmentData = jsonData["consignment"] as JObject;
                 var itemsData = jsonData["items"] as JArray;
@@ -62,6 +72,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                 string docType = docData["doc_type"]?.ToString() ?? "";
                 string docStatus = docData["status_code"]?.ToString() ?? "";
 
+                // Duplicate Check
                 if (await _context.TabMessageThphytos.AnyAsync(t => t.DocId == docId && t.DocType == docType && t.DocStatus == docStatus))
                     return Conflict(new { status = "Duplicate", message = $"Document {docId} exists." });
 
@@ -77,7 +88,6 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                     ConsignorName = consignmentData["consignor_party"]?["name"]?.ToString() ?? "N/A",
                     ConsignorAddrLine1 = consignmentData["consignor_party"]?["adress_line1"]?.ToString(),
                     ConsignorAddrLine2 = (consignmentData["consignor_party"]?["addres_line2"] ?? consignmentData["consignor_party"]?["adress_line2"])?.ToString(),
-                    
                     ConsigneeName = consignmentData["consignee_party"]?["name"]?.ToString() ?? "N/A",
                     ConsigneeAddrLine1 = consignmentData["consignee_party"]?["adress_line1"]?.ToString(),
                     ConsigneeAddrLine2 = (consignmentData["consignee_party"]?["addres_line2"] ?? consignmentData["consignee_party"]?["adress_line2"])?.ToString(),
@@ -88,15 +98,28 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                     
                     AuthLocationName = docData["signatory_authen"]?["issue_location"]?.ToString(),
                     AuthProviderName = docData["signatory_authen"]?["provider_party"]?["name"]?.ToString(),
+                    AuthSpecifyPersonName = docData["signatory_authen"]?["provider_party"]?["specfied_person_name"]?.ToString(),
                     AuthActualDateTime = docData["signatory_authen"]?["actual_datetime"]?.ToString(),
 
                     ResponseStatus = "0101", TimeStamp = DateTime.Now, LastUpdate = DateTime.Now, QueueStatus = "IN-QUEUE"
                 };
                 _context.TabMessageThphytos.Add(thphyto);
 
-                // Step 4: Map Collections
+                // Step 4: Map Related Collections
                 
-                // Reference Documents & PDF
+                // 4.1 Header Notes
+                if (docData["include_notes"] is JArray headerNotes) {
+                    foreach (var hn in headerNotes) {
+                        var contents = hn["contents"] as JArray;
+                        string contentStr = "";
+                        if (contents != null) {
+                            contentStr = string.Join(", ", contents.Select(c => c is JObject ? (c["content"]?.ToString() ?? c.ToString()) : c.ToString()));
+                        }
+                        _context.TabMessageThphytoIncludedNotes.Add(new TabMessageThphytoIncludedNote { MessageId = msgId, Subject = hn["subject"]?.ToString() ?? "N/A", Content = contentStr, CreatedAt = DateTime.Now });
+                    }
+                }
+
+                // 4.2 Reference Documents & PDF
                 var allRefs = new List<JToken>();
                 if (docData["reference_docs"] is JArray rArr) allRefs.AddRange(rArr);
                 if (phytoCertsData != null) allRefs.AddRange(phytoCertsData);
@@ -109,49 +132,41 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                     });
                 }
 
-                // Extra Header Info
-                if (consignmentData["utilize_transport"] is JObject u) 
-                    _context.TabMessageThphytoUtilizeTransports.Add(new TabMessageThphytoUtilizeTransport { MessageId = msgId, SealNumber = u["seal_number"]?.ToString(), CreatedAt = DateTime.Now });
+                // 4.3 Extra Header Info
+                if (consignmentData["utilize_transport"] is JObject utilObj) 
+                    _context.TabMessageThphytoUtilizeTransports.Add(new TabMessageThphytoUtilizeTransport { MessageId = msgId, SealNumber = utilObj["seal_number"]?.ToString(), CreatedAt = DateTime.Now });
                 if (consignmentData["main_carriages"] is JArray mcs)
                     foreach (var mc in mcs) _context.TabMessageThphytoMainCarriages.Add(new TabMessageThphytoMainCarriage { MessageId = msgId, TransportModeCode = mc["mode_code"]?.ToString(), TransportMeanName = (mc["transport_mean_name"] ?? mc["trasport_mean_name"])?.ToString(), CreatedAt = DateTime.Now });
+                
+                // Comment out because table doesn't exist in DB: nsw_gwuat.tab_message_thphyto_included_clause
+                /*
+                if (docData["signatory_authen"]?["include_clauses"] is JArray clauses) {
+                    foreach (var cl in clauses) {
+                        int cid = cl is JObject ? (cl["id"]?.Value<int>() ?? 0) : (cl.Value<int>());
+                        if (cid > 0) _context.TabMessageThphytoIncludedClauses.Add(new TabMessageThphytoIncludedClause { MessageId = msgId, ClauseId = cid, CreatedAt = DateTime.Now });
+                    }
+                }
+                */
 
-                // Items Loop (With child value protection)
+                // Step 5: Items Loop
                 foreach (var jItm in itemsData) {
                     string itmId = Guid.NewGuid().ToString();
                     _context.TabMessageThphytoItems.Add(new TabMessageThphytoItem {
                         MessageId = msgId, ItemId = itmId, SequenceNo = jItm["sequence_no"]?.Value<int>() ?? 0, ProductScientName = jItm["scient_name"]?.ToString(), CreatedAt = DateTime.Now
                     });
 
-                    // Protective Mapping and Saving
                     if (jItm["descriptions"] is JArray ds) foreach (var d in ds) _context.TabMessageThphytoItemDescriptions.Add(new TabMessageThphytoItemDescription { MessageId = msgId, ItemId = itmId, ProductDescription = d is JObject ? d["name"]?.ToString() : d.ToString(), CreatedAt = DateTime.Now });
                     if (jItm["common_names"] is JArray cs) foreach (var c in cs) _context.TabMessageThphytoItemCommonNames.Add(new TabMessageThphytoItemCommonName { MessageId = msgId, ItemId = itmId, ProudctCommonName = c is JObject ? c["name"]?.ToString() : c.ToString(), CreatedAt = DateTime.Now });
-                    
-                    if (jItm["origin_countries"] is JArray ogns) 
-                        foreach (var o in ogns) _context.TabMessageThphytoItemOriginCountries.Add(new TabMessageThphytoItemOriginCountry { MessageId = msgId, ItemId = itmId, CountryId = o is JObject ? o["id"]?.ToString() ?? "" : o.ToString(), CountryName = o is JObject ? o["name"]?.ToString() : null, CreatedAt = DateTime.Now });
+                    if (jItm["origin_countries"] is JArray ogns) foreach (var o in ogns) _context.TabMessageThphytoItemOriginCountries.Add(new TabMessageThphytoItemOriginCountry { MessageId = msgId, ItemId = itmId, CountryId = o is JObject ? (o["id"]?.ToString() ?? "") : o.ToString(), CountryName = o is JObject ? o["name"]?.ToString() : null, CreatedAt = DateTime.Now });
+                    if (jItm["intend_uses"] is JArray uses) foreach (var useItem in uses) _context.TabMessageThphytoItemIntendeds.Add(new TabMessageThphytoItemIntended { MessageId = msgId, ItemId = itmId, ProductIntendUse = useItem is JObject ? useItem["name"]?.ToString() : useItem.ToString(), CreatedAt = DateTime.Now });
 
-                    // HS Code Protect
-                    if (jItm["applicable_classifications"] is JArray cls) {
-                        foreach (var c in cls) {
-                            var names = c["class_names"] as JArray;
-                            _context.TabMessageThphytoItemApplicableClassifications.Add(new TabMessageThphytoItemApplicableClassification {
-                                MessageId = msgId, ItemId = itmId, ApplicableId = Guid.NewGuid().ToString(), SystemName = c["system_name"]?.ToString(), ClassCode = c["class_code"]?.ToString(),
-                                ClassName = names != null ? string.Join(", ", names.Select(x => x is JObject ? x["class_name"]?.ToString() : x.ToString())) : "", CreatedAt = DateTime.Now
-                            });
-                        }
-                    }
-
-                    // Addtional Notes (Re-export 핵심)
                     if (jItm["additional_notes"] is JArray nts) {
                         foreach (var n in nts) {
                             string nid = Guid.NewGuid().ToString();
                             _context.TabMessageThphytoItemAdditionalNotes.Add(new TabMessageThphytoItemAdditionalNote { MessageId = msgId, ItemId = itmId, AdditionalNoteId = nid, Subject = n["subject"]?.ToString() ?? "N/A", CreatedAt = DateTime.Now });
-                            
-                            var contents = n["contents"] as JArray;
-                            if (contents != null) {
-                                foreach (var c in contents) _context.TabMessageThphytoItemAdditionalNoteContents.Add(new TabMessageThphytoItemAdditionalNoteContent { MessageId = msgId, ItemId = itmId, AdditionalNoteId = nid, NoteContent = c is JObject ? c["content"]?.ToString() : c.ToString(), CreatedAt = DateTime.Now });
-                            } else if (n["content"] != null) {
-                                _context.TabMessageThphytoItemAdditionalNoteContents.Add(new TabMessageThphytoItemAdditionalNoteContent { MessageId = msgId, ItemId = itmId, AdditionalNoteId = nid, NoteContent = n["content"]?.ToString(), CreatedAt = DateTime.Now });
-                            }
+                            var cnts = n["contents"] as JArray;
+                            if (cnts != null) foreach (var c in cnts) _context.TabMessageThphytoItemAdditionalNoteContents.Add(new TabMessageThphytoItemAdditionalNoteContent { MessageId = msgId, ItemId = itmId, AdditionalNoteId = nid, NoteContent = c is JObject ? (c["content"]?.ToString() ?? c.ToString()) : c.ToString(), CreatedAt = DateTime.Now });
+                            else if (n["content"] != null) _context.TabMessageThphytoItemAdditionalNoteContents.Add(new TabMessageThphytoItemAdditionalNoteContent { MessageId = msgId, ItemId = itmId, AdditionalNoteId = nid, NoteContent = n["content"]?.ToString(), CreatedAt = DateTime.Now });
                         }
                     }
                 }
