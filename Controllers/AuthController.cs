@@ -20,8 +20,12 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
         [HttpPost("login-mockup")]
         public IActionResult Login([FromBody] LoginModel model)
         {
-            // 1. Mockup User Validation
-            if (model.Username == "admin" && model.Password == "password1234")
+            // 1. Validate User from AppSettings
+            var authSettings = _configuration.GetSection("AuthCredentials");
+            var validUser = authSettings["Username"];
+            var validPass = authSettings["Password"];
+
+            if (model.Username == validUser && model.Password == validPass)
             {
                 // 2. Generate Token
                 var token = GenerateJwtToken(model.Username);
@@ -30,6 +34,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
 
             return Unauthorized(new { message = "Invalid credentials" });
         }
+
+
 
 
 

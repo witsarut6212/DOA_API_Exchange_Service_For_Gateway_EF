@@ -90,6 +90,30 @@ builder.Services.AddSwaggerGen(options =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+
+// Global Error Handling Middleware
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next();
+    }
+    catch (Exception ex)
+    {
+        // Check for Database Connection Errors (MySqlException or similar)
+        if (ex.InnerException is MySqlConnector.MySqlException || ex.Message.Contains("connect"))
+        {
+            context.Response.StatusCode = 500;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync("{\"status\":\"Error\", \"message\":\"Cannot connect to database\"}");
+        }
+        else
+        {
+            throw; // Re-throw other exceptions to be handled by developer exception page or loggers
+        }
+    }
+});
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
