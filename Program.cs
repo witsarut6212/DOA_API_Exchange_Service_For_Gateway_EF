@@ -8,7 +8,7 @@ builder.Services.AddControllers()
     .AddNewtonsoftJson(); // Support for Newtonsoft.Json (JObject)
 
 // Configure MySQL with Entity Framework
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = builder.Configuration.GetConnectionString("MySQL");
 builder.Services.AddDbContext<DOA_API_Exchange_Service_For_Gateway.Data.AppDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 

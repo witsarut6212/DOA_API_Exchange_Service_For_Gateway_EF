@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using DOA_API_Exchange_Service_For_Gateway.Models.Entities;
 using Microsoft.EntityFrameworkCore;
-using Pomelo.EntityFrameworkCore.MySql.Scaffolding.Internal;
 
 namespace DOA_API_Exchange_Service_For_Gateway.Data;
 
@@ -64,10 +63,6 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<TabMessageThphytoUtilizeTransport> TabMessageThphytoUtilizeTransports { get; set; }
 
     public virtual DbSet<TabMessageThphytoXml> TabMessageThphytoXmls { get; set; }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseMySql("server=localhost;port=3306;database=nsw_gwuat;uid=root;pwd=rootpassword", Microsoft.EntityFrameworkCore.ServerVersion.Parse("8.0.45-mysql"));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
