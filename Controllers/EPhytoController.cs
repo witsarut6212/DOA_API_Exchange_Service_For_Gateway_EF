@@ -9,6 +9,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Microsoft.AspNetCore.Authorization.Authorize]
     public class EPhytoController : ControllerBase
     {
         private readonly AppDbContext _context;
