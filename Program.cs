@@ -6,17 +6,18 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddControllers()
     .AddNewtonsoftJson(); // Support for Newtonsoft.Json (JObject)
 
-// Configure MySQL with Entity Framework
 var connectionString = builder.Configuration.GetConnectionString("MySQL");
 builder.Services.AddDbContext<DOA_API_Exchange_Service_For_Gateway.Data.AppDbContext>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+    options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 21)),
+        mySqlOptions => mySqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 1,  // Retry 1 time only
+            maxRetryDelay: TimeSpan.FromSeconds(1),  // Wait 1 sec before retry
+            errorNumbersToAdd: null
+        )));
 
-// Configure JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var secretKey = jwtSettings["SecretKey"];
 var key = Encoding.ASCII.GetBytes(secretKey);
@@ -43,7 +44,6 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// Add Swagger/OpenAPI services
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -57,8 +57,6 @@ builder.Services.AddSwaggerGen(options =>
             Name = "DOA Team"
         }
     });
-
-    // Add JWT Authentication to Swagger
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 12345abcdef\"",
@@ -67,7 +65,6 @@ builder.Services.AddSwaggerGen(options =>
         Type = SecuritySchemeType.ApiKey,
         Scheme = "Bearer"
     });
-
     options.AddSecurityRequirement(new OpenApiSecurityRequirement()
     {
         {
@@ -89,9 +86,7 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-
-// Global Error Handling Middleware
+// Global Error Handling Middleware (MUST BE FIRST)
 app.Use(async (context, next) =>
 {
     try
@@ -100,16 +95,16 @@ app.Use(async (context, next) =>
     }
     catch (Exception ex)
     {
-        // Check for Database Connection Errors (MySqlException or similar)
-        if (ex.InnerException is MySqlConnector.MySqlException || ex.Message.Contains("connect"))
+
+        if (ex.InnerException is MySqlConnector.MySqlException || ex.Message.Contains("connect") || ex.Message.ToLower().Contains("access denied") || ex.Message.ToLower().Contains("transient"))
         {
-            context.Response.StatusCode = 500;
+            context.Response.StatusCode = 503; // Service Unavailable
             context.Response.ContentType = "application/json";
             await context.Response.WriteAsync("{\"status\":\"Error\", \"message\":\"Cannot connect to database\"}");
         }
         else
         {
-            throw; // Re-throw other exceptions to be handled by developer exception page or loggers
+            throw;
         }
     }
 });
@@ -120,13 +115,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(options =>
     {
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "DOA API v1");
-        options.RoutePrefix = "swagger"; // เข้าถึงได้ที่ /swagger
+        options.RoutePrefix = "swagger";
     });
 }
 
 app.UseHttpsRedirection();
-
-// Enable Authentication BEFORE Authorization
 app.UseAuthentication();
 app.UseAuthorization();
 
