@@ -181,8 +181,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
         }
 
         // Helper Function: ป้องกันการ Crash จาก JValue
-        private string SafeGet(JToken token, string key) {
-            if (token == null || !(token is JObject obj)) return null;
+        private string? SafeGet(JToken? token, string key) {
+            if (token == null || token.Type == JTokenType.Null || !(token is JObject obj)) return null;
             return obj[key]?.ToString();
         }
 

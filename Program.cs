@@ -19,7 +19,7 @@ builder.Services.AddDbContext<DOA_API_Exchange_Service_For_Gateway.Data.AppDbCon
         )));
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-var secretKey = jwtSettings["SecretKey"];
+var secretKey = jwtSettings["SecretKey"] ?? "default_secret_key_at_least_32_chars_long";
 var key = Encoding.ASCII.GetBytes(secretKey);
 
 builder.Services.AddAuthentication(options =>
