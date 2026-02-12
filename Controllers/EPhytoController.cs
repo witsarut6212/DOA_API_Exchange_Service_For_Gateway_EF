@@ -70,8 +70,20 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                 string docType = SafeGet(docData, "doc_type") ?? "";
                 string docStatus = SafeGet(docData, "status_code") ?? "";
 
-                if (await _context.TabMessageThphytos.AnyAsync(t => t.DocId == docId && t.DocType == docType && t.DocStatus == docStatus))
-                    return Conflict(new { status = "Duplicate", message = $"Document {docId} exists." });
+                try
+                {
+                    if (await _context.TabMessageThphytos.AnyAsync(t => t.DocId == docId && t.DocType == docType && t.DocStatus == docStatus))
+                        return Conflict(new { status = "Duplicate", message = $"Document {docId} exists." });
+                }
+                catch (Exception ex)
+                {
+                    // ถ้าพังเพราะต่อ DB ไม่ได้ (มีคำว่า transient หรือ connect) ให้ตอบ 503 เลย
+                    if (ex.Message.ToLower().Contains("transient") || ex.Message.ToLower().Contains("connect") || ex.InnerException?.Message.ToLower().Contains("connect") == true)
+                    {
+                        return StatusCode(503, new { status = "Error", message = "Cannot connect to database" });
+                    }
+                    throw; // ถ้าเป็น Error อื่นให้ระเบิดออกไปตามปกติ
+                }
 
                 // Step 3: Main Mapping (Using SafeGet for everything)
                 var thphyto = new TabMessageThphyto
