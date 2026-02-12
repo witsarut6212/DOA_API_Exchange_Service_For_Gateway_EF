@@ -96,7 +96,11 @@ app.Use(async (context, next) =>
     catch (Exception ex)
     {
 
-        if (ex.InnerException is MySqlConnector.MySqlException || ex.Message.Contains("connect") || ex.Message.ToLower().Contains("access denied") || ex.Message.ToLower().Contains("transient"))
+        if (ex.InnerException is MySqlConnector.MySqlException 
+            || ex is Microsoft.EntityFrameworkCore.Storage.RetryLimitExceededException
+            || ex.Message.Contains("connect") 
+            || ex.Message.ToLower().Contains("access denied") 
+            || ex.Message.ToLower().Contains("transient"))
         {
             context.Response.StatusCode = 503; // Service Unavailable
             context.Response.ContentType = "application/json";

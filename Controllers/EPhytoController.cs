@@ -162,6 +162,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                 // ถ้าเป็น Database Error ให้ Throw ไปให้ Middleware จัดการ (เพื่อตอบ 503)
                 if (ex.InnerException is MySqlConnector.MySqlException 
                     || ex is DbUpdateException 
+                    || ex is Microsoft.EntityFrameworkCore.Storage.RetryLimitExceededException
                     || ex.Message.ToLower().Contains("connect")
                     || ex.Message.ToLower().Contains("access denied")
                     || ex.Message.ToLower().Contains("transient")
