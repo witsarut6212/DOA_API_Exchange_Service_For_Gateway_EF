@@ -25,7 +25,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
             var validUser = authSettings["Username"];
             var validPass = authSettings["Password"];
 
-            if (model.Username == validUser && model.Password == validPass)
+            if (validUser != null && validPass != null && model.Username == validUser && model.Password == validPass)
             {
                 // 2. Generate Token
                 var token = GenerateJwtToken(model.Username);
@@ -42,7 +42,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
         private string GenerateJwtToken(string username)
         {
             var jwtSettings = _configuration.GetSection("JwtSettings");
-            var key = Encoding.ASCII.GetBytes(jwtSettings["SecretKey"]);
+            var secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JWT SecretKey is not configured.");
+            var key = Encoding.ASCII.GetBytes(secretKey);
 
             var tokenHandler = new JwtSecurityTokenHandler();
             var tokenDescriptor = new SecurityTokenDescriptor
@@ -65,7 +66,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
 
     public class LoginModel
     {
-        public string Username { get; set; }
-        public string Password { get; set; }
+        public string Username { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
     }
 }

@@ -4,11 +4,13 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers()
     .AddNewtonsoftJson(); // Support for Newtonsoft.Json (JObject)
 
+// Configure MySQL with Entity Framework (with Retry for Transient Failures)
 var connectionString = builder.Configuration.GetConnectionString("MySQL");
 builder.Services.AddDbContext<DOA_API_Exchange_Service_For_Gateway.Data.AppDbContext>(options =>
     options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 21)),

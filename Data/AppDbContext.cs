@@ -16,53 +16,53 @@ public partial class AppDbContext : DbContext
     {
     }
 
-    public virtual DbSet<TabMessageThphyto> TabMessageThphytos { get; set; }
+    public virtual DbSet<TabMessageThphyto> TabMessageThphytos { get; set; } = null!;
 
-    public virtual DbSet<TabMessageThphytoIncludedClause> TabMessageThphytoIncludedClauses { get; set; }
+    public virtual DbSet<TabMessageThphytoIncludedClause> TabMessageThphytoIncludedClauses { get; set; } = null!;
 
-    public virtual DbSet<TabMessageThphytoIncludedNote> TabMessageThphytoIncludedNotes { get; set; }
+    public virtual DbSet<TabMessageThphytoIncludedNote> TabMessageThphytoIncludedNotes { get; set; } = null!;
 
-    public virtual DbSet<TabMessageThphytoItem> TabMessageThphytoItems { get; set; }
+    public virtual DbSet<TabMessageThphytoItem> TabMessageThphytoItems { get; set; } = null!;
 
-    public virtual DbSet<TabMessageThphytoItemAdditionalNote> TabMessageThphytoItemAdditionalNotes { get; set; }
+    public virtual DbSet<TabMessageThphytoItemAdditionalNote> TabMessageThphytoItemAdditionalNotes { get; set; } = null!;
 
-    public virtual DbSet<TabMessageThphytoItemAdditionalNoteContent> TabMessageThphytoItemAdditionalNoteContents { get; set; }
+    public virtual DbSet<TabMessageThphytoItemAdditionalNoteContent> TabMessageThphytoItemAdditionalNoteContents { get; set; } = null!;
 
-    public virtual DbSet<TabMessageThphytoItemApplicableClassification> TabMessageThphytoItemApplicableClassifications { get; set; }
+    public virtual DbSet<TabMessageThphytoItemApplicableClassification> TabMessageThphytoItemApplicableClassifications { get; set; } = null!;
 
-    public virtual DbSet<TabMessageThphytoItemCommonName> TabMessageThphytoItemCommonNames { get; set; }
+    public virtual DbSet<TabMessageThphytoItemCommonName> TabMessageThphytoItemCommonNames { get; set; } = null!;
 
-    public virtual DbSet<TabMessageThphytoItemDescription> TabMessageThphytoItemDescriptions { get; set; }
+    public virtual DbSet<TabMessageThphytoItemDescription> TabMessageThphytoItemDescriptions { get; set; } = null!;
 
-    public virtual DbSet<TabMessageThphytoItemIntended> TabMessageThphytoItemIntendeds { get; set; }
+    public virtual DbSet<TabMessageThphytoItemIntended> TabMessageThphytoItemIntendeds { get; set; } = null!;
 
-    public virtual DbSet<TabMessageThphytoItemOriginCountry> TabMessageThphytoItemOriginCountries { get; set; }
+    public virtual DbSet<TabMessageThphytoItemOriginCountry> TabMessageThphytoItemOriginCountries { get; set; } = null!;
 
-    public virtual DbSet<TabMessageThphytoItemPhysicalPackage> TabMessageThphytoItemPhysicalPackages { get; set; }
+    public virtual DbSet<TabMessageThphytoItemPhysicalPackage> TabMessageThphytoItemPhysicalPackages { get; set; } = null!;
 
-    public virtual DbSet<TabMessageThphytoItemProcess> TabMessageThphytoItemProcesses { get; set; }
+    public virtual DbSet<TabMessageThphytoItemProcess> TabMessageThphytoItemProcesses { get; set; } = null!;
 
-    public virtual DbSet<TabMessageThphytoItemProcessCharacteristic> TabMessageThphytoItemProcessCharacteristics { get; set; }
+    public virtual DbSet<TabMessageThphytoItemProcessCharacteristic> TabMessageThphytoItemProcessCharacteristics { get; set; } = null!;
 
-    public virtual DbSet<TabMessageThphytoItemTransport> TabMessageThphytoItemTransports { get; set; }
+    public virtual DbSet<TabMessageThphytoItemTransport> TabMessageThphytoItemTransports { get; set; } = null!;
 
-    public virtual DbSet<TabMessageThphytoItemTransportEquipment> TabMessageThphytoItemTransportEquipments { get; set; }
+    public virtual DbSet<TabMessageThphytoItemTransportEquipment> TabMessageThphytoItemTransportEquipments { get; set; } = null!;
 
-    public virtual DbSet<TabMessageThphytoMainCarriage> TabMessageThphytoMainCarriages { get; set; }
+    public virtual DbSet<TabMessageThphytoMainCarriage> TabMessageThphytoMainCarriages { get; set; } = null!;
 
-    public virtual DbSet<TabMessageThphytoReferenceDoc> TabMessageThphytoReferenceDocs { get; set; }
+    public virtual DbSet<TabMessageThphytoReferenceDoc> TabMessageThphytoReferenceDocs { get; set; } = null!;
 
-    public virtual DbSet<TabMessageThphytoResponse> TabMessageThphytoResponses { get; set; }
+    public virtual DbSet<TabMessageThphytoResponse> TabMessageThphytoResponses { get; set; } = null!;
 
-    public virtual DbSet<TabMessageThphytoResponseReason> TabMessageThphytoResponseReasons { get; set; }
+    public virtual DbSet<TabMessageThphytoResponseReason> TabMessageThphytoResponseReasons { get; set; } = null!;
 
-    public virtual DbSet<TabMessageThphytoResponseRemark> TabMessageThphytoResponseRemarks { get; set; }
+    public virtual DbSet<TabMessageThphytoResponseRemark> TabMessageThphytoResponseRemarks { get; set; } = null!;
 
-    public virtual DbSet<TabMessageThphytoTransitCountry> TabMessageThphytoTransitCountries { get; set; }
+    public virtual DbSet<TabMessageThphytoTransitCountry> TabMessageThphytoTransitCountries { get; set; } = null!;
 
-    public virtual DbSet<TabMessageThphytoUtilizeTransport> TabMessageThphytoUtilizeTransports { get; set; }
+    public virtual DbSet<TabMessageThphytoUtilizeTransport> TabMessageThphytoUtilizeTransports { get; set; } = null!;
 
-    public virtual DbSet<TabMessageThphytoXml> TabMessageThphytoXmls { get; set; }
+    public virtual DbSet<TabMessageThphytoXml> TabMessageThphytoXmls { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
