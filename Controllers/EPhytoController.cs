@@ -189,11 +189,6 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
             if (token == null || token.Type == JTokenType.Null || !(token is JObject obj)) return null;
             return obj[key]?.ToString();
         }
-
-        [HttpGet("document/{docId}")]
-        public async Task<IActionResult> GetDocument(string docId) {
-            var doc = await _context.TabMessageThphytos.FirstOrDefaultAsync(d => d.DocId == docId);
-            return doc != null ? Ok(doc) : NotFound();
         }
     }
 }
