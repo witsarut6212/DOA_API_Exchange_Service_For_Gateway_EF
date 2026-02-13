@@ -11,7 +11,10 @@ using Newtonsoft.Json.Serialization;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers()
-    .AddNewtonsoftJson(); 
+    .AddNewtonsoftJson(options =>
+    {
+        options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+    }); 
 
 var connectionString = builder.Configuration.GetConnectionString("MySQL");
 builder.Services.AddDbContext<DOA_API_Exchange_Service_For_Gateway.Data.AppDbContext>(options =>
@@ -161,6 +164,35 @@ app.Use(async (context, next) =>
             };
             await context.Response.WriteAsync(JsonConvert.SerializeObject(response, jsonSettings));
         }
+    }
+});
+
+app.Use(async (context, next) =>
+{
+    await next();
+    if (context.Response.StatusCode == 404 && !context.Response.HasStarted)
+    {
+        var config = context.RequestServices.GetRequiredService<IConfiguration>();
+        var title = config["ReponseTitle:Title"] ?? "API Exchange Service For Gateway";
+
+        var response = new ApiResponse<object>
+        {
+            Info = new ApiInfo
+            {
+                Title = title,
+                Detail = "File not found.",
+                SystemCode = 404
+            },
+            Error = new ApiError
+            {
+                TraceId = context.TraceIdentifier,
+                Instance = context.Request.Path
+            }
+        };
+
+        context.Response.ContentType = "application/json";
+        var jsonSettings = new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() };
+        await context.Response.WriteAsync(JsonConvert.SerializeObject(response, jsonSettings));
     }
 });
 

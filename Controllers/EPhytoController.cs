@@ -47,15 +47,36 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                 {
                     string schemaJson = await System.IO.File.ReadAllTextAsync(schemaPath);
                     JSchema schema = JSchema.Parse(schemaJson);
-                    IList<string> errorMessages = new List<string>();
+                    var validations = new List<ApiValidation>();
                     using (var reader = jsonData.CreateReader())
                     using (var validatingReader = new JSchemaValidatingReader(reader))
                     {
                         validatingReader.Schema = schema;
-                        validatingReader.ValidationEventHandler += (o, a) => errorMessages.Add(a.Message);
+                        validatingReader.ValidationEventHandler += (o, a) => 
+                        {
+                            string fieldPath = a.Path;
+                            validations.Add(new ApiValidation { Field = fieldPath, Description = a.Message });
+                        };
                         while (validatingReader.Read()) { }
                     }
-                    if (errorMessages.Count > 0) return BadRequest(new { status = "Validation Failed", errors = errorMessages });
+                    if (validations.Count > 0) 
+                    {
+                        return StatusCode(422, new ApiResponse<object>
+                        {
+                            Info = new ApiInfo
+                            {
+                                Title = _configuration["ReponseTitle:Title"] ?? "API Exchange Service For Gateway",
+                                Detail = "One or more field validation failed.",
+                                Status = 422
+                            },
+                            Validations = validations,
+                            Error = new ApiError
+                            {
+                                TraceId = HttpContext.TraceIdentifier,
+                                Instance = HttpContext.Request.Path
+                            }
+                        });
+                    }
                 }
 
                 var docData = jsonData["xc_document"] as JObject;
@@ -64,7 +85,22 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                 var phytoCertsData = jsonData["phytoCerts"] as JArray;
 
                 if (docData == null || consignmentData == null || itemsData == null)
-                    return BadRequest(new { message = "Missing core objects" });
+                {
+                    return BadRequest(new ApiResponse<object>
+                    {
+                        Info = new ApiInfo
+                        {
+                            Title = _configuration["ReponseTitle:Title"] ?? "API Exchange Service For Gateway",
+                            Detail = "Missing core objects (xc_document, consignment, or items)",
+                            SystemCode = 400
+                        },
+                        Error = new ApiError
+                        {
+                            TraceId = HttpContext.TraceIdentifier,
+                            Instance = HttpContext.Request.Path
+                        }
+                    });
+                }
 
                 string msgId = Guid.NewGuid().ToString();
                 string docId = SafeGet(docData, "doc_id") ?? "";
@@ -88,6 +124,11 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                             Data = new Dictionary<string, string>
                             {
                                 { phytoTo.ToUpper(), phytoTo.ToLower() + docId }
+                            },
+                            Error = new ApiError
+                            {
+                                TraceId = HttpContext.TraceIdentifier,
+                                Instance = HttpContext.Request.Path
                             }
                         });
                     }
@@ -103,6 +144,11 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                                 Title = _configuration["ReponseTitle:Title"] ?? "API Exchange Service For Gateway",
                                 Detail = "Cannot connect to database",
                                 SystemCode = 503
+                            },
+                            Error = new ApiError
+                            {
+                                TraceId = HttpContext.TraceIdentifier,
+                                Instance = HttpContext.Request.Path
                             }
                         });
                     }
