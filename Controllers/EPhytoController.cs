@@ -4,6 +4,7 @@ using Newtonsoft.Json.Schema;
 using DOA_API_Exchange_Service_For_Gateway.Data;
 using DOA_API_Exchange_Service_For_Gateway.Models.Entities;
 using Microsoft.EntityFrameworkCore;
+using DOA_API_Exchange_Service_For_Gateway.Models;
 
 namespace DOA_API_Exchange_Service_For_Gateway.Controllers
 {
@@ -15,12 +16,14 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
         private readonly AppDbContext _context;
         private readonly IWebHostEnvironment _env;
         private readonly ILogger<EPhytoController> _logger;
+        private readonly IConfiguration _configuration;
 
-        public EPhytoController(AppDbContext context, IWebHostEnvironment env, ILogger<EPhytoController> logger)
+        public EPhytoController(AppDbContext context, IWebHostEnvironment env, ILogger<EPhytoController> logger, IConfiguration configuration)
         {
             _context = context;
             _env = env;
             _logger = logger;
+            _configuration = configuration;
         }
 
         [HttpPost("ASW-ePhytoNormal")]
@@ -68,16 +71,40 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                 string docType = SafeGet(docData, "doc_type") ?? "";
                 string docStatus = SafeGet(docData, "status_code") ?? "";
 
+                string phytoTo = source.Contains("_") ? source.Split('_')[0] : source;
+
                 try
                 {
                     if (await _context.TabMessageThphytos.AnyAsync(t => t.DocId == docId && t.DocType == docType && t.DocStatus == docStatus))
-                        return Conflict(new { status = "Duplicate", message = $"Document {docId} exists." });
+                    {
+                        return Conflict(new ApiResponse<object>
+                        {
+                            Info = new ApiInfo
+                            {
+                                Title = _configuration["ReponseTitle:Title"] ?? "API Exchange Service For Gateway",
+                                Detail = $"Document {docId} exists.",
+                                SystemCode = 409
+                            },
+                            Data = new Dictionary<string, string>
+                            {
+                                { phytoTo.ToUpper(), phytoTo.ToLower() + docId }
+                            }
+                        });
+                    }
                 }
                 catch (Exception ex)
                 {
                     if (ex.Message.ToLower().Contains("transient") || ex.Message.ToLower().Contains("connect") || ex.InnerException?.Message.ToLower().Contains("connect") == true)
                     {
-                        return StatusCode(503, new { status = "Error", message = "Cannot connect to database" });
+                        return StatusCode(503, new ApiResponse<object>
+                        {
+                            Info = new ApiInfo
+                            {
+                                Title = _configuration["ReponseTitle:Title"] ?? "API Exchange Service For Gateway",
+                                Detail = "Cannot connect to database",
+                                SystemCode = 503
+                            }
+                        });
                     }
                     throw;
                 }
@@ -161,34 +188,73 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                 }
 
                 await _context.SaveChangesAsync();
-                return Ok(new { status = "Success", messageId = msgId, docId = docId });
+                string key = phytoTo.ToUpper();
+                string value = phytoTo.ToLower() + docId;
+
+                return Ok(new ApiResponse<object>
+                {
+                    Info = new ApiInfo
+                    {
+                        Title = _configuration["ReponseTitle:Title"] ?? "API Exchange Service For Gateway",
+                        Detail = "Upload ไฟล์ด้วย Base64 สำเร็จ",
+                        SystemCode = 200
+                    },
+                    Data = new Dictionary<string, string>
+                    {
+                        { key, value }
+                    }
+                });
             }
             catch (Exception ex)
             {
+                var title = _configuration["ReponseTitle:Title"] ?? "API Exchange Service For Gateway";
+                if (ex.Message.ToLower().Contains("transient") || ex.Message.ToLower().Contains("connect") || ex.InnerException?.Message.ToLower().Contains("connect") == true)
+                {
+                    return StatusCode(503, new ApiResponse<object>
+                    {
+                        Info = new ApiInfo
+                        {
+                            Title = title,
+                            Detail = "Cannot connect to database",
+                            SystemCode = 503
+                        },
+                        Error = new ApiError
+                        {
+                            TraceId = HttpContext.TraceIdentifier,
+                            Instance = HttpContext.Request.Path
+                        }
+                    });
+                }
+
                 if (ex.InnerException is MySqlConnector.MySqlException 
                     || ex is DbUpdateException 
                     || ex is Microsoft.EntityFrameworkCore.Storage.RetryLimitExceededException
-                    || ex.Message.ToLower().Contains("connect")
                     || ex.Message.ToLower().Contains("access denied")
-                    || ex.Message.ToLower().Contains("transient")
                     || (ex is InvalidOperationException && ex.Message.ToLower().Contains("resiliency")))
                 {
                     throw; 
                 }
 
                 _logger.LogError(ex, "E-Phyto Submission Error");
-                return StatusCode(500, new { 
-                    status = "Error", 
-                    message = ex.Message, 
-                    details = ex.InnerException?.Message,
-                    stackTrace = ex.StackTrace
+                return StatusCode(500, new ApiResponse<object>
+                {
+                    Info = new ApiInfo
+                    {
+                        Title = title,
+                        Detail = "The application process unsuccessful.",
+                        SystemCode = 580
+                    },
+                    Error = new ApiError
+                    {
+                        TraceId = HttpContext.TraceIdentifier,
+                        Instance = HttpContext.Request.Path
+                    }
                 });
             }
         }
         private string? SafeGet(JToken? token, string key) {
             if (token == null || token.Type == JTokenType.Null || !(token is JObject obj)) return null;
             return obj[key]?.ToString();
-        }
         }
     }
 }

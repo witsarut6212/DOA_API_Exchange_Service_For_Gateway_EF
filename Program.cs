@@ -3,20 +3,22 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
+using DOA_API_Exchange_Service_For_Gateway.Models;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers()
-    .AddNewtonsoftJson(); // Support for Newtonsoft.Json (JObject)
+    .AddNewtonsoftJson(); 
 
-// Configure MySQL with Entity Framework (with Retry for Transient Failures)
 var connectionString = builder.Configuration.GetConnectionString("MySQL");
 builder.Services.AddDbContext<DOA_API_Exchange_Service_For_Gateway.Data.AppDbContext>(options =>
     options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 21)),
         mySqlOptions => mySqlOptions.EnableRetryOnFailure(
-            maxRetryCount: 1,  // Retry 1 time only
-            maxRetryDelay: TimeSpan.FromSeconds(1),  // Wait 1 sec before retry
+            maxRetryCount: 1,  
+            maxRetryDelay: TimeSpan.FromSeconds(1),  
             errorNumbersToAdd: null
         )));
 
@@ -31,7 +33,7 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    options.RequireHttpsMetadata = false; // Set to true in production
+    options.RequireHttpsMetadata = false; 
     options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
@@ -88,7 +90,6 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-// Global Error Handling Middleware (MUST BE FIRST)
 app.Use(async (context, next) =>
 {
     try
@@ -104,13 +105,61 @@ app.Use(async (context, next) =>
             || ex.Message.ToLower().Contains("access denied") 
             || ex.Message.ToLower().Contains("transient"))
         {
-            context.Response.StatusCode = 503; // Service Unavailable
+            var config = context.RequestServices.GetRequiredService<IConfiguration>();
+            var title = config["ReponseTitle:Title"] ?? "API Exchange Service For Gateway";
+
+            var response = new ApiResponse<object>
+            {
+                Info = new ApiInfo
+                {
+                    Title = title,
+                    Detail = "Cannot connect to database",
+                    SystemCode = 503
+                },
+                Error = new ApiError
+                {
+                    TraceId = context.TraceIdentifier,
+                    Instance = context.Request.Path
+                }
+            };
+
+            context.Response.StatusCode = 503;
             context.Response.ContentType = "application/json";
-            await context.Response.WriteAsync("{\"status\":\"Error\", \"message\":\"Cannot connect to database\"}");
+
+            var jsonSettings = new JsonSerializerSettings 
+            { 
+                ContractResolver = new CamelCasePropertyNamesContractResolver() 
+            };
+            await context.Response.WriteAsync(JsonConvert.SerializeObject(response, jsonSettings));
         }
         else
         {
-            throw;
+            var config = context.RequestServices.GetRequiredService<IConfiguration>();
+            var title = config["ReponseTitle:Title"] ?? "API Exchange Service For Gateway";
+
+            var response = new ApiResponse<object>
+            {
+                Info = new ApiInfo
+                {
+                    Title = title,
+                    Detail = "The application process unsuccessful.",
+                    SystemCode = 580
+                },
+                Error = new ApiError
+                {
+                    TraceId = context.TraceIdentifier,
+                    Instance = context.Request.Path
+                }
+            };
+
+            context.Response.StatusCode = 500;
+            context.Response.ContentType = "application/json";
+
+            var jsonSettings = new JsonSerializerSettings 
+            { 
+                ContractResolver = new CamelCasePropertyNamesContractResolver() 
+            };
+            await context.Response.WriteAsync(JsonConvert.SerializeObject(response, jsonSettings));
         }
     }
 });
