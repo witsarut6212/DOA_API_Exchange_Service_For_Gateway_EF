@@ -20,14 +20,12 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
         [HttpPost("login-mockup")]
         public IActionResult Login([FromBody] LoginModel model)
         {
-            // 1. Validate User from AppSettings
             var authSettings = _configuration.GetSection("AuthCredentials");
             var validUser = authSettings["Username"];
             var validPass = authSettings["Password"];
 
             if (validUser != null && validPass != null && model.Username == validUser && model.Password == validPass)
             {
-                // 2. Generate Token
                 var token = GenerateJwtToken(model.Username);
                 return Ok(new { token });
             }
@@ -53,7 +51,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                     new Claim(ClaimTypes.Name, username),
                     new Claim(ClaimTypes.Role, "Admin")
                 }),
-                Expires = DateTime.UtcNow.AddHours(1), // Token อายุ 1 ชม.
+                Expires = DateTime.UtcNow.AddHours(1),
                 Issuer = jwtSettings["Issuer"],
                 Audience = jwtSettings["Audience"],
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)

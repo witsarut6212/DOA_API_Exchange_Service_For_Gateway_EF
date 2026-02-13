@@ -39,7 +39,6 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
         {
             try
             {
-                // Step 1: Validation
                 string schemaPath = Path.Combine(_env.ContentRootPath, "Schemas", "ephyto_schema.json");
                 if (System.IO.File.Exists(schemaPath))
                 {
@@ -56,7 +55,6 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                     if (errorMessages.Count > 0) return BadRequest(new { status = "Validation Failed", errors = errorMessages });
                 }
 
-                // Step 2: Extract Core Data
                 var docData = jsonData["xc_document"] as JObject;
                 var consignmentData = jsonData["consignment"] as JObject;
                 var itemsData = jsonData["items"] as JArray;
@@ -77,15 +75,13 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                 }
                 catch (Exception ex)
                 {
-                    // ถ้าพังเพราะต่อ DB ไม่ได้ (มีคำว่า transient หรือ connect) ให้ตอบ 503 เลย
                     if (ex.Message.ToLower().Contains("transient") || ex.Message.ToLower().Contains("connect") || ex.InnerException?.Message.ToLower().Contains("connect") == true)
                     {
                         return StatusCode(503, new { status = "Error", message = "Cannot connect to database" });
                     }
-                    throw; // ถ้าเป็น Error อื่นให้ระเบิดออกไปตามปกติ
+                    throw;
                 }
 
-                // Step 3: Main Mapping (Using SafeGet for everything)
                 var thphyto = new TabMessageThphyto
                 {
                     MessageId = msgId, MessageStatus = "NEW", PhytoTo = source,
@@ -111,7 +107,6 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                 };
                 _context.TabMessageThphytos.Add(thphyto);
 
-                // Step 4: Collections (Deep Safety)
                 if (docData["include_notes"] is JArray headerNotes) {
                     foreach (var hn in headerNotes) {
                         if (hn is JObject hnObj) {
@@ -145,7 +140,6 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                     }
                 }
 
-                // Step 5: Items Loop
                 foreach (var jItm in itemsData) {
                     if (jItm is JObject itmObj) {
                         string itmId = Guid.NewGuid().ToString();
@@ -171,7 +165,6 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
             }
             catch (Exception ex)
             {
-                // ถ้าเป็น Database Error ให้ Throw ไปให้ Middleware จัดการ (เพื่อตอบ 503)
                 if (ex.InnerException is MySqlConnector.MySqlException 
                     || ex is DbUpdateException 
                     || ex is Microsoft.EntityFrameworkCore.Storage.RetryLimitExceededException
@@ -188,12 +181,10 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                     status = "Error", 
                     message = ex.Message, 
                     details = ex.InnerException?.Message,
-                    stackTrace = ex.StackTrace // เพิ่มเพื่อให้รู้บรรทัดที่พัง
+                    stackTrace = ex.StackTrace
                 });
             }
         }
-
-        // Helper Function: ป้องกันการ Crash จาก JValue
         private string? SafeGet(JToken? token, string key) {
             if (token == null || token.Type == JTokenType.Null || !(token is JObject obj)) return null;
             return obj[key]?.ToString();
