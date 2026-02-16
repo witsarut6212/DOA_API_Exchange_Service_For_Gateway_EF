@@ -118,12 +118,12 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                             Info = new ApiInfo
                             {
                                 Title = _configuration["ReponseTitle:Title"] ?? "API Exchange Service For Gateway",
-                                Detail = $"Document {docId} exists.",
+                                Detail = $"Document {docId} is already exists.",
                                 SystemCode = 409
                             },
                             Data = new Dictionary<string, string>
                             {
-                                { phytoTo.ToUpper(), phytoTo.ToLower() + docId }
+                                { "doc_id", docId }
                             },
                             Error = new ApiError
                             {
@@ -234,8 +234,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                 }
 
                 await _context.SaveChangesAsync();
-                string key = phytoTo.ToUpper();
-                string value = phytoTo.ToLower() + docId;
+                string key = "doc_id";
+                string value = docId;
 
                 return Ok(new ApiResponse<object>
                 {
