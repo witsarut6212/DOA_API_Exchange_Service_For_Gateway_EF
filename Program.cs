@@ -177,12 +177,37 @@ app.Use(async (context, next) =>
         var config = context.RequestServices.GetRequiredService<IConfiguration>();
         var title = config["ReponseTitle:Title"] ?? "API Exchange Service For Gateway";
 
+        string detail = "the resource is not exists.";
+        
+        if (context.Request.Method == "GET")
+        {
+            string? docId = context.Request.Query["doc_id"];
+            if (string.IsNullOrEmpty(docId))
+            {
+                var pathParts = context.Request.Path.Value?.Split('/', StringSplitOptions.RemoveEmptyEntries);
+                if (pathParts != null && pathParts.Length > 0)
+                {
+                    var lastPart = pathParts.Last();
+                    if (!lastPart.Equals("ephyto", StringComparison.OrdinalIgnoreCase) && 
+                        !lastPart.Equals("auth", StringComparison.OrdinalIgnoreCase))
+                    {
+                        docId = lastPart;
+                    }
+                }
+            }
+
+            if (!string.IsNullOrEmpty(docId))
+            {
+                detail = $"Document {docId} was not found.";
+            }
+        }
+
         var response = new ApiResponse<object>
         {
             Info = new ApiInfo
             {
                 Title = title,
-                Detail = "File not found.",
+                Detail = detail,
                 SystemCode = 404
             },
             Error = new ApiError
