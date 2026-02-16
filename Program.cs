@@ -3,12 +3,22 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
+using DOA_API_Exchange_Service_For_Gateway.Models;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers()
+<<<<<<< HEAD
     .AddNewtonsoftJson(); // 
+=======
+    .AddNewtonsoftJson(options =>
+    {
+        options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+    }); 
+>>>>>>> fx-oat-ResponseModel
 
 var connectionString = builder.Configuration.GetConnectionString("MySQL");
 builder.Services.AddDbContext<DOA_API_Exchange_Service_For_Gateway.Data.AppDbContext>(options =>
@@ -30,7 +40,11 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
+<<<<<<< HEAD
     options.RequireHttpsMetadata = false;
+=======
+    options.RequireHttpsMetadata = false; 
+>>>>>>> fx-oat-ResponseModel
     options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
@@ -102,14 +116,95 @@ app.Use(async (context, next) =>
             || ex.Message.ToLower().Contains("access denied") 
             || ex.Message.ToLower().Contains("transient"))
         {
+<<<<<<< HEAD
             context.Response.StatusCode = 503; // Service Unavailable   
+=======
+            var config = context.RequestServices.GetRequiredService<IConfiguration>();
+            var title = config["ReponseTitle:Title"] ?? "API Exchange Service For Gateway";
+
+            var response = new ApiResponse<object>
+            {
+                Info = new ApiInfo
+                {
+                    Title = title,
+                    Detail = "Cannot connect to database",
+                    SystemCode = 503
+                },
+                Error = new ApiError
+                {
+                    TraceId = context.TraceIdentifier,
+                    Instance = context.Request.Path
+                }
+            };
+
+            context.Response.StatusCode = 503;
+>>>>>>> fx-oat-ResponseModel
             context.Response.ContentType = "application/json";
-            await context.Response.WriteAsync("{\"status\":\"Error\", \"message\":\"Cannot connect to database\"}");
+
+            var jsonSettings = new JsonSerializerSettings 
+            { 
+                ContractResolver = new CamelCasePropertyNamesContractResolver() 
+            };
+            await context.Response.WriteAsync(JsonConvert.SerializeObject(response, jsonSettings));
         }
         else
         {
-            throw;
+            var config = context.RequestServices.GetRequiredService<IConfiguration>();
+            var title = config["ReponseTitle:Title"] ?? "API Exchange Service For Gateway";
+
+            var response = new ApiResponse<object>
+            {
+                Info = new ApiInfo
+                {
+                    Title = title,
+                    Detail = "The application process unsuccessful.",
+                    SystemCode = 580
+                },
+                Error = new ApiError
+                {
+                    TraceId = context.TraceIdentifier,
+                    Instance = context.Request.Path
+                }
+            };
+
+            context.Response.StatusCode = 500;
+            context.Response.ContentType = "application/json";
+
+            var jsonSettings = new JsonSerializerSettings 
+            { 
+                ContractResolver = new CamelCasePropertyNamesContractResolver() 
+            };
+            await context.Response.WriteAsync(JsonConvert.SerializeObject(response, jsonSettings));
         }
+    }
+});
+
+app.Use(async (context, next) =>
+{
+    await next();
+    if (context.Response.StatusCode == 404 && !context.Response.HasStarted)
+    {
+        var config = context.RequestServices.GetRequiredService<IConfiguration>();
+        var title = config["ReponseTitle:Title"] ?? "API Exchange Service For Gateway";
+
+        var response = new ApiResponse<object>
+        {
+            Info = new ApiInfo
+            {
+                Title = title,
+                Detail = "File not found.",
+                SystemCode = 404
+            },
+            Error = new ApiError
+            {
+                TraceId = context.TraceIdentifier,
+                Instance = context.Request.Path
+            }
+        };
+
+        context.Response.ContentType = "application/json";
+        var jsonSettings = new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() };
+        await context.Response.WriteAsync(JsonConvert.SerializeObject(response, jsonSettings));
     }
 });
 
