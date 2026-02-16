@@ -172,14 +172,14 @@ app.Use(async (context, next) =>
 app.Use(async (context, next) =>
 {
     await next();
-    if (context.Response.StatusCode == 404 && !context.Response.HasStarted)
+    if ((context.Response.StatusCode == 404 || context.Response.StatusCode == 401) && !context.Response.HasStarted)
     {
         var config = context.RequestServices.GetRequiredService<IConfiguration>();
         var title = config["ReponseTitle:Title"] ?? "API Exchange Service For Gateway";
 
-        string detail = "the resource is not exists.";
+        string detail = context.Response.StatusCode == 404 ? "the resource is not exists." : "Incorrect credentials: Entering the wrong username or password.";
         
-        if (context.Request.Method == "GET")
+        if (context.Response.StatusCode == 404 && context.Request.Method == "GET")
         {
             string? docId = context.Request.Query["doc_id"];
             if (string.IsNullOrEmpty(docId))
@@ -208,7 +208,7 @@ app.Use(async (context, next) =>
             {
                 Title = title,
                 Detail = detail,
-                SystemCode = 404
+                SystemCode = context.Response.StatusCode
             },
             Error = new ApiError
             {

@@ -3,6 +3,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using DOA_API_Exchange_Service_For_Gateway.Models;
 
 namespace DOA_API_Exchange_Service_For_Gateway.Controllers
 {
@@ -30,7 +31,16 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                 return Ok(new { token });
             }
 
-            return Unauthorized(new { message = "Invalid credentials" });
+            var title = _configuration["ReponseTitle:Title"] ?? "API Exchange Service For Gateway";
+            return Unauthorized(new ApiResponse<object>
+            {
+                Info = new ApiInfo
+                {
+                    Title = title,
+                    Detail = "Incorrect credentials: Entering the wrong username or password.",
+                    SystemCode = 401
+                }
+            });
         }
 
 
