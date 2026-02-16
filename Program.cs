@@ -11,14 +11,10 @@ using Newtonsoft.Json.Serialization;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers()
-<<<<<<< HEAD
-    .AddNewtonsoftJson(); // 
-=======
     .AddNewtonsoftJson(options =>
     {
         options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
     }); 
->>>>>>> fx-oat-ResponseModel
 
 var connectionString = builder.Configuration.GetConnectionString("MySQL");
 builder.Services.AddDbContext<DOA_API_Exchange_Service_For_Gateway.Data.AppDbContext>(options =>
@@ -40,11 +36,9 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-<<<<<<< HEAD
-    options.RequireHttpsMetadata = false;
-=======
+
     options.RequireHttpsMetadata = false; 
->>>>>>> fx-oat-ResponseModel
+
     options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
@@ -116,9 +110,6 @@ app.Use(async (context, next) =>
             || ex.Message.ToLower().Contains("access denied") 
             || ex.Message.ToLower().Contains("transient"))
         {
-<<<<<<< HEAD
-            context.Response.StatusCode = 503; // Service Unavailable   
-=======
             var config = context.RequestServices.GetRequiredService<IConfiguration>();
             var title = config["ReponseTitle:Title"] ?? "API Exchange Service For Gateway";
 
@@ -138,7 +129,6 @@ app.Use(async (context, next) =>
             };
 
             context.Response.StatusCode = 503;
->>>>>>> fx-oat-ResponseModel
             context.Response.ContentType = "application/json";
 
             var jsonSettings = new JsonSerializerSettings 
