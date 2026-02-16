@@ -8,15 +8,14 @@ using Microsoft.OpenApi.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers()
-    .AddNewtonsoftJson(); // Support for Newtonsoft.Json (JObject)
+    .AddNewtonsoftJson(); // 
 
-// Configure MySQL with Entity Framework (with Retry for Transient Failures)
 var connectionString = builder.Configuration.GetConnectionString("MySQL");
 builder.Services.AddDbContext<DOA_API_Exchange_Service_For_Gateway.Data.AppDbContext>(options =>
     options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 21)),
         mySqlOptions => mySqlOptions.EnableRetryOnFailure(
-            maxRetryCount: 1,  // Retry 1 time only
-            maxRetryDelay: TimeSpan.FromSeconds(1),  // Wait 1 sec before retry
+            maxRetryCount: 1,  
+            maxRetryDelay: TimeSpan.FromSeconds(1),  
             errorNumbersToAdd: null
         )));
 
@@ -31,7 +30,7 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    options.RequireHttpsMetadata = false; // Set to true in production
+    options.RequireHttpsMetadata = false;
     options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
@@ -88,7 +87,6 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-// Global Error Handling Middleware (MUST BE FIRST)
 app.Use(async (context, next) =>
 {
     try
@@ -104,7 +102,7 @@ app.Use(async (context, next) =>
             || ex.Message.ToLower().Contains("access denied") 
             || ex.Message.ToLower().Contains("transient"))
         {
-            context.Response.StatusCode = 503; // Service Unavailable
+            context.Response.StatusCode = 503; // Service Unavailable   
             context.Response.ContentType = "application/json";
             await context.Response.WriteAsync("{\"status\":\"Error\", \"message\":\"Cannot connect to database\"}");
         }

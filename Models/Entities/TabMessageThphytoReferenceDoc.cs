@@ -9,9 +9,6 @@ public partial class TabMessageThphytoReferenceDoc
 
     public string MessageId { get; set; } = null!;
 
-    /// <summary>
-    /// ID of Reference to pdf object
-    /// </summary>
     public string RefDocId { get; set; } = null!;
 
     public DateTime? IssueDate { get; set; }
@@ -20,9 +17,6 @@ public partial class TabMessageThphytoReferenceDoc
 
     public string? RelationTypeCode { get; set; }
 
-    /// <summary>
-    /// tab_message_thphyto.DocID
-    /// </summary>
     public string? DocId { get; set; }
 
     public string? Filename { get; set; }

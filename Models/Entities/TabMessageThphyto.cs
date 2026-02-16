@@ -11,9 +11,6 @@ public partial class TabMessageThphyto
 
     public string MessageStatus { get; set; } = null!;
 
-    /// <summary>
-    /// ASW,IPPC,P2P
-    /// </summary>
     public string PhytoTo { get; set; } = null!;
 
     public string? DocName { get; set; }
@@ -26,9 +23,6 @@ public partial class TabMessageThphyto
 
     public string DocStatus { get; set; } = null!;
 
-    /// <summary>
-    /// =Created At (UTC Time)
-    /// </summary>
     public DateTime IssueDateTime { get; set; }
 
     public string? IssuerId { get; set; }
@@ -111,9 +105,6 @@ public partial class TabMessageThphyto
 
     public string? ExportSubordinaryHeirachiLevel { get; set; }
 
-    /// <summary>
-    /// ASW Only
-    /// </summary>
     public string? ReexportCountryId { get; set; }
 
     public string? ReexportCountryName { get; set; }
@@ -128,16 +119,10 @@ public partial class TabMessageThphyto
 
     public string? ExamEventOccrurLocationName { get; set; }
 
-    /// <summary>
-    /// 0101=New,0201=Receive Success,0501=Receive Fail
-    /// </summary>
     public string ResponseStatus { get; set; } = null!;
 
     public DateTime? ResponseAt { get; set; }
 
-    /// <summary>
-    /// =Created At (TH Time)
-    /// </summary>
     public DateTime TimeStamp { get; set; }
 
     public DateTime LastUpdate { get; set; }
@@ -148,30 +133,18 @@ public partial class TabMessageThphyto
 
     public string? NswMessageId { get; set; }
 
-    /// <summary>
-    /// &apos;Y&apos;=send, &apos;N&apos;=not send, &apos;F&apos;=send failed, &apos;U&apos;=unsend
-    /// </summary>
     public string? MarkSendAsw { get; set; }
 
     public DateTime? SendDateAsw { get; set; }
 
-    /// <summary>
-    /// &apos;Y&apos;=send, &apos;N&apos;=not send, &apos;F&apos;=send failed, &apos;Q&apos;= in queue outbound
-    /// </summary>
     public string? MarkSendAcfs { get; set; }
 
     public DateTime? SendDateAcfs { get; set; }
 
-    /// <summary>
-    /// &apos;Y&apos;=send, &apos;N&apos;=not send, &apos;F&apos;=send failed, &apos;U&apos;=unsend
-    /// </summary>
     public string? MarkSendIppc { get; set; }
 
     public DateTime? SendDateIppc { get; set; }
 
-    /// <summary>
-    /// IN-QUEUE,FAIL,SUCCESS
-    /// </summary>
     public string? QueueStatus { get; set; }
 
     public int? QueueId { get; set; }
