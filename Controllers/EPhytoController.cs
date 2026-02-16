@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema;
+using System.Text.RegularExpressions;
 using DOA_API_Exchange_Service_For_Gateway.Data;
 using DOA_API_Exchange_Service_For_Gateway.Models.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -53,9 +54,27 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                     {
                         validatingReader.Schema = schema;
                         validatingReader.ValidationEventHandler += (o, a) => 
-                        {
-                            string fieldPath = a.Path;
-                            validations.Add(new ApiValidation { Field = fieldPath, Description = a.Message });
+                        {  
+                            if (a.ValidationError.ErrorType == ErrorType.Required)
+                            {
+                                var match = System.Text.RegularExpressions.Regex.Match(a.Message, @"Required properties are missing from object: (.*?)\.");
+                                if (match.Success)
+                                {
+                                    string missingFieldsRaw = match.Groups[1].Value;
+                                    var fields = missingFieldsRaw.Split(',').Select(f => f.Trim());
+                                    foreach (var f in fields)
+                                    {
+                                        string fullPath = string.IsNullOrEmpty(a.Path) ? f : $"{a.Path}.{f}";
+                                        validations.Add(new ApiValidation 
+                                        { 
+                                            Field = fullPath, 
+                                            Description = $"Field {f.Replace("_", " ")} is required." 
+                                        });
+                                    }
+                                    return;
+                                }
+                            }
+                            validations.Add(new ApiValidation { Field = a.Path, Description = a.Message });
                         };
                         while (validatingReader.Read()) { }
                     }
