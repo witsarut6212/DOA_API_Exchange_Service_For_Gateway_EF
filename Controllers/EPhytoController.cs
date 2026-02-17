@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 using DOA_API_Exchange_Service_For_Gateway.Models;
 using DOA_API_Exchange_Service_For_Gateway.Models.Requests;
 using DOA_API_Exchange_Service_For_Gateway.Services;
+using DOA_API_Exchange_Service_For_Gateway.Helpers;
 
 namespace DOA_API_Exchange_Service_For_Gateway.Controllers
 {
@@ -20,7 +22,19 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
         }
 
         [HttpPost("ASW-ePhytoNormal")]
-        public async Task<IActionResult> AswEPhytoNormal([FromBody] EPhytoRequest request) => await ProcessSubmission(request, "ASW");
+        public async Task<IActionResult> AswEPhytoNormal([FromBody] EPhytoRequest request)
+        {
+            var doc = request.XcDocument;
+            bool isValid = (doc.DocType == "851" && doc.StatusCode == "70");
+
+            if (!isValid)
+            {
+                var title = _configuration["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
+                return BadRequest(ResponseWriter.CreateError(title, "Invalid doc_type or status_code for ASW normal.", 400, HttpContext.TraceIdentifier, HttpContext.Request.Path));
+            }
+
+            return await ProcessSubmission(request, "ASW");
+        }
 
         [HttpPost("IPPC-ePhytoNormal")]
         public async Task<IActionResult> IppcEPhytoNormal([FromBody] EPhytoRequest request) => await ProcessSubmission(request, "IPPC");
@@ -38,41 +52,14 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
             // Check if document already exists
             if (await _ePhytoService.IsDocumentExists(request.XcDocument.DocId, request.XcDocument.DocType, request.XcDocument.StatusCode))
             {
-                return Conflict(new ApiResponse<object>
-                {
-                    Info = new ApiInfo
-                    {
-                        Title = title,
-                        Detail = $"Document {request.XcDocument.DocId} is already exists.",
-                        SystemCode = 409
-                    },
-                    Data = new Dictionary<string, string>
-                    {
-                        { "doc_id", request.XcDocument.DocId }
-                    },
-                    Error = new ApiError
-                    {
-                        TraceId = HttpContext.TraceIdentifier,
-                        Instance = HttpContext.Request.Path
-                    }
-                });
+                var data = new Dictionary<string, string> { { "doc_id", request.XcDocument.DocId } };
+                return Conflict(ResponseWriter.CreateError(title, $"Document {request.XcDocument.DocId} is already exists.", 409, HttpContext.TraceIdentifier, HttpContext.Request.Path, data));
             }
 
             await _ePhytoService.SubmitEPhytoAsync(request, source);
 
-            return Ok(new ApiResponse<object>
-            {
-                Info = new ApiInfo
-                {
-                    Title = title,
-                    Detail = "Upload ไฟล์ด้วย Base64 สำเร็จ",
-                    SystemCode = 200
-                },
-                Data = new Dictionary<string, string>
-                {
-                    { "doc_id", request.XcDocument.DocId }
-                }
-            });
+            var successData = new Dictionary<string, string> { { "doc_id", request.XcDocument.DocId } };
+            return Ok(ResponseWriter.CreateSuccess(title, successData, "Upload ไฟล์ด้วย Base64 สำเร็จ"));
         }
     }
 }
