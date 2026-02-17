@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 using DOA_API_Exchange_Service_For_Gateway.Models;
+using DOA_API_Exchange_Service_For_Gateway.Models.Requests;
+using DOA_API_Exchange_Service_For_Gateway.Services;
 
 namespace DOA_API_Exchange_Service_For_Gateway.Controllers
 {
@@ -11,27 +9,48 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
+        private readonly IAuthService _authService;
         private readonly IConfiguration _configuration;
 
-        public AuthController(IConfiguration configuration)
+        public AuthController(IAuthService authService, IConfiguration configuration)
         {
+            _authService = authService;
             _configuration = configuration;
         }
 
         [HttpPost("login-mockup")]
-        public IActionResult Login([FromBody] LoginModel model)
+        public IActionResult Login([FromBody] LoginRequest request)
         {
-            var authSettings = _configuration.GetSection("AuthCredentials");
-            var validUser = authSettings["Username"];
-            var validPass = authSettings["Password"];
+            var title = _configuration["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
 
-            if (validUser != null && validPass != null && model.Username == validUser && model.Password == validPass)
+            if (_authService.ValidateCredentials(request.Username, request.Password))
             {
-                var token = GenerateJwtToken(model.Username);
-                return Ok(new { token });
+                var token = _authService.GenerateJwtToken(request.Username);
+                //return Ok(new { token });
+                //return Unauthorized(new ApiResponse<object>
+                //{
+                //    Info = new ApiInfo
+                //    {
+                //        Title = title,
+                //        Detail = "Authentication was susccessful.",
+                //        SystemCode = 200
+                //    },
+                //});
+                return Ok(new ApiResponse<object>
+                {
+                    Info = new ApiInfo
+                    {
+                        Title = title,
+                        Detail = "Authentication was susccessful.",
+                        SystemCode = 200
+                    },
+                    Data = new Dictionary<string, string>
+                {
+                    { "token", token }
+                }
+                });
             }
 
-            var title = _configuration["ReponseTitle:Title"] ?? "API Exchange Service For Gateway";
             return Unauthorized(new ApiResponse<object>
             {
                 Info = new ApiInfo
@@ -42,39 +61,5 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                 }
             });
         }
-
-
-
-
-
-        private string GenerateJwtToken(string username)
-        {
-            var jwtSettings = _configuration.GetSection("JwtSettings");
-            var secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JWT SecretKey is not configured.");
-            var key = Encoding.ASCII.GetBytes(secretKey);
-
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(new[]
-                {
-                    new Claim(ClaimTypes.Name, username),
-                    new Claim(ClaimTypes.Role, "Admin")
-                }),
-                Expires = DateTime.UtcNow.AddHours(1),
-                Issuer = jwtSettings["Issuer"],
-                Audience = jwtSettings["Audience"],
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-            };
-
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
-        }
-    }
-
-    public class LoginModel
-    {
-        public string Username { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
     }
 }
