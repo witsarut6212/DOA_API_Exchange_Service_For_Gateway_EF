@@ -37,13 +37,50 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
         }
 
         [HttpPost("IPPC-ePhytoNormal")]
-        public async Task<IActionResult> IppcEPhytoNormal([FromBody] EPhytoRequest request) => await ProcessSubmission(request, "IPPC");
+        public async Task<IActionResult> IppcEPhytoNormal([FromBody] EPhytoRequest request)
+        {
+            var doc = request.XcDocument;
+            bool isValid = (doc.DocType == "851" && doc.StatusCode == "70");
+
+            if (!isValid)
+            {
+                var title = _configuration["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
+                return BadRequest(ResponseWriter.CreateError(title, "Invalid doc_type or status_code for IPPC normal.", 400, HttpContext.TraceIdentifier, HttpContext.Request.Path));
+            }
+
+            return await ProcessSubmission(request, "IPPC");
+        }
 
         [HttpPost("IPPC-ePhytoReexport")]
-        public async Task<IActionResult> IppcEPhytoReexport([FromBody] EPhytoRequest request) => await ProcessSubmission(request, "IPPC_REEXPORT");
+        public async Task<IActionResult> IppcEPhytoReexport([FromBody] EPhytoRequest request)
+        {
+            var doc = request.XcDocument;
+            bool isValid = (doc.DocType == "657");
+
+            if (!isValid)
+            {
+                var title = _configuration["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
+                return BadRequest(ResponseWriter.CreateError(title, "Invalid doc_type for IPPC Reexport (657).", 400, HttpContext.TraceIdentifier, HttpContext.Request.Path));
+            }
+
+            return await ProcessSubmission(request, "IPPC_REEXPORT");
+        }
 
         [HttpPost("IPPC-ePhytoToWithdraw")]
-        public async Task<IActionResult> IppcEPhytoToWithdraw([FromBody] EPhytoRequest request) => await ProcessSubmission(request, "IPPC_WITHDRAW");
+        public async Task<IActionResult> IppcEPhytoToWithdraw([FromBody] EPhytoRequest request)
+        {
+            var doc = request.XcDocument;
+            // หมายเหตุ: ปรับเป็น StatusCode == "40" ตามความเข้าใจในระบบ ePhyto
+            bool isValid = (doc.DocType == "851" && doc.StatusCode == "40");
+
+            if (!isValid)
+            {
+                var title = _configuration["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
+                return BadRequest(ResponseWriter.CreateError(title, "Invalid doc_type or status_code for IPPC Withdraw (851/40).", 400, HttpContext.TraceIdentifier, HttpContext.Request.Path));
+            }
+
+            return await ProcessSubmission(request, "IPPC_WITHDRAW");
+        }
 
         private async Task<IActionResult> ProcessSubmission(EPhytoRequest request, string source)
         {
