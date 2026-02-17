@@ -104,11 +104,11 @@ namespace DOA_API_Exchange_Service_For_Gateway.Middlewares
                     Detail = detail,
                     SystemCode = context.Response.StatusCode
                 },
-                Error = new ApiError
-                {
-                    TraceId = context.TraceIdentifier,
-                    Instance = context.Request.Path
-                }
+                //Error = new ApiError
+                //{
+                //    TraceId = context.TraceIdentifier,
+                //    Instance = context.Request.Path
+                //}
             };
 
             context.Response.ContentType = "application/json";
