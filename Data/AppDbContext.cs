@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using DOA_API_Exchange_Service_For_Gateway.Models.Entities;
+﻿using DOA_API_Exchange_Service_For_Gateway.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace DOA_API_Exchange_Service_For_Gateway.Data;
