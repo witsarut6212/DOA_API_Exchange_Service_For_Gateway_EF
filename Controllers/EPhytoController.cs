@@ -1,7 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Hosting;
-using System.IO;
-using System.Linq;
 using DOA_API_Exchange_Service_For_Gateway.Models.Requests;
 using DOA_API_Exchange_Service_For_Gateway.Services;
 using DOA_API_Exchange_Service_For_Gateway.Helpers;
@@ -105,7 +102,6 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
         {
             var title = _configuration["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
 
-            // Check if document already exists
             if (await _ePhytoService.IsDocumentExists(request.XcDocument.DocId, request.XcDocument.DocType, request.XcDocument.StatusCode))
             {
                 var data = new Dictionary<string, string> { { "doc_id", request.XcDocument.DocId } };
