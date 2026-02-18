@@ -31,7 +31,6 @@ namespace DOA_API_Exchange_Service_For_Gateway.Middlewares
             {
                 await _next(context);
 
-                // Handle 404 and 401 status codes that didn't throw exceptions
                 if ((context.Response.StatusCode == (int)HttpStatusCode.NotFound || 
                      context.Response.StatusCode == (int)HttpStatusCode.Unauthorized) && 
                     !context.Response.HasStarted)
@@ -90,9 +89,16 @@ namespace DOA_API_Exchange_Service_For_Gateway.Middlewares
         private async Task HandleCustomStatusCodes(HttpContext context)
         {
             var title = _configuration["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
+            
             string detail = context.Response.StatusCode == 404 
                 ? "the resource is not exists." 
-                : "Incorrect credentials: Entering the wrong username or password.";
+                : "Authentication failed.";
+
+            if (context.Response.StatusCode == 401 && 
+                context.Request.Path.Value?.Contains("login-mockup", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                detail = "Incorrect credentials: Entering the wrong username or password.";
+            }
 
             if (context.Response.StatusCode == 404 && context.Request.Method == "GET")
             {
@@ -110,12 +116,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Middlewares
                     Title = title,
                     Detail = detail,
                     SystemCode = context.Response.StatusCode
-                },
-                //Error = new ApiError
-                //{
-                //    TraceId = context.TraceIdentifier,
-                //    Instance = context.Request.Path
-                //}
+                }
             };
 
             context.Response.ContentType = "application/json";
