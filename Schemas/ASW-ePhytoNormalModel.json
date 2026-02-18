@@ -1,35 +1,30 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "ASW E-Phyto Normal Status Schema (851) - Final Strict Version",
+  "title": "ASW E-Phyto Normal Status Schema (851) - Optimized Strict Version",
   "type": "object",
   "properties": {
     "xc_document": {
-      "type": "object",
+      "type": ["object", "null"],
       "properties": {
-        "doc_name": { "type": "string" },
-        "doc_id": { "type": "string" },
+        "doc_name": { "type": ["string", "null"] },
+        "doc_id": { "type": ["string", "integer", "null"] },
         "doc_description": { "type": ["string", "null"] },
-        "doc_type": { "type": "string", "const": "851" },
-        "status_code": { "type": "string", "const": "70" },
-        "issue_date": { "type": "string" },
-        "issue_party_id": { "type": ["string", "null"] },
-        "issue_party_name": { "type": "string" },
+        "doc_type": { "type": ["string", "integer"], "enum": ["851", 851] },
+        "status_code": { "type": ["string", "integer"], "enum": ["70", 70] },
+        "issue_date": { "type": ["string", "null"] },
+        "issue_party_id": { "type": ["string", "integer", "null"] },
+        "issue_party_name": { "type": ["string", "null"] },
         "include_notes": {
-          "type": "array",
-          "minItems": 1,
+          "type": ["array", "null"],
           "items": {
             "type": "object",
             "properties": {
-              "subject": { "type": "string" },
+              "subject": { "type": ["string", "null"] },
               "contents": {
-                "type": "array",
-                "minItems": 1,
+                "type": ["array", "null"],
                 "items": {
                   "type": "object",
-                  "properties": {
-                    "content": { "type": "string" }
-                  },
-                  "required": ["content"]
+                  "properties": { "content": { "type": ["string", "integer", "null"] } }
                 }
               }
             },
@@ -43,137 +38,78 @@
           }
         },
         "reference_docs": {
-          "type": "array",
+          "type": ["array", "null"],
           "items": {
             "type": "object",
             "properties": {
-              "type_code": { "enum": ["851", "657"] },
-              "relation_type_code": { "type": "string" },
-              "doc_id": { "type": "string" },
-              "PdfObject": { "type": "string" },
-              "filename": { "type": "string" }
-            },
-            "required": ["relation_type_code", "doc_id"],
-            "dependencies": {
-              "PdfObject": ["filename"]
+              "type_code": { "type": ["string", "integer", "null"], "enum": ["851", 851, "657", 657, null] },
+              "relation_type_code": { "type": ["string", "null"] },
+              "doc_id": { "type": ["string", "integer", "null"] },
+              "PdfObject": { "type": ["string", "null"] },
+              "filename": { "type": ["string", "null"] }
             }
           }
         },
         "signatory_authen": {
-          "type": "object",
+          "type": ["object", "null"],
           "properties": {
             "actual_datetime": { "type": ["string", "null"] },
-            "issue_location": {
-              "type": "object",
-              "properties": { "name": { "type": "string" } },
-              "required": ["name"]
-            },
-            "provider_party": {
-              "type": "object",
-              "properties": {
-                "name": { "type": "string" },
-                "specfied_person": {
-                  "type": "object",
-                  "properties": {
-                    "name": { "type": "string" },
-                    "attained_qualification": {
-                      "type": "object",
-                      "properties": { "name": { "type": "string" } },
-                      "required": ["name"]
-                    }
-                  },
-                  "required": ["name"]
-                }
-              },
-              "required": ["name"]
-            },
+            "issue_location": { "type": ["object", "string", "null"] },
+            "provider_party": { "type": ["object", "null"] },
             "include_clauses": {
-              "type": "array",
-              "minItems": 1,
+              "type": ["array", "null"],
               "items": {
                 "type": "object",
-                "properties": { "id": { "type": "string" }, "content": { "type": "string" } },
-                "required": ["id", "content"]
+                "properties": {
+                  "id": { "type": ["string", "integer", "null"] },
+                  "content": { "type": ["string", "null"] }
+                }
               }
             }
-          },
-          "required": ["actual_datetime", "issue_location", "provider_party", "include_clauses"]
+          }
         }
       },
-      "required": ["doc_name", "doc_id", "doc_type", "status_code", "issue_date", "issue_party_name", "include_notes", "signatory_authen"]
+      "required": ["doc_id", "doc_type", "status_code"]
     },
     "consignment": {
-      "type": "object",
+      "type": ["object", "null"],
       "properties": {
-        "consignor_party": {
-          "type": "object",
-          "properties": { "name": { "type": "string" }, "adress_line1": { "type": "string" } },
-          "required": ["name", "adress_line1"]
-        },
-        "consignee_party": {
-          "type": "object",
-          "properties": { "name": { "type": "string" }, "adress_line1": { "type": "string" } },
-          "required": ["name", "adress_line1"]
-        },
-        "export_country": {
-          "type": "object",
-          "properties": {
-            "id": { "type": "string", "const": "TH" },
-            "name": { "type": "string" },
-            "subordinary": {
-              "type": "object",
-              "properties": { "name": { "type": "string" }, "hierachi_level": { "type": "string" } },
-              "required": ["name", "hierachi_level"]
-            }
-          },
-          "required": ["id", "name"]
-        },
-        "import_country": {
-          "type": "object",
-          "properties": { "id": { "type": "string" }, "name": { "type": "string" } },
-          "required": ["id", "name"]
-        },
+        "consignor_party": { "type": ["object", "null"] },
+        "consignee_party": { "type": ["object", "null"] },
+        "export_country": { "type": ["object", "null"] },
+        "import_country": { "type": ["object", "null"] },
         "examination_event": {
-          "type": "object",
-          "properties": { "occur_location_name": { "type": "string" } },
-          "required": ["occur_location_name"]
+          "type": ["object", "null"],
+          "properties": { "occur_location_name": { "type": ["string", "null"] } }
         }
-      },
-      "required": ["consignor_party", "consignee_party", "export_country", "import_country", "examination_event"]
+      }
     },
     "items": {
-      "type": "array",
-      "minItems": 1,
+      "type": ["array", "null"],
       "items": {
         "type": "object",
         "properties": {
-          "descriptions": {
-            "type": "array",
-            "minItems": 1,
-            "items": { "type": "object", "properties": { "name": { "type": "string" } }, "required": ["name"] }
+          "sequence_no": { "type": ["string", "integer", "null"] },
+          "descriptions": { "type": ["array", "null"] },
+          "intend_uses": { "type": ["array", "null"] },
+          "net_weight": {
+            "type": ["object", "null"],
+            "properties": { "weight": { "type": ["string", "number", "null"] }, "unit_code": { "type": ["string", "null"] } }
           },
-          "intend_uses": {
-            "type": "array",
-            "minItems": 1,
-            "items": { "type": "object", "properties": { "name": { "type": "string" } }, "required": ["name"] }
+          "gross_weight": {
+            "type": ["object", "null"],
+            "properties": { "weight": { "type": ["string", "number", "null"] }, "unit_code": { "type": ["string", "null"] } }
           },
-          "net_weight": { "type": "object", "properties": { "weight": { "type": "string" }, "unit_code": { "type": "string" } }, "required": ["weight", "unit_code"] },
-          "gross_weight": { "type": "object", "properties": { "weight": { "type": "string" }, "unit_code": { "type": "string" } }, "required": ["weight", "unit_code"] },
-          "net_volume": { "type": "object", "properties": { "volume": { "type": "string" }, "unit_code": { "type": "string" } }, "required": ["volume", "unit_code"] },
-          "gross_volume": { "type": "object", "properties": { "volume": { "type": "string" }, "unit_code": { "type": "string" } }, "required": ["volume", "unit_code"] },
+          "net_volume": { "type": ["object", "null"] },
+          "gross_volume": { "type": ["object", "null"] },
           "additional_notes": {
-            "type": "array",
+            "type": ["array", "null"],
             "items": {
               "type": "object",
               "properties": {
-                "subject": { "type": "string" },
-                "contents": {
-                  "type": "array",
-                  "minItems": 1,
-                  "items": { "type": "object", "properties": { "content": { "type": "string" } }, "required": ["content"] }
-                }
+                "subject": { "type": ["string", "null"] },
+                "contents": { "type": ["array", "null"] }
               },
-              "required": ["subject", "contents"],
               "allOf": [
                 {
                   "if": { "properties": { "subject": { "enum": ["OPTND", "OQV", "OQU", "ADIPTLIL", "ADDITLIL"] } } },
@@ -183,15 +119,13 @@
             }
           },
           "applicable_classifications": {
-            "type": "array",
+            "type": ["array", "null"],
             "items": {
               "type": "object",
               "properties": {
-                "system_name": { "type": "string" },
-                "class_code": { "type": "string" },
-                "class_names": { "type": "array", "minItems": 1 }
+                "system_name": { "type": ["string", "null"] },
+                "class_names": { "type": ["array", "null"] }
               },
-              "required": ["system_name", "class_code", "class_names"],
               "allOf": [
                 {
                   "if": { "properties": { "system_name": { "const": "HS" } } },
@@ -200,63 +134,20 @@
               ]
             }
           },
-          "physical_packages": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "level_code": { "type": "string" },
-                "type_code": { "type": "string" },
-                "quantity": { "type": "string" },
-                "shipping_marks": { "type": "array", "items": { "type": "object", "properties": { "marking": { "type": "string" } }, "required": ["marking"] } }
-              },
-              "required": ["level_code", "type_code", "quantity"]
-            }
-          },
-          "origin_countries": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "id": { "type": "string" },
-                "name": { "type": "string" },
-                "subordinary_country": {
-                  "type": "object",
-                  "properties": {
-                    "subdivision_name": { "type": "string" },
-                    "hierachi_level": { "type": "string" },
-                    "activity_authorize": { "type": "object", "properties": { "party_name": { "type": "string" } }, "required": ["party_name"] }
-                  },
-                  "required": ["subdivision_name", "hierachi_level"]
-                }
-              },
-              "required": ["id", "name"]
-            }
-          },
+          "physical_packages": { "type": ["array", "null"] },
+          "origin_countries": { "type": ["array", "null"] },
           "applied_processes": {
-            "type": "array",
+            "type": ["array", "null"],
             "items": {
               "type": "object",
               "properties": {
-                "type_code": { "type": "string" },
-                "duration_measuer_unit": { "type": "string" },
-                "complete_period": { "type": "object", "properties": { "start_date": { "type": "string" } }, "required": ["start_date"] },
-                "characteristics": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "anyOf": [
-                      { "properties": { "description": { "type": "string" }, "unit_code": { "type": "string" } }, "required": ["description", "unit_code"] },
-                      { "properties": { "desc_1": { "type": "string" }, "deec_2": { "anyOf": [{ "type": "string" }, { "type": "array", "items": { "properties": { "value": { "type": "string" } }, "required": ["value"] } }] } }, "required": ["desc_1", "deec_2"] }
-                    ]
-                  }
-                }
-              },
-              "required": ["type_code", "duration_measuer_unit"]
+                "type_code": { "type": ["string", "integer", "null"] },
+                "complete_period": { "type": ["object", "null"] },
+                "characteristics": { "type": ["array", "null"] }
+              }
             }
           }
-        },
-        "required": ["descriptions", "intend_uses"]
+        }
       }
     }
   },
