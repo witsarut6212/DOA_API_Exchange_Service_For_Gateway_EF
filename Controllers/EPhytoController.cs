@@ -1,7 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Hosting;
+using System.IO;
+using System.Linq;
 using DOA_API_Exchange_Service_For_Gateway.Models.Requests;
 using DOA_API_Exchange_Service_For_Gateway.Services;
 using DOA_API_Exchange_Service_For_Gateway.Helpers;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Schema;
 
 namespace DOA_API_Exchange_Service_For_Gateway.Controllers
 {
@@ -12,25 +17,42 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
     {
         private readonly IEPhytoService _ePhytoService;
         private readonly IConfiguration _configuration;
+        private readonly IWebHostEnvironment _env;
 
-        public EPhytoController(IEPhytoService ePhytoService, IConfiguration configuration)
+        public EPhytoController(IEPhytoService ePhytoService, IConfiguration configuration, IWebHostEnvironment env)
         {
             _ePhytoService = ePhytoService;
             _configuration = configuration;
+            _env = env;
         }
 
         [HttpPost("ASW-ePhytoNormal")]
-        public async Task<IActionResult> AswEPhytoNormal([FromBody] EPhytoRequest request)
+        public async Task<IActionResult> AswEPhytoNormal([FromBody] JObject rawRequest)
         {
-            var doc = request.XcDocument;
-            bool isValid = (doc.DocType == "851" && doc.StatusCode == "70");
+            var title = _configuration["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
 
-            if (!isValid)
+            // 1. JSON Schema Validation (Single Source of Truth)
+            var schemaPath = Path.Combine(_env.ContentRootPath, "Schemas", "ASW-ePhytoNormalModel.json");
+            if (System.IO.File.Exists(schemaPath))
             {
-                var title = _configuration["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
-                return BadRequest(ResponseWriter.CreateError(title, "Invalid doc_type or status_code for ASW normal.", 400, HttpContext.TraceIdentifier, HttpContext.Request.Path));
+                var schemaJson = await System.IO.File.ReadAllTextAsync(schemaPath);
+                var schema = JSchema.Parse(schemaJson);
+
+                if (!rawRequest.IsValid(schema, out IList<string> errors))
+                {
+                    var validationData = errors.Select(e => new { message = e }).ToList();
+                    return UnprocessableEntity(ResponseWriter.CreateError(title, "JSON Schema validation failed for ASW Normal.", 422, HttpContext.TraceIdentifier, HttpContext.Request.Path, validationData));
+                }
             }
 
+            // 2. Map to Object
+            var request = rawRequest.ToObject<EPhytoRequest>();
+            if (request == null || request.XcDocument == null)
+            {
+                return BadRequest(ResponseWriter.CreateError(title, "Invalid request format after schema validation.", 400));
+            }
+
+            // Check for duplicates and process
             return await ProcessSubmission(request, "ASW");
         }
 

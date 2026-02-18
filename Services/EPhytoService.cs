@@ -69,6 +69,20 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             var doc = request.XcDocument;
             var consignment = request.Consignment;
 
+            // Handle IssueLocation which can be string or object
+            string? authLocationName = null;
+            if (doc.SignatoryAuthen?.IssueLocation != null)
+            {
+                if (doc.SignatoryAuthen.IssueLocation is string locStr)
+                {
+                    authLocationName = locStr;
+                }
+                else if (doc.SignatoryAuthen.IssueLocation is Newtonsoft.Json.Linq.JObject locObj)
+                {
+                    authLocationName = locObj["name"]?.ToString();
+                }
+            }
+
             return new TabMessageThphyto
             {
                 MessageId = messageId,
@@ -85,10 +99,10 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 ConsignorAddrLine1 = consignment.ConsignorParty?.AddressLine1,
                 ConsigneeName = consignment.ConsigneeParty?.Name ?? "N/A",
                 ConsigneeAddrLine1 = consignment.ConsigneeParty?.AddressLine1,
-                ExportCountryId = consignment.ExportCountryId,
-                ImportCountryId = consignment.ImportCountryId,
+                ExportCountryId = consignment.ExportCountry?.Id ?? "",
+                ImportCountryId = consignment.ImportCountry?.Id ?? "",
                 UnloadingBasePortName = consignment.UnloadingBasePort?.Name,
-                AuthLocationName = doc.SignatoryAuthen?.IssueLocation?.ToString(),
+                AuthLocationName = authLocationName,
                 AuthProviderName = doc.SignatoryAuthen?.ProviderParty?.Name,
                 AuthActualDateTime = doc.SignatoryAuthen?.ActualDatetime,
                 ResponseStatus = "0101",
@@ -142,12 +156,15 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
         {
             if (consignment.UtilizeTransport != null)
             {
-                _context.TabMessageThphytoUtilizeTransports.Add(new TabMessageThphytoUtilizeTransport
+                foreach (var ut in consignment.UtilizeTransport)
                 {
-                    MessageId = messageId,
-                    SealNumber = consignment.UtilizeTransport.SealNumber,
-                    CreatedAt = DateTime.Now
-                });
+                    _context.TabMessageThphytoUtilizeTransports.Add(new TabMessageThphytoUtilizeTransport
+                    {
+                        MessageId = messageId,
+                        SealNumber = ut.SealNumber,
+                        CreatedAt = DateTime.Now
+                    });
+                }
             }
 
             if (consignment.MainCarriages != null)
@@ -158,7 +175,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                     {
                         MessageId = messageId,
                         TransportModeCode = mc.ModeCode,
-                        TransportMeanName = mc.TransportMeanName ?? mc.TrasportMeanName,
+                        TransportMeanName = mc.TransportMeanName,
                         CreatedAt = DateTime.Now
                     });
                 }
@@ -174,7 +191,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 {
                     MessageId = messageId,
                     ItemId = itemId,
-                    SequenceNo = item.SequenceNo,
+                    SequenceNo = int.TryParse(item.SequenceNo, out var seq) ? seq : 0,
                     ProductScientName = item.ScientName,
                     CreatedAt = DateTime.Now
                 });
@@ -190,12 +207,11 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             {
                 foreach (var d in item.Descriptions)
                 {
-                    string desc = d is Newtonsoft.Json.Linq.JObject obj ? obj["name"]?.ToString() ?? "" : d?.ToString() ?? "";
                     _context.TabMessageThphytoItemDescriptions.Add(new TabMessageThphytoItemDescription
                     {
                         MessageId = messageId,
                         ItemId = itemId,
-                        ProductDescription = desc,
+                        ProductDescription = d.Name ?? "",
                         CreatedAt = DateTime.Now
                     });
                 }
@@ -206,12 +222,11 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             {
                 foreach (var c in item.CommonNames)
                 {
-                    string name = c is Newtonsoft.Json.Linq.JObject obj ? obj["name"]?.ToString() ?? "" : c?.ToString() ?? "";
                     _context.TabMessageThphytoItemCommonNames.Add(new TabMessageThphytoItemCommonName
                     {
                         MessageId = messageId,
                         ItemId = itemId,
-                        ProudctCommonName = name,
+                        ProudctCommonName = c.Name ?? "",
                         CreatedAt = DateTime.Now
                     });
                 }

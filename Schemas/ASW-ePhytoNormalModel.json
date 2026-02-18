@@ -1,0 +1,115 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ASW E-Phyto Normal Status Schema (851) - Relaxed Version",
+  "description": "JSON Schema for ASW Normal Phytosanitary Certificate (Export) - Updated for real-world data types",
+  "type": "object",
+  "properties": {
+    "xc_document": {
+      "type": ["object", "null"],
+      "properties": {
+        "doc_name": { "type": ["string", "null"] },
+        "doc_id": { "type": ["string", "null", "integer"] },
+        "doc_description": { "type": ["string", "null"] },
+        "doc_type": { "type": ["string", "integer"] },
+        "status_code": { "type": ["string", "integer"] },
+        "issue_date": { "type": ["string", "null"] },
+        "issue_party_id": { "type": ["string", "null", "integer"] },
+        "issue_party_name": { "type": ["string", "null"] },
+        "include_notes": {
+          "type": ["array", "null"],
+          "items": {
+            "type": "object",
+            "properties": {
+              "subject": { "type": ["string", "null"] },
+              "contents": {
+                "type": ["array", "null"],
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "content": { "type": ["string", "null", "integer"] }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "reference_docs": { "type": ["array", "null"] },
+        "signatory_authen": {
+          "type": ["object", "null"],
+          "properties": {
+            "actual_datetime": { "type": ["string", "null"] },
+            "issue_location": { "type": ["object", "string", "null"] },
+            "provider_party": { "type": ["object", "null"] },
+            "include_clauses": {
+              "type": ["array", "null"],
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": { "type": ["string", "integer", "null"] },
+                  "content": { "type": ["string", "null"] }
+                }
+              }
+            }
+          }
+        }
+      },
+      "required": ["doc_id", "doc_type", "status_code"]
+    },
+    "consignment": {
+      "type": ["object", "null"],
+      "properties": {
+        "consignor_party": { "type": ["object", "null"] },
+        "consignee_party": { "type": ["object", "null"] },
+        "export_country": { "type": ["object", "null"] },
+        "import_country": { "type": ["object", "null"] },
+        "reexport_country": { "type": ["object", "null"] },
+        "transit_countries": { "type": ["array", "null"] },
+        "unloading_baseport": { "type": ["object", "null"] },
+        "examination_event": { "type": ["object", "null"] },
+        "main_carriages": {
+            "type": ["array", "null"],
+            "items": {
+                "type": "object",
+                "properties": {
+                    "mode_code": { "type": ["string", "integer", "null"] }
+                }
+            }
+        },
+        "utilize_transport": { "type": ["array", "null"] }
+      }
+    },
+    "items": {
+      "type": ["array", "null"],
+      "items": {
+        "type": "object",
+        "properties": {
+          "sequence_no": { "type": ["string", "integer", "null"] },
+          "descriptions": { "type": ["array", "null"] },
+          "common_names": { "type": ["array", "null"] },
+          "scient_name": { "type": ["string", "null"] },
+          "intend_uses": { "type": ["array", "null"] },
+          "net_weight": { "type": ["object", "null"] },
+          "gross_weight": { "type": ["object", "null"] },
+          "net_volume": { "type": ["object", "null"] },
+          "gross_volume": { "type": ["object", "null"] },
+          "physical_packages": { "type": ["array", "null"] },
+          "applicable_classifications": { "type": ["array", "null"] },
+          "origin_countries": { "type": ["array", "null"] },
+          "applied_processes": {
+              "type": ["array", "null"],
+              "items": {
+                  "type": "object",
+                  "properties": {
+                      "type_code": { "type": ["string", "integer", "null"] },
+                      "duration_measuer_unit": { "type": ["string", "null"] },
+                      "complete_period": { "type": ["object", "null"] },
+                      "characteristics": { "type": ["array", "null"] }
+                  }
+              }
+          }
+        }
+      }
+    }
+  },
+  "required": ["xc_document", "consignment", "items"]
+}
