@@ -62,7 +62,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
             if (!isValid)
             {
                 var title = _configuration["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
-                return BadRequest(ResponseWriter.CreateError(title, "Invalid doc_type or status_code for IPPC normal (85.", 400, HttpContext.TraceIdentifier, HttpContext.Request.Path));
+                return BadRequest(ResponseWriter.CreateError(title, "Invalid doc_type or status_code for IPPC normal.", 400, HttpContext.TraceIdentifier, HttpContext.Request.Path));
             }
 
             return await ProcessSubmission(request, "IPPC");

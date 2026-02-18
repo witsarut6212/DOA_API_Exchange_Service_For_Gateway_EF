@@ -31,7 +31,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                 return Ok(ResponseWriter.CreateSuccess(title, data, "Authentication was susccessful."));
             }
 
-            var errorResponse = ResponseWriter.CreateError(title, "Authentication failed.", 401, HttpContext.TraceIdentifier, HttpContext.Request.Path);
+            var errorResponse = ResponseWriter.CreateError(title, "Incorrect credentials: Entering the wrong username or password.", 401, HttpContext.TraceIdentifier, HttpContext.Request.Path);
             return Unauthorized(errorResponse);
         }
     }
