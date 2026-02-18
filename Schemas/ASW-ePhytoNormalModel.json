@@ -10,8 +10,16 @@
         "doc_name": { "type": ["string", "null"] },
         "doc_id": { "type": ["string", "null", "integer"] },
         "doc_description": { "type": ["string", "null"] },
-        "doc_type": { "type": ["string", "integer"] },
-        "status_code": { "type": ["string", "integer"] },
+        "doc_type": { 
+          "type": ["string", "integer"],
+          "enum": ["851", 851],
+          "description": "Must be 851"
+        },
+        "status_code": { 
+          "type": ["string", "integer"],
+          "enum": ["70", 70],
+          "description": "Must be 70 (Issued)"
+        },
         "issue_date": { "type": ["string", "null"] },
         "issue_party_id": { "type": ["string", "null", "integer"] },
         "issue_party_name": { "type": ["string", "null"] },
