@@ -1,0 +1,175 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "IPPC e-Phyto Multi-Model Schema (Normal/Reexport/Withdraw)",
+  "type": "object",
+  "properties": {
+    "xc_document": {
+      "type": "object",
+      "properties": {
+        "doc_name": { "type": ["string", "null"] },
+        "doc_type": { "type": ["string", "integer"] },
+        "doc_id": { "type": ["string", "integer", "null"] },
+        "issue_party_name": { "type": ["string", "null"] },
+        "status_code": { "type": ["string", "integer"] },
+        "issue_date": { "type": ["string", "null"] },
+        "reference_docs": {
+          "type": ["array", "null"],
+          "items": {
+            "type": "object",
+            "properties": {
+              "relation_type_code": { "type": ["string", "null"] },
+              "doc_id": { "type": ["string", "integer", "null"] },
+              "PdfObject": { "type": ["string", "null"] },
+              "filename": { "type": ["string", "null"] }
+            },
+            "required": ["relation_type_code", "doc_id"]
+          }
+        },
+        "signatory_authen": {
+          "type": "object",
+          "properties": {
+            "provider_party": {
+              "type": "object",
+              "properties": {
+                "name": { "type": ["string", "null"] },
+                "specfied_person_name": { "type": ["string", "null"] }
+              },
+              "required": ["name", "specfied_person_name"]
+            },
+            "issue_location": { "type": ["string", "object", "null"] },
+            "include_clauses": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": { "id": { "type": ["string", "integer", "null"] } },
+                "required": ["id"]
+              }
+            }
+          },
+          "required": ["provider_party", "issue_location", "include_clauses"]
+        },
+        "include_notes": { "type": ["array", "null"] }
+      },
+      "required": ["doc_name", "doc_type", "doc_id", "issue_party_name", "status_code", "issue_date", "signatory_authen"],
+      "oneOf": [
+        {
+          "description": "IPPC Normal Case",
+          "properties": {
+            "doc_type": { "enum": ["851", 851] },
+            "status_code": { "enum": ["70", 70] }
+          }
+        },
+        {
+          "description": "IPPC Reexport Case",
+          "properties": {
+            "doc_type": { "enum": ["657", 657] }
+          },
+          "required": ["reference_docs"]
+        },
+        {
+          "description": "IPPC Withdraw/Replacement Case",
+          "properties": {
+            "doc_type": { "enum": ["851", 851] },
+            "status_code": { "enum": ["40", 40] }
+          }
+        }
+      ]
+    },
+    "consignment": {
+      "type": "object",
+      "properties": {
+        "export_country": {
+          "type": "object",
+          "properties": {
+            "id": { "type": ["string", "null"] },
+            "name": { "type": ["string", "null"] },
+            "subordinary": {
+              "type": ["object", "null"],
+              "properties": {
+                "name": { "type": ["string", "null"] },
+                "hierachi_level": { "type": ["string", "integer", "null"] }
+              },
+              "required": ["name", "hierachi_level"]
+            }
+          },
+          "required": ["id", "name"]
+        },
+        "import_country": {
+          "type": "object",
+          "properties": { "id": { "type": ["string", "null"] }, "name": { "type": ["string", "null"] } },
+          "required": ["id", "name"]
+        },
+        "consignor_party": {
+          "type": "object",
+          "properties": { "name": { "type": ["string", "null"] }, "adress_line1": { "type": ["string", "null"] } },
+          "required": ["name", "adress_line1"]
+        },
+        "consignee_party": {
+          "type": "object",
+          "properties": { "name": { "type": ["string", "null"] }, "adress_line1": { "type": ["string", "null"] } },
+          "required": ["name", "adress_line1"]
+        },
+        "unloading_baseport": {
+          "type": "object",
+          "properties": { "name": { "type": ["string", "null"] } },
+          "required": ["name"]
+        },
+        "examination_event": {
+          "type": "object",
+          "properties": { "occur_location_name": { "type": ["string", "null"] } },
+          "required": ["occur_location_name"]
+        },
+        "main_carriages": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "properties": { "mode_code": { "type": ["string", "integer", "null"] } },
+            "required": ["mode_code"]
+          }
+        }
+      },
+      "required": ["export_country", "import_country", "consignor_party", "consignee_party", "unloading_baseport", "examination_event", "main_carriages"]
+    },
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "descriptions": {
+            "type": "array",
+            "items": { "type": "object", "properties": { "name": { "type": ["string", "null"] } }, "required": ["name"] }
+          },
+          "origin_countries": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": { "id": { "type": ["string", "null"] }, "name": { "type": ["string", "null"] } },
+              "required": ["id", "name"]
+            }
+          },
+          "intend_uses": {
+            "type": "array",
+            "items": { "type": "object", "properties": { "name": { "type": ["string", "null"] } }, "required": ["name"] }
+          }
+        },
+        "required": ["descriptions", "origin_countries", "intend_uses"]
+      }
+    },
+    "phytoCerts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "sequenceNo": { "type": ["integer", "string"] },
+          "Name": { "type": "string" },
+          "documentNo": { "type": "string" },
+          "PdfObject": { "type": "string" }
+        },
+        "required": ["sequenceNo", "Name", "documentNo", "PdfObject"]
+      }
+    }
+  },
+  "required": ["xc_document", "consignment", "items", "phytoCerts"]
+}
