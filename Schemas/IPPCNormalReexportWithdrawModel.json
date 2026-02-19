@@ -19,7 +19,11 @@
             "properties": {
               "relation_type_code": { "type": ["string", "null"] },
               "doc_id": { "type": ["string", "integer", "null"] },
-              "PdfObject": { "type": ["string", "null"] },
+              "PdfObject": { 
+                "type": ["string", "null"],
+                "contentEncoding": "base64",
+                "contentMediaType": "application/pdf"
+              },
               "filename": { "type": ["string", "null"] }
             },
             "required": ["relation_type_code", "doc_id"]
@@ -165,7 +169,11 @@
           "sequenceNo": { "type": ["integer", "string"] },
           "Name": { "type": "string" },
           "documentNo": { "type": "string" },
-          "PdfObject": { "type": "string" }
+          "PdfObject": { 
+            "type": "string",
+            "contentEncoding": "base64",
+            "contentMediaType": "application/pdf"
+          }
         },
         "required": ["sequenceNo", "Name", "documentNo", "PdfObject"]
       }
