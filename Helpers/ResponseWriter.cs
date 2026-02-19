@@ -18,7 +18,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Helpers
             };
         }
 
-        public static ApiResponse<object> CreateError(string title, string detail, int systemCode, string? traceId = null, string? instance = null, object? data = null)
+        public static ApiResponse<object> CreateError(string title, string detail, int systemCode, string? traceId = null, string? instance = null, object? data = null, List<ApiValidation>? validations = null)
         {
             return new ApiResponse<object>
             {
@@ -29,7 +29,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Helpers
                     SystemCode = systemCode
                 },
                 Data = data,
-                Error = new ApiError
+                Validations = validations,
+                Error = (traceId == null && instance == null) ? null : new ApiError
                 {
                     TraceId = traceId ?? string.Empty,
                     Instance = instance ?? string.Empty

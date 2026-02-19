@@ -4,6 +4,10 @@ using DOA_API_Exchange_Service_For_Gateway.Services;
 using DOA_API_Exchange_Service_For_Gateway.Helpers;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema;
+using System.Collections.Generic;
+using System.Linq;
+using System.IO;
+using DOA_API_Exchange_Service_For_Gateway.Models;
 
 namespace DOA_API_Exchange_Service_For_Gateway.Controllers
 {
@@ -35,67 +39,95 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                 var schemaJson = await System.IO.File.ReadAllTextAsync(schemaPath);
                 var schema = JSchema.Parse(schemaJson);
 
-                if (!rawRequest.IsValid(schema, out IList<string> errors))
+                if (!rawRequest.IsValid(schema, out IList<ValidationError> errors))
                 {
-                    var validationData = errors.Select(e => new { message = e }).ToList();
-                    return UnprocessableEntity(ResponseWriter.CreateError(title, "JSON Schema validation failed for ASW Normal.", 422, HttpContext.TraceIdentifier, HttpContext.Request.Path, validationData));
+                    var validations = errors.Select(e =>
+                    {
+                        var field = e.Path;
+                        var description = e.Message;
+
+                        if (e.ErrorType == ErrorType.Required)
+                        {
+                            var missingProp = e.Message.Split(':').Last().Trim().Trim('.');
+                            field = string.IsNullOrEmpty(e.Path) ? missingProp : $"{e.Path}.{missingProp}";
+                            description = $"Field {missingProp} is required.";
+                        }
+
+                        return new ApiValidation
+                        {
+                            Field = field,
+                            Description = description
+                        };
+                    }).ToList();
+
+                    return UnprocessableEntity(ResponseWriter.CreateError(title, "One or more field validation failed.", 422, null, null, null, validations));
                 }
             }
 
-            // 2. Map to Object
             var request = rawRequest.ToObject<EPhytoRequest>();
             if (request == null || request.XcDocument == null)
             {
                 return BadRequest(ResponseWriter.CreateError(title, "Invalid request format after schema validation.", 400));
             }
 
-            // Check for duplicates and process
             return await ProcessSubmission(request, "ASW");
         }
 
         [HttpPost("IPPC-ePhytoNormal")]
-        public async Task<IActionResult> IppcEPhytoNormal([FromBody] EPhytoRequest request)
+        public async Task<IActionResult> IppcEPhytoNormal([FromBody] JObject rawRequest)
         {
-            var doc = request.XcDocument;
-            bool isValid = (doc.DocType == "851" && doc.StatusCode == "70");
-
-            if (!isValid)
+            var title = _configuration["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
+            
+            // Validate using ASW schema structure (Normal)
+            var schemaPath = Path.Combine(_env.ContentRootPath, "Schemas", "ASW-ePhytoNormalModel.json");
+            if (System.IO.File.Exists(schemaPath))
             {
-                var title = _configuration["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
-                return BadRequest(ResponseWriter.CreateError(title, "Invalid doc_type or status_code for IPPC normal.", 400, HttpContext.TraceIdentifier, HttpContext.Request.Path));
+                var schemaJson = await System.IO.File.ReadAllTextAsync(schemaPath);
+                var schema = JSchema.Parse(schemaJson);
+
+                if (!rawRequest.IsValid(schema, out IList<ValidationError> errors))
+                {
+                    var validations = errors.Select(e => new ApiValidation { 
+                        Field = e.ErrorType == ErrorType.Required ? (string.IsNullOrEmpty(e.Path) ? e.Message.Split(':').Last().Trim().Trim('.') : $"{e.Path}.{e.Message.Split(':').Last().Trim().Trim('.')}") : e.Path,
+                        Description = e.ErrorType == ErrorType.Required ? $"Field {e.Message.Split(':').Last().Trim().Trim('.')} is required." : e.Message 
+                    }).ToList();
+                    return UnprocessableEntity(ResponseWriter.CreateError(title, "One or more field validation failed.", 422, null, null, null, validations));
+                }
             }
 
-            return await ProcessSubmission(request, "IPPC");
+            var request = rawRequest.ToObject<EPhytoRequest>();
+            return await ProcessSubmission(request!, "IPPC");
         }
 
         [HttpPost("IPPC-ePhytoReexport")]
-        public async Task<IActionResult> IppcEPhytoReexport([FromBody] EPhytoRequest request)
+        public async Task<IActionResult> IppcEPhytoReexport([FromBody] JObject rawRequest)
         {
-            var doc = request.XcDocument;
-            bool isValid = (doc.DocType == "657");
-
-            if (!isValid)
+            var title = _configuration["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
+            
+            // Using logic validation for Reexport (DocType 657)
+            var request = rawRequest.ToObject<EPhytoRequest>();
+            if (request?.XcDocument?.DocType != "657")
             {
-                var title = _configuration["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
-                return BadRequest(ResponseWriter.CreateError(title, "Invalid doc_type for IPPC Reexport.", 400, HttpContext.TraceIdentifier, HttpContext.Request.Path));
+                var validations = new List<ApiValidation> { new ApiValidation { Field = "xc_document.doc_type", Description = "Field doc_type must be 657 for Reexport." } };
+                return UnprocessableEntity(ResponseWriter.CreateError(title, "One or more field validation failed.", 422, null, null, null, validations));
             }
 
-            return await ProcessSubmission(request, "IPPC_REEXPORT");
+            return await ProcessSubmission(request!, "IPPC_REEXPORT");
         }
 
         [HttpPost("IPPC-ePhytoToWithdraw")]
-        public async Task<IActionResult> IppcEPhytoToWithdraw([FromBody] EPhytoRequest request)
+        public async Task<IActionResult> IppcEPhytoToWithdraw([FromBody] JObject rawRequest)
         {
-            var doc = request.XcDocument;
-            bool isValid = (doc.DocType == "851" && doc.StatusCode == "40");
+            var title = _configuration["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
 
-            if (!isValid)
+            var request = rawRequest.ToObject<EPhytoRequest>();
+            if (request?.XcDocument?.DocType != "851" || request?.XcDocument?.StatusCode != "40")
             {
-                var title = _configuration["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
-                return BadRequest(ResponseWriter.CreateError(title, "Invalid doc_type or status_code for IPPC Withdraw.", 400, HttpContext.TraceIdentifier, HttpContext.Request.Path));
+                var validations = new List<ApiValidation> { new ApiValidation { Field = "xc_document", Description = "Invalid doc_type or status_code for Withdraw (851/40)." } };
+                return UnprocessableEntity(ResponseWriter.CreateError(title, "One or more field validation failed.", 422, null, null, null, validations));
             }
 
-            return await ProcessSubmission(request, "IPPC_WITHDRAW");
+            return await ProcessSubmission(request!, "IPPC_WITHDRAW");
         }
 
         private async Task<IActionResult> ProcessSubmission(EPhytoRequest request, string source)

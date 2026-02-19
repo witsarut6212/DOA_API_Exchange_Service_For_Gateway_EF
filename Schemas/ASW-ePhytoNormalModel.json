@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "ASW E-Phyto Normal Status Schema (851) - Optimized Strict Version",
+  "title": "ASW E-Phyto Normal Status Schema (851) - Comprehensive Validation Version",
   "type": "object",
   "properties": {
     "xc_document": {
@@ -16,15 +16,18 @@
         "issue_party_name": { "type": ["string", "null"] },
         "include_notes": {
           "type": ["array", "null"],
+          "minItems": 1,
           "items": {
             "type": "object",
             "properties": {
               "subject": { "type": ["string", "null"] },
               "contents": {
                 "type": ["array", "null"],
+                "minItems": 1,
                 "items": {
                   "type": "object",
-                  "properties": { "content": { "type": ["string", "integer", "null"] } }
+                  "properties": { "content": { "type": ["string", "integer", "null"] } },
+                  "required": ["content"]
                 }
               }
             },
@@ -42,74 +45,139 @@
           "items": {
             "type": "object",
             "properties": {
-              "type_code": { "type": ["string", "integer", "null"], "enum": ["851", 851, "657", 657, null] },
               "relation_type_code": { "type": ["string", "null"] },
               "doc_id": { "type": ["string", "integer", "null"] },
-              "PdfObject": { "type": ["string", "null"] },
               "filename": { "type": ["string", "null"] }
-            }
+            },
+            "required": ["relation_type_code", "doc_id"]
           }
         },
         "signatory_authen": {
           "type": ["object", "null"],
           "properties": {
             "actual_datetime": { "type": ["string", "null"] },
-            "issue_location": { "type": ["object", "string", "null"] },
-            "provider_party": { "type": ["object", "null"] },
+            "issue_location": {
+              "type": ["object", "string", "null"],
+              "properties": { "name": { "type": ["string", "null"] } },
+              "required": ["name"]
+            },
+            "provider_party": {
+              "type": ["object", "null"],
+              "properties": {
+                "name": { "type": ["string", "null"] },
+                "specfied_person": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "name": { "type": ["string", "null"] },
+                    "attained_qualification": {
+                      "type": ["object", "null"],
+                      "properties": { "name": { "type": ["string", "null"] } },
+                      "required": ["name"]
+                    }
+                  },
+                  "required": ["name"]
+                }
+              },
+              "required": ["name"]
+            },
             "include_clauses": {
               "type": ["array", "null"],
               "items": {
                 "type": "object",
-                "properties": {
-                  "id": { "type": ["string", "integer", "null"] },
-                  "content": { "type": ["string", "null"] }
-                }
+                "properties": { "id": { "type": ["string", "integer", "null"] }, "content": { "type": ["string", "null"] } },
+                "required": ["id", "content"]
               }
             }
-          }
+          },
+          "required": ["actual_datetime", "issue_location", "provider_party", "include_clauses"]
         }
       },
-      "required": ["doc_id", "doc_type", "status_code"]
+      "required": ["doc_name", "doc_id", "doc_type", "status_code", "issue_date", "issue_party_name", "include_notes", "signatory_authen"]
     },
     "consignment": {
       "type": ["object", "null"],
       "properties": {
-        "consignor_party": { "type": ["object", "null"] },
-        "consignee_party": { "type": ["object", "null"] },
-        "export_country": { "type": ["object", "null"] },
-        "import_country": { "type": ["object", "null"] },
+        "consignor_party": {
+          "type": ["object", "null"],
+          "properties": { "name": { "type": ["string", "null"] }, "adress_line1": { "type": ["string", "null"] } },
+          "required": ["name", "adress_line1"]
+        },
+        "consignee_party": {
+          "type": ["object", "null"],
+          "properties": { "name": { "type": ["string", "null"] }, "adress_line1": { "type": ["string", "null"] } },
+          "required": ["name", "adress_line1"]
+        },
+        "export_country": {
+          "type": ["object", "null"],
+          "properties": {
+            "id": { "type": ["string", "null"] },
+            "name": { "type": ["string", "null"] },
+            "subordinary": {
+              "type": ["object", "null"],
+              "properties": { "name": { "type": ["string", "null"] }, "hierachi_level": { "type": ["string", "integer", "null"] } },
+              "required": ["name", "hierachi_level"]
+            }
+          },
+          "required": ["id", "name"]
+        },
+        "import_country": {
+          "type": ["object", "null"],
+          "properties": { "id": { "type": ["string", "null"] }, "name": { "type": ["string", "null"] } },
+          "required": ["id", "name"]
+        },
         "examination_event": {
           "type": ["object", "null"],
-          "properties": { "occur_location_name": { "type": ["string", "null"] } }
+          "properties": { "occur_location_name": { "type": ["string", "null"] } },
+          "required": ["occur_location_name"]
         }
-      }
+      },
+      "required": ["consignor_party", "consignee_party", "export_country", "import_country", "examination_event"]
     },
     "items": {
       "type": ["array", "null"],
+      "minItems": 1,
       "items": {
         "type": "object",
         "properties": {
-          "sequence_no": { "type": ["string", "integer", "null"] },
-          "descriptions": { "type": ["array", "null"] },
-          "intend_uses": { "type": ["array", "null"] },
+          "descriptions": {
+            "type": ["array", "null"],
+            "minItems": 1,
+            "items": { "type": "object", "properties": { "name": { "type": ["string", "null"] } }, "required": ["name"] }
+          },
+          "intend_uses": {
+            "type": ["array", "null"],
+            "minItems": 1,
+            "items": { "type": "object", "properties": { "name": { "type": ["string", "null"] } }, "required": ["name"] }
+          },
           "net_weight": {
             "type": ["object", "null"],
-            "properties": { "weight": { "type": ["string", "number", "null"] }, "unit_code": { "type": ["string", "null"] } }
+            "properties": { "weight": { "type": ["string", "number", "null"] }, "unit_code": { "type": ["string", "null"] } },
+            "required": ["weight", "unit_code"]
           },
           "gross_weight": {
             "type": ["object", "null"],
-            "properties": { "weight": { "type": ["string", "number", "null"] }, "unit_code": { "type": ["string", "null"] } }
+            "properties": { "weight": { "type": ["string", "number", "null"] }, "unit_code": { "type": ["string", "null"] } },
+            "required": ["weight", "unit_code"]
           },
-          "net_volume": { "type": ["object", "null"] },
-          "gross_volume": { "type": ["object", "null"] },
+          "net_volume": {
+            "type": ["object", "null"],
+            "properties": { "volume": { "type": ["string", "number", "null"] }, "unit_code": { "type": ["string", "null"] } },
+            "required": ["volume", "unit_code"]
+          },
+          "gross_volume": {
+            "type": ["object", "null"],
+            "properties": { "volume": { "type": ["string", "number", "null"] }, "unit_code": { "type": ["string", "null"] } },
+            "required": ["volume", "unit_code"]
+          },
           "additional_notes": {
             "type": ["array", "null"],
             "items": {
               "type": "object",
               "properties": {
                 "subject": { "type": ["string", "null"] },
-                "contents": { "type": ["array", "null"] }
+                "contents": { "type": ["array", "null"], "minItems": 1 }
               },
+              "required": ["subject", "contents"],
               "allOf": [
                 {
                   "if": { "properties": { "subject": { "enum": ["OPTND", "OQV", "OQU", "ADIPTLIL", "ADDITLIL"] } } },
@@ -124,8 +192,14 @@
               "type": "object",
               "properties": {
                 "system_name": { "type": ["string", "null"] },
-                "class_names": { "type": ["array", "null"] }
+                "class_code": { "type": ["string", "integer", "null"] },
+                "class_names": {
+                  "type": ["array", "null"],
+                  "minItems": 1,
+                  "items": { "type": "object", "properties": { "class_name": { "type": ["string", "null"] } }, "required": ["class_name"] }
+                }
               },
+              "required": ["system_name", "class_code", "class_names"],
               "allOf": [
                 {
                   "if": { "properties": { "system_name": { "const": "HS" } } },
@@ -134,20 +208,75 @@
               ]
             }
           },
-          "physical_packages": { "type": ["array", "null"] },
-          "origin_countries": { "type": ["array", "null"] },
+          "physical_packages": {
+            "type": ["array", "null"],
+            "items": {
+              "type": "object",
+              "properties": {
+                "level_code": { "type": ["string", "integer", "null"] },
+                "type_code": { "type": ["string", "integer", "null"] },
+                "quantity": { "type": ["string", "integer", "null"] },
+                "shipping_marks": { "type": ["array", "null"] }
+              },
+              "required": ["level_code", "type_code", "quantity"]
+            }
+          },
+          "origin_countries": {
+            "type": ["array", "null"],
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": ["string", "null"] },
+                "name": { "type": ["string", "null"] },
+                "subordinary_country": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "subdivision_name": { "type": ["string", "null"] },
+                    "hierachi_level": { "type": ["string", "integer", "null"] },
+                    "activity_authorize": {
+                        "type": ["object", "null"],
+                        "properties": { "party_name": { "type": ["string", "null"] } },
+                        "required": ["party_name"]
+                    }
+                  },
+                  "required": ["subdivision_name", "hierachi_level"]
+                }
+              },
+              "required": ["id", "name"]
+            }
+          },
+          "origin_location": {
+            "type": ["object", "null"],
+            "properties": { "name": { "type": ["string", "null"] } },
+            "required": ["name"]
+          },
           "applied_processes": {
             "type": ["array", "null"],
             "items": {
               "type": "object",
               "properties": {
                 "type_code": { "type": ["string", "integer", "null"] },
-                "complete_period": { "type": ["object", "null"] },
-                "characteristics": { "type": ["array", "null"] }
-              }
+                "complete_period": {
+                  "type": ["object", "null"],
+                  "properties": { "start_date": { "type": ["string", "null"] } },
+                  "required": ["start_date"]
+                },
+                "duration_measuer_unit": { "type": ["string", "null"] },
+                "characteristics": {
+                  "type": ["array", "null"],
+                  "items": {
+                    "type": "object",
+                    "anyOf": [
+                      { "properties": { "desc_1": { "type": ["string", "null"] }, "deec_2": { "type": ["string", "array", "null"] } }, "required": ["desc_1", "deec_2"] }
+                    ]
+                  }
+                }
+              },
+              "required": ["type_code", "duration_measuer_unit"]
             }
           }
-        }
+        },
+        "required": ["descriptions", "intend_uses"]
       }
     }
   },
