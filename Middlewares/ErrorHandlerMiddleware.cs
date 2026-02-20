@@ -1,5 +1,6 @@
 using System.Net;
 using DOA_API_Exchange_Service_For_Gateway.Models;
+using DOA_API_Exchange_Service_For_Gateway.Services;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
@@ -10,12 +11,14 @@ namespace DOA_API_Exchange_Service_For_Gateway.Middlewares
         private readonly RequestDelegate _next;
         private readonly ILogger<ErrorHandlerMiddleware> _logger;
         private readonly IConfiguration _configuration;
+        private readonly ILogService _logService;
 
-        public ErrorHandlerMiddleware(RequestDelegate next, ILogger<ErrorHandlerMiddleware> logger, IConfiguration configuration)
+        public ErrorHandlerMiddleware(RequestDelegate next, ILogger<ErrorHandlerMiddleware> logger, IConfiguration configuration, ILogService logService)
         {
             _next = next;
             _logger = logger;
             _configuration = configuration;
+            _logService = logService;
         }
 
         public async Task Invoke(HttpContext context)
@@ -40,6 +43,14 @@ namespace DOA_API_Exchange_Service_For_Gateway.Middlewares
         private async Task HandleExceptionAsync(HttpContext context, Exception exception)
         {
             _logger.LogError(exception, "An unhandled exception occurred.");
+
+            // Custom Log: บันทึก exception ลง JSON Log file
+            await _logService.LogExceptionAsync(
+                serviceName: context.Request.Path,
+                exception: exception,
+                instance: context.Request.Path,
+                requestId: context.Items.TryGetValue("doc_id", out var docId) ? docId?.ToString() : null
+            );
 
             var title = _configuration["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
             var response = new ApiResponse<object>
@@ -119,10 +130,10 @@ namespace DOA_API_Exchange_Service_For_Gateway.Middlewares
 
         private bool IsDatabaseConnectionError(Exception ex)
         {
-            return ex.InnerException is MySqlConnector.MySqlException 
+            return ex.InnerException is MySqlConnector.MySqlException
                 || ex is Microsoft.EntityFrameworkCore.Storage.RetryLimitExceededException
-                || ex.Message.ToLower().Contains("connect") 
-                || ex.Message.ToLower().Contains("access denied") 
+                || ex.Message.ToLower().Contains("connect")
+                || ex.Message.ToLower().Contains("access denied")
                 || ex.Message.ToLower().Contains("transient");
         }
 
@@ -135,7 +146,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Middlewares
                 if (pathParts != null && pathParts.Length > 0)
                 {
                     var lastPart = pathParts.Last();
-                    if (!lastPart.Equals("ephyto", StringComparison.OrdinalIgnoreCase) && 
+                    if (!lastPart.Equals("ephyto", StringComparison.OrdinalIgnoreCase) &&
                         !lastPart.Equals("auth", StringComparison.OrdinalIgnoreCase))
                     {
                         docId = lastPart;
@@ -144,6 +155,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Middlewares
             }
             return docId;
         }
+
     }
 
     public static class ErrorHandlerMiddlewareExtensions

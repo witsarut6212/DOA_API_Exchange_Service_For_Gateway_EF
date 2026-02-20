@@ -27,6 +27,7 @@
   <ItemGroup>
     <Folder Include="Data\" />
     <Folder Include="Models\Entities\" />
+    <Folder Include="Storage\Log\" />
   </ItemGroup>
 
 </Project>

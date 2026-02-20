@@ -48,12 +48,12 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
         public async Task<IActionResult> IppcEPhytoNormal([FromBody] JObject rawRequest)
         {
             var title = _configuration["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
-            
+
             var validationResult = await ValidateRequest(rawRequest, "IPPCNormalReexportWithdrawModel.json", title);
             if (validationResult != null) return validationResult;
 
             var request = rawRequest.ToObject<EPhytoRequest>();
-            
+
             // Lock specific values for Normal Endpoint
             if (request?.XcDocument?.DocType != "851" || request?.XcDocument?.StatusCode != "70")
             {
@@ -68,7 +68,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
         public async Task<IActionResult> IppcEPhytoReexport([FromBody] JObject rawRequest)
         {
             var title = _configuration["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
-            
+
             var validationResult = await ValidateRequest(rawRequest, "IPPCNormalReexportWithdrawModel.json", title);
             if (validationResult != null) return validationResult;
 
@@ -106,7 +106,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
 
         private async Task<IActionResult?> ValidateRequest(JObject rawRequest, string schemaFileName, string title)
         {
-            var schemaPath = Path.Combine(_env.ContentRootPath, _configuration["Configuration.StoragePath"]??"Storage" , "Schemas", schemaFileName);
+            var schemaPath = Path.Combine(_env.ContentRootPath, _configuration["Configuration.StoragePath"] ?? "Storage", "Schemas", schemaFileName);
             if (System.IO.File.Exists(schemaPath))
             {
                 var schemaJson = await System.IO.File.ReadAllTextAsync(schemaPath);
@@ -136,7 +136,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                                     field = string.IsNullOrEmpty(e.Path) ? missingProp : $"{e.Path}.{missingProp}";
                                     description = $"Field {missingProp} is required.";
                                 }
-                                
+
                                 // Avoid duplicate error messages
                                 if (!validations.Any(v => v.Field == field && v.Description == description))
                                 {
@@ -157,6 +157,9 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
         private async Task<IActionResult> ProcessSubmission(EPhytoRequest request, string source)
         {
             var title = _configuration["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
+
+            // เก็บ doc_id ไว้ใน HttpContext.Items เผื่อ Middleware ต้องใช้ใน log
+            HttpContext.Items["doc_id"] = request.XcDocument.DocId;
 
             if (await _ePhytoService.IsDocumentExists(request.XcDocument.DocId, request.XcDocument.DocType, request.XcDocument.StatusCode))
             {
