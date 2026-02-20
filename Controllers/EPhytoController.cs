@@ -53,6 +53,14 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
             if (validationResult != null) return validationResult;
 
             var request = rawRequest.ToObject<EPhytoRequest>();
+            
+            // Lock specific values for Normal Endpoint
+            if (request?.XcDocument?.DocType != "851" || request?.XcDocument?.StatusCode != "70")
+            {
+                var validations = new List<ApiValidation> { new ApiValidation { Field = "xc_document", Description = "IPPC-ePhytoNormal endpoint only accepts doc_type 851 and status_code 70." } };
+                return UnprocessableEntity(ResponseWriter.CreateError(title, "One or more field validation failed.", 422, null, null, null, validations));
+            }
+
             return await ProcessSubmission(request!, "IPPC");
         }
 
@@ -65,6 +73,14 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
             if (validationResult != null) return validationResult;
 
             var request = rawRequest.ToObject<EPhytoRequest>();
+
+            // Lock specific values for Reexport Endpoint
+            if (request?.XcDocument?.DocType != "657")
+            {
+                var validations = new List<ApiValidation> { new ApiValidation { Field = "xc_document.doc_type", Description = "IPPC-ePhytoReexport endpoint only accepts doc_type 657." } };
+                return UnprocessableEntity(ResponseWriter.CreateError(title, "One or more field validation failed.", 422, null, null, null, validations));
+            }
+
             return await ProcessSubmission(request!, "IPPC_REEXPORT");
         }
 
@@ -77,6 +93,14 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
             if (validationResult != null) return validationResult;
 
             var request = rawRequest.ToObject<EPhytoRequest>();
+
+            // Lock specific values for Withdraw Endpoint
+            if (request?.XcDocument?.DocType != "851" || request?.XcDocument?.StatusCode != "40")
+            {
+                var validations = new List<ApiValidation> { new ApiValidation { Field = "xc_document", Description = "IPPC-ePhytoToWithdraw endpoint only accepts doc_type 851 and status_code 40." } };
+                return UnprocessableEntity(ResponseWriter.CreateError(title, "One or more field validation failed.", 422, null, null, null, validations));
+            }
+
             return await ProcessSubmission(request!, "IPPC_WITHDRAW");
         }
 
