@@ -6,25 +6,25 @@
     "xc_document": {
       "type": "object",
       "properties": {
-        "doc_name": { "type": ["string", "null"] },
+        "doc_name": { "type": ["string"] },
         "doc_type": { "type": ["string", "integer"] },
-        "doc_id": { "type": ["string", "integer", "null"] },
-        "issue_party_name": { "type": ["string", "null"] },
+        "doc_id": { "type": ["string", "integer"] },
+        "issue_party_name": { "type": ["string"] },
         "status_code": { "type": ["string", "integer"] },
-        "issue_date": { "type": ["string", "null"] },
+        "issue_date": { "type": ["string"] },
         "reference_docs": {
-          "type": ["array", "null"],
+          "type": ["array"],
           "items": {
             "type": "object",
             "properties": {
-              "relation_type_code": { "type": ["string", "null"] },
-              "doc_id": { "type": ["string", "integer", "null"] },
+              "relation_type_code": { "type": ["string"] },
+              "doc_id": { "type": ["string", "integer"] },
               "PdfObject": { 
-                "type": ["string", "null"],
+                "type": ["string"],
                 "contentEncoding": "base64",
                 "contentMediaType": "application/pdf"
               },
-              "filename": { "type": ["string", "null"] }
+              "filename": { "type": ["string"] }
             },
             "required": ["relation_type_code", "doc_id"]
           }
@@ -35,24 +35,24 @@
             "provider_party": {
               "type": "object",
               "properties": {
-                "name": { "type": ["string", "null"] },
-                "specfied_person_name": { "type": ["string", "null"] }
+                "name": { "type": ["string"] },
+                "specfied_person_name": { "type": ["string"] }
               },
               "required": ["name", "specfied_person_name"]
             },
-            "issue_location": { "type": ["string", "object", "null"] },
+            "issue_location": { "type": ["string", "object"] },
             "include_clauses": {
               "type": "array",
               "items": {
                 "type": "object",
-                "properties": { "id": { "type": ["string", "integer", "null"] } },
+                "properties": { "id": { "type": ["string", "integer"] } },
                 "required": ["id"]
               }
             }
           },
           "required": ["provider_party", "issue_location", "include_clauses"]
         },
-        "include_notes": { "type": ["array", "null"] }
+        "include_notes": { "type": ["array"] }
       },
       "required": ["doc_name", "doc_type", "doc_id", "issue_party_name", "status_code", "issue_date", "signatory_authen"],
       "oneOf": [
@@ -85,13 +85,13 @@
         "export_country": {
           "type": "object",
           "properties": {
-            "id": { "type": ["string", "null"] },
-            "name": { "type": ["string", "null"] },
+            "id": { "type": ["string"] },
+            "name": { "type": ["string"] },
             "subordinary": {
-              "type": ["object", "null"],
+              "type": ["object"],
               "properties": {
-                "name": { "type": ["string", "null"] },
-                "hierachi_level": { "type": ["string", "integer", "null"] }
+                "name": { "type": ["string"] },
+                "hierachi_level": { "type": ["string", "integer"] }
               },
               "required": ["name", "hierachi_level"]
             }
@@ -100,27 +100,27 @@
         },
         "import_country": {
           "type": "object",
-          "properties": { "id": { "type": ["string", "null"] }, "name": { "type": ["string", "null"] } },
+          "properties": { "id": { "type": ["string"] }, "name": { "type": ["string"] } },
           "required": ["id", "name"]
         },
         "consignor_party": {
           "type": "object",
-          "properties": { "name": { "type": ["string", "null"] }, "adress_line1": { "type": ["string", "null"] } },
+          "properties": { "name": { "type": ["string"] }, "adress_line1": { "type": ["string"] } },
           "required": ["name", "adress_line1"]
         },
         "consignee_party": {
           "type": "object",
-          "properties": { "name": { "type": ["string", "null"] }, "adress_line1": { "type": ["string", "null"] } },
+          "properties": { "name": { "type": ["string"] }, "adress_line1": { "type": ["string"] } },
           "required": ["name", "adress_line1"]
         },
         "unloading_baseport": {
           "type": "object",
-          "properties": { "name": { "type": ["string", "null"] } },
+          "properties": { "name": { "type": ["string"] } },
           "required": ["name"]
         },
         "examination_event": {
           "type": "object",
-          "properties": { "occur_location_name": { "type": ["string", "null"] } },
+          "properties": { "occur_location_name": { "type": ["string"] } },
           "required": ["occur_location_name"]
         },
         "main_carriages": {
@@ -128,7 +128,7 @@
           "minItems": 1,
           "items": {
             "type": "object",
-            "properties": { "mode_code": { "type": ["string", "integer", "null"] } },
+            "properties": { "mode_code": { "type": ["string", "integer"] } },
             "required": ["mode_code"]
           }
         }
@@ -143,19 +143,19 @@
         "properties": {
           "descriptions": {
             "type": "array",
-            "items": { "type": "object", "properties": { "name": { "type": ["string", "null"] } }, "required": ["name"] }
+            "items": { "type": "object", "properties": { "name": { "type": ["string"] } }, "required": ["name"] }
           },
           "origin_countries": {
             "type": "array",
             "items": {
               "type": "object",
-              "properties": { "id": { "type": ["string", "null"] }, "name": { "type": ["string", "null"] } },
+              "properties": { "id": { "type": ["string"] }, "name": { "type": ["string"] } },
               "required": ["id", "name"]
             }
           },
           "intend_uses": {
             "type": "array",
-            "items": { "type": "object", "properties": { "name": { "type": ["string", "null"] } }, "required": ["name"] }
+            "items": { "type": "object", "properties": { "name": { "type": ["string"] } }, "required": ["name"] }
           }
         },
         "required": ["descriptions", "origin_countries", "intend_uses"]
