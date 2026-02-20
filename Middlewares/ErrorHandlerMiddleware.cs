@@ -46,7 +46,6 @@ namespace DOA_API_Exchange_Service_For_Gateway.Middlewares
 
             // Custom Log: บันทึก exception ลง JSON Log file
             await _logService.LogExceptionAsync(
-                serviceName: context.Request.Path,
                 exception: exception,
                 instance: context.Request.Path,
                 requestId: context.Items.TryGetValue("doc_id", out var docId) ? docId?.ToString() : null

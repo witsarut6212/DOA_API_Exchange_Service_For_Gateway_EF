@@ -24,12 +24,12 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             _configuration = configuration;
         }
 
-        public async Task LogExceptionAsync(string serviceName, Exception exception, string instance, string? requestId = null)
+        public async Task LogExceptionAsync(Exception exception, string instance, string? requestId = null)
         {
             var entry = new ExceptionLogEntry
             {
                 Timestamp = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-                Service = serviceName,
+                Service = "API Exchange Service For Gateway",
                 LogType = "exception",
                 ExceptionType = exception.GetType().Name,
                 ExceptionMessage = exception.Message,
