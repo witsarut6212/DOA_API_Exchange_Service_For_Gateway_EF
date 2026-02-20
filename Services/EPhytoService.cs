@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using DOA_API_Exchange_Service_For_Gateway.Data;
 using DOA_API_Exchange_Service_For_Gateway.Models.Entities;
 using DOA_API_Exchange_Service_For_Gateway.Models.Requests;

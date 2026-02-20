@@ -1,11 +1,4 @@
-using System;
-using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using DOA_API_Exchange_Service_For_Gateway.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
