@@ -106,7 +106,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
 
         private async Task<IActionResult?> ValidateRequest(JObject rawRequest, string schemaFileName, string title)
         {
-            var schemaPath = Path.Combine(_env.ContentRootPath, "Schemas", schemaFileName);
+            var schemaPath = Path.Combine(_env.ContentRootPath, _configuration["Configuration.StoragePath"]??"Storage" , "Schemas", schemaFileName);
             if (System.IO.File.Exists(schemaPath))
             {
                 var schemaJson = await System.IO.File.ReadAllTextAsync(schemaPath);
