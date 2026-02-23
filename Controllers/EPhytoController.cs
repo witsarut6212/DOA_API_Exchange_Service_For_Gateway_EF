@@ -12,7 +12,7 @@ using System.IO;
 namespace DOA_API_Exchange_Service_For_Gateway.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("")]
     [Microsoft.AspNetCore.Authorization.Authorize]
     public class EPhytoController : ControllerBase
     {
@@ -27,7 +27,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
             _env = env;
         }
 
-        [HttpPost("ASW-ePhytoNormal")]
+        [HttpPost("asw/normal")]
         public async Task<IActionResult> AswEPhytoNormal([FromBody] JObject rawRequest)
         {
             var title = _configuration["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
@@ -44,7 +44,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
             return await ProcessSubmission(request, "ASW");
         }
 
-        [HttpPost("IPPC-ePhytoNormal")]
+        [HttpPost("ippc/normal")]
         public async Task<IActionResult> IppcEPhytoNormal([FromBody] JObject rawRequest)
         {
             var title = _configuration["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
@@ -56,14 +56,14 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
 
             if (request?.XcDocument?.DocType != "851" || request?.XcDocument?.StatusCode != "70")
             {
-                var validations = new List<ApiValidation> { new ApiValidation { Field = "xc_document", Description = "IPPC-ePhytoNormal endpoint only accepts doc_type 851 and status_code 70." } };
+                var validations = new List<ApiValidation> { new ApiValidation { Field = "xc_document", Description = "ippc/normal endpoint only accepts doc_type 851 and status_code 70." } };
                 return UnprocessableEntity(ResponseWriter.CreateError(title, "One or more field validation failed.", 422, null, null, null, validations));
             }
 
             return await ProcessSubmission(request!, "IPPC");
         }
 
-        [HttpPost("IPPC-ePhytoReexport")]
+        [HttpPost("ippc/re-export")]
         public async Task<IActionResult> IppcEPhytoReexport([FromBody] JObject rawRequest)
         {
             var title = _configuration["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
@@ -75,14 +75,14 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
 
             if (request?.XcDocument?.DocType != "657")
             {
-                var validations = new List<ApiValidation> { new ApiValidation { Field = "xc_document.doc_type", Description = "IPPC-ePhytoReexport endpoint only accepts doc_type 657." } };
+                var validations = new List<ApiValidation> { new ApiValidation { Field = "xc_document.doc_type", Description = "ippc/re-export endpoint only accepts doc_type 657." } };
                 return UnprocessableEntity(ResponseWriter.CreateError(title, "One or more field validation failed.", 422, null, null, null, validations));
             }
 
             return await ProcessSubmission(request!, "IPPC_REEXPORT");
         }
 
-        [HttpPost("IPPC-ePhytoToWithdraw")]
+        [HttpPost("ippc/withdraw")]
         public async Task<IActionResult> IppcEPhytoToWithdraw([FromBody] JObject rawRequest)
         {
             var title = _configuration["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
@@ -94,7 +94,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
 
             if (request?.XcDocument?.DocType != "851" || request?.XcDocument?.StatusCode != "40")
             {
-                var validations = new List<ApiValidation> { new ApiValidation { Field = "xc_document", Description = "IPPC-ePhytoToWithdraw endpoint only accepts doc_type 851 and status_code 40." } };
+                var validations = new List<ApiValidation> { new ApiValidation { Field = "xc_document", Description = "ippc/withdraw endpoint only accepts doc_type 851 and status_code 40." } };
                 return UnprocessableEntity(ResponseWriter.CreateError(title, "One or more field validation failed.", 422, null, null, null, validations));
             }
 

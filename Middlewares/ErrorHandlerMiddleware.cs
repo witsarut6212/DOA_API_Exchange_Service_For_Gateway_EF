@@ -97,8 +97,9 @@ namespace DOA_API_Exchange_Service_For_Gateway.Middlewares
                 ? "the resource is not exists." 
                 : "Authentication failed.";
 
+            var routePrefix = _configuration["ApiSettings:RoutePrefix"] ?? "api";
             if (context.Response.StatusCode == 401 && 
-                context.Request.Path.Value?.Contains("login-mockup", StringComparison.OrdinalIgnoreCase) == true)
+                context.Request.Path.Value?.Contains($"{routePrefix}/auth/login-mockup", StringComparison.OrdinalIgnoreCase) == true)
             {
                 detail = "Incorrect credentials: Entering the wrong username or password.";
             }

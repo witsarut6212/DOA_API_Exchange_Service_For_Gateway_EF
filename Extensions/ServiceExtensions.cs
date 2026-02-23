@@ -106,9 +106,14 @@ namespace DOA_API_Exchange_Service_For_Gateway.Extensions
             });
         }
 
-        public static void ConfigureControllers(this IServiceCollection services)
+        public static void ConfigureControllers(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddControllers()
+            var routePrefix = configuration["ApiSettings:RoutePrefix"] ?? "api";
+
+            services.AddControllers(options =>
+            {
+                options.Conventions.Insert(0, new GlobalRoutePrefixConvention(routePrefix!));
+            })
                 .AddNewtonsoftJson(options =>
                 {
                     options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
@@ -117,8 +122,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Extensions
                 {
                     options.InvalidModelStateResponseFactory = context =>
                     {
-                        var configuration = context.HttpContext.RequestServices.GetRequiredService<IConfiguration>();
-                        var title = configuration["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
+                        var config = context.HttpContext.RequestServices.GetRequiredService<IConfiguration>();
+                        var title = config["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
 
                         var validations = context.ModelState
                             .Where(e => e.Value?.Errors.Count > 0)
@@ -152,6 +157,31 @@ namespace DOA_API_Exchange_Service_For_Gateway.Extensions
             services.AddScoped<DOA_API_Exchange_Service_For_Gateway.Services.IEPhytoService, DOA_API_Exchange_Service_For_Gateway.Services.EPhytoService>();
             services.AddScoped<DOA_API_Exchange_Service_For_Gateway.Services.IAuthService, DOA_API_Exchange_Service_For_Gateway.Services.AuthService>();
             services.AddSingleton<DOA_API_Exchange_Service_For_Gateway.Services.ILogService, DOA_API_Exchange_Service_For_Gateway.Services.LogService>();
+        }
+    }
+
+    public class GlobalRoutePrefixConvention : Microsoft.AspNetCore.Mvc.ApplicationModels.IApplicationModelConvention
+    {
+        private readonly Microsoft.AspNetCore.Mvc.ApplicationModels.AttributeRouteModel _routePrefix;
+
+        public GlobalRoutePrefixConvention(string prefix)
+        {
+            _routePrefix = new Microsoft.AspNetCore.Mvc.ApplicationModels.AttributeRouteModel(new Microsoft.AspNetCore.Mvc.RouteAttribute(prefix));
+        }
+
+        public void Apply(Microsoft.AspNetCore.Mvc.ApplicationModels.ApplicationModel application)
+        {
+            foreach (var selector in application.Controllers.SelectMany(c => c.Selectors))
+            {
+                if (selector.AttributeRouteModel != null)
+                {
+                    selector.AttributeRouteModel = Microsoft.AspNetCore.Mvc.ApplicationModels.AttributeRouteModel.CombineAttributeRouteModel(_routePrefix, selector.AttributeRouteModel);
+                }
+                else
+                {
+                    selector.AttributeRouteModel = _routePrefix;
+                }
+            }
         }
     }
 }

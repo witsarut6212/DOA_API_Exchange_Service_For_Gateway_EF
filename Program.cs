@@ -4,7 +4,7 @@ using DOA_API_Exchange_Service_For_Gateway.Middlewares;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.ConfigureControllers();
+builder.Services.ConfigureControllers(builder.Configuration);
 builder.Services.ConfigureSqlContext(builder.Configuration);
 builder.Services.ConfigureAuthentication(builder.Configuration);
 builder.Services.ConfigureSwagger();
