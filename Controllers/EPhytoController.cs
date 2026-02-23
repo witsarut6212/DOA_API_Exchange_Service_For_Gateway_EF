@@ -54,7 +54,6 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
 
             var request = rawRequest.ToObject<EPhytoRequest>();
 
-            // Lock specific values for Normal Endpoint
             if (request?.XcDocument?.DocType != "851" || request?.XcDocument?.StatusCode != "70")
             {
                 var validations = new List<ApiValidation> { new ApiValidation { Field = "xc_document", Description = "IPPC-ePhytoNormal endpoint only accepts doc_type 851 and status_code 70." } };
@@ -74,7 +73,6 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
 
             var request = rawRequest.ToObject<EPhytoRequest>();
 
-            // Lock specific values for Reexport Endpoint
             if (request?.XcDocument?.DocType != "657")
             {
                 var validations = new List<ApiValidation> { new ApiValidation { Field = "xc_document.doc_type", Description = "IPPC-ePhytoReexport endpoint only accepts doc_type 657." } };
@@ -94,7 +92,6 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
 
             var request = rawRequest.ToObject<EPhytoRequest>();
 
-            // Lock specific values for Withdraw Endpoint
             if (request?.XcDocument?.DocType != "851" || request?.XcDocument?.StatusCode != "40")
             {
                 var validations = new List<ApiValidation> { new ApiValidation { Field = "xc_document", Description = "IPPC-ePhytoToWithdraw endpoint only accepts doc_type 851 and status_code 40." } };
@@ -116,7 +113,6 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                 {
                     var validations = new List<ApiValidation>();
 
-                    // Helper function to extract errors recursively
                     Action<IEnumerable<ValidationError>> extractErrors = null!;
                     extractErrors = (errs) => {
                         foreach (var e in errs)
@@ -137,7 +133,6 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                                     description = $"Field {missingProp} is required.";
                                 }
 
-                                // Avoid duplicate error messages
                                 if (!validations.Any(v => v.Field == field && v.Description == description))
                                 {
                                     validations.Add(new ApiValidation { Field = field, Description = description });
