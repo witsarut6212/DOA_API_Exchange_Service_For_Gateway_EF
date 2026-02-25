@@ -1,0 +1,61 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "IPPC e-Phyto Reexport Case Schema",
+  "type": "object",
+  "properties": {
+    "xc_document": {
+      "type": "object",
+      "properties": {
+        "doc_name": { "type": ["string"] },
+        "doc_type": { "type": ["string", "integer"], "enum": ["657", 657] },
+        "doc_id": { "type": ["string", "integer"] },
+        "issue_party_name": { "type": ["string"] },
+        "status_code": { "type": ["string", "integer"] },
+        "issue_date": { "type": ["string"] },
+        "reference_docs": {
+          "type": ["array", "null"],
+          "items": {
+            "type": "object",
+            "properties": {
+              "issue_date": { "type": ["string"] },
+              "relation_type_code": { "type": ["string"] },
+              "doc_id": { "type": ["string", "integer"] },
+              "PdfObject": { "type": ["string"] },
+              "filename": { "type": ["string"] },
+              "informaton": { "type": ["string"] }
+            },
+            "required": ["relation_type_code", "doc_id", "PdfObject", "filename", "informaton"]
+          }
+        },
+        "signatory_authen": {
+          "type": "object",
+          "properties": {
+            "provider_party": {
+              "type": "object",
+              "properties": {
+                "name": { "type": ["string"] },
+                "specfied_person_name": { "type": ["string"] }
+              },
+              "required": ["name", "specfied_person_name"]
+            },
+            "issue_location": { "type": ["string", "object"] },
+            "include_clauses": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": { "id": { "type": ["string", "integer"] } },
+                "required": ["id"]
+              }
+            }
+          },
+          "required": ["provider_party", "issue_location", "include_clauses"]
+        }
+      },
+      "required": ["doc_name", "doc_type", "doc_id", "issue_party_name", "status_code", "issue_date", "signatory_authen"]
+    },
+    "consignment": { "type": "object" },
+    "items": { "type": "array", "minItems": 1 },
+    "phytoCerts": { "type": "array" }
+  },
+  "required": ["xc_document", "items", "phytoCerts"]
+}

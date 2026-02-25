@@ -49,7 +49,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
         {
             var title = _configuration["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
 
-            var validationResult = await ValidateRequest(rawRequest, "IPPCNormalReexportWithdrawModel.json", title);
+            var validationResult = await ValidateRequest(rawRequest, "IPPCNormalModel.json", title);
             if (validationResult != null) return validationResult;
 
             var request = rawRequest.ToObject<EPhytoRequest>();
@@ -68,7 +68,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
         {
             var title = _configuration["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
 
-            var validationResult = await ValidateRequest(rawRequest, "IPPCNormalReexportWithdrawModel.json", title);
+            var validationResult = await ValidateRequest(rawRequest, "IPPCReexportModel.json", title);
             if (validationResult != null) return validationResult;
 
             var request = rawRequest.ToObject<EPhytoRequest>();
@@ -87,7 +87,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
         {
             var title = _configuration["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
 
-            var validationResult = await ValidateRequest(rawRequest, "IPPCNormalReexportWithdrawModel.json", title);
+            var validationResult = await ValidateRequest(rawRequest, "IPPCWithdrawModel.json", title);
             if (validationResult != null) return validationResult;
 
             var request = rawRequest.ToObject<EPhytoRequest>();
