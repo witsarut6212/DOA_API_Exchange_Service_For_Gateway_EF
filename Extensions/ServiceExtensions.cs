@@ -156,6 +156,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Extensions
             
             services.AddHttpContextAccessor();
             services.AddScoped<DOA_API_Exchange_Service_For_Gateway.Services.IEPhytoService, DOA_API_Exchange_Service_For_Gateway.Services.EPhytoService>();
+            services.AddScoped<DOA_API_Exchange_Service_For_Gateway.Services.ISubmissionService, DOA_API_Exchange_Service_For_Gateway.Services.SubmissionService>();
             services.AddScoped<DOA_API_Exchange_Service_For_Gateway.Services.IAuthService, DOA_API_Exchange_Service_For_Gateway.Services.AuthService>();
             services.AddSingleton<DOA_API_Exchange_Service_For_Gateway.Services.ILogService, DOA_API_Exchange_Service_For_Gateway.Services.LogService>();
         }
