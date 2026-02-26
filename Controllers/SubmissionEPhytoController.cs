@@ -8,7 +8,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
 {
     [ApiController]
     [Route("submission/ephyto")]
-    [Authorize] // ตู้อัตโนมัติควรมีการยืนยันตัวตน
+    [Authorize]
     public class SubmissionEPhytoController : ControllerBase
     {
         private readonly ISubmissionService _submissionService;
