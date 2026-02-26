@@ -10,7 +10,7 @@
         "doc_type": { "type": ["string", "integer"], "enum": ["657", 657] },
         "doc_id": { "type": ["string", "integer"] },
         "issue_party_name": { "type": ["string"] },
-        "status_code": { "type": ["string", "integer"] },
+        "status_code": { "type": ["string", "integer"], "enum": ["40", 40, "70", 70] },
         "issue_date": { "type": ["string"] },
         "reference_docs": {
           "type": ["array", "null"],
