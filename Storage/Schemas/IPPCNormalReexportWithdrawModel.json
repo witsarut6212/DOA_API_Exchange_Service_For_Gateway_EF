@@ -66,7 +66,8 @@
         {
           "description": "IPPC Reexport Case",
           "properties": {
-            "doc_type": { "enum": ["657", 657] }
+            "doc_type": { "enum": ["657", 657] },
+            "status_code": { "enum": ["40", 40, "70", 70] }
           },
           "required": ["reference_docs"]
         },

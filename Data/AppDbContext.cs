@@ -1,72 +1,271 @@
-﻿using DOA_API_Exchange_Service_For_Gateway.Models.Entities;
+﻿using System;
+using System.Collections.Generic;
+using DOA_API_Exchange_Service_For_Gateway.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace DOA_API_Exchange_Service_For_Gateway.Data;
 
 public partial class AppDbContext : DbContext
 {
-    public AppDbContext()
-    {
-    }
-
     public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options)
     {
     }
 
-    public virtual DbSet<TabMessageThphyto> TabMessageThphytos { get; set; } = null!;
+    public virtual DbSet<TabMessageEservicePayload> TabMessageEservicePayloads { get; set; }
 
-    public virtual DbSet<TabMessageThphytoIncludedClause> TabMessageThphytoIncludedClauses { get; set; } = null!;
+    public virtual DbSet<TabMessageRepsonsePayload> TabMessageRepsonsePayloads { get; set; }
 
-    public virtual DbSet<TabMessageThphytoIncludedNote> TabMessageThphytoIncludedNotes { get; set; } = null!;
+    public virtual DbSet<TabMessageResponseSubmisison> TabMessageResponseSubmisisons { get; set; }
 
-    public virtual DbSet<TabMessageThphytoItem> TabMessageThphytoItems { get; set; } = null!;
+    public virtual DbSet<TabMessageSubmissionRequest> TabMessageSubmissionRequests { get; set; }
 
-    public virtual DbSet<TabMessageThphytoItemAdditionalNote> TabMessageThphytoItemAdditionalNotes { get; set; } = null!;
+    public virtual DbSet<TabMessageThphyto> TabMessageThphytos { get; set; }
 
-    public virtual DbSet<TabMessageThphytoItemAdditionalNoteContent> TabMessageThphytoItemAdditionalNoteContents { get; set; } = null!;
+    public virtual DbSet<TabMessageThphytoIncludedClause> TabMessageThphytoIncludedClauses { get; set; }
 
-    public virtual DbSet<TabMessageThphytoItemApplicableClassification> TabMessageThphytoItemApplicableClassifications { get; set; } = null!;
+    public virtual DbSet<TabMessageThphytoIncludedNote> TabMessageThphytoIncludedNotes { get; set; }
 
-    public virtual DbSet<TabMessageThphytoItemCommonName> TabMessageThphytoItemCommonNames { get; set; } = null!;
+    public virtual DbSet<TabMessageThphytoItem> TabMessageThphytoItems { get; set; }
 
-    public virtual DbSet<TabMessageThphytoItemDescription> TabMessageThphytoItemDescriptions { get; set; } = null!;
+    public virtual DbSet<TabMessageThphytoItemAdditionalNote> TabMessageThphytoItemAdditionalNotes { get; set; }
 
-    public virtual DbSet<TabMessageThphytoItemIntended> TabMessageThphytoItemIntendeds { get; set; } = null!;
+    public virtual DbSet<TabMessageThphytoItemAdditionalNoteContent> TabMessageThphytoItemAdditionalNoteContents { get; set; }
 
-    public virtual DbSet<TabMessageThphytoItemOriginCountry> TabMessageThphytoItemOriginCountries { get; set; } = null!;
+    public virtual DbSet<TabMessageThphytoItemApplicableClassification> TabMessageThphytoItemApplicableClassifications { get; set; }
 
-    public virtual DbSet<TabMessageThphytoItemPhysicalPackage> TabMessageThphytoItemPhysicalPackages { get; set; } = null!;
+    public virtual DbSet<TabMessageThphytoItemCommonName> TabMessageThphytoItemCommonNames { get; set; }
 
-    public virtual DbSet<TabMessageThphytoItemProcess> TabMessageThphytoItemProcesses { get; set; } = null!;
+    public virtual DbSet<TabMessageThphytoItemDescription> TabMessageThphytoItemDescriptions { get; set; }
 
-    public virtual DbSet<TabMessageThphytoItemProcessCharacteristic> TabMessageThphytoItemProcessCharacteristics { get; set; } = null!;
+    public virtual DbSet<TabMessageThphytoItemIntended> TabMessageThphytoItemIntendeds { get; set; }
 
-    public virtual DbSet<TabMessageThphytoItemTransport> TabMessageThphytoItemTransports { get; set; } = null!;
+    public virtual DbSet<TabMessageThphytoItemOriginCountry> TabMessageThphytoItemOriginCountries { get; set; }
 
-    public virtual DbSet<TabMessageThphytoItemTransportEquipment> TabMessageThphytoItemTransportEquipments { get; set; } = null!;
+    public virtual DbSet<TabMessageThphytoItemPhysicalPackage> TabMessageThphytoItemPhysicalPackages { get; set; }
 
-    public virtual DbSet<TabMessageThphytoMainCarriage> TabMessageThphytoMainCarriages { get; set; } = null!;
+    public virtual DbSet<TabMessageThphytoItemProcess> TabMessageThphytoItemProcesses { get; set; }
 
-    public virtual DbSet<TabMessageThphytoReferenceDoc> TabMessageThphytoReferenceDocs { get; set; } = null!;
+    public virtual DbSet<TabMessageThphytoItemProcessCharacteristic> TabMessageThphytoItemProcessCharacteristics { get; set; }
 
-    public virtual DbSet<TabMessageThphytoResponse> TabMessageThphytoResponses { get; set; } = null!;
+    public virtual DbSet<TabMessageThphytoItemTransport> TabMessageThphytoItemTransports { get; set; }
 
-    public virtual DbSet<TabMessageThphytoResponseReason> TabMessageThphytoResponseReasons { get; set; } = null!;
+    public virtual DbSet<TabMessageThphytoItemTransportEquipment> TabMessageThphytoItemTransportEquipments { get; set; }
 
-    public virtual DbSet<TabMessageThphytoResponseRemark> TabMessageThphytoResponseRemarks { get; set; } = null!;
+    public virtual DbSet<TabMessageThphytoMainCarriage> TabMessageThphytoMainCarriages { get; set; }
 
-    public virtual DbSet<TabMessageThphytoTransitCountry> TabMessageThphytoTransitCountries { get; set; } = null!;
+    public virtual DbSet<TabMessageThphytoReferenceDoc> TabMessageThphytoReferenceDocs { get; set; }
 
-    public virtual DbSet<TabMessageThphytoUtilizeTransport> TabMessageThphytoUtilizeTransports { get; set; } = null!;
+    public virtual DbSet<TabMessageThphytoResponse> TabMessageThphytoResponses { get; set; }
 
-    public virtual DbSet<TabMessageThphytoXml> TabMessageThphytoXmls { get; set; } = null!;
+    public virtual DbSet<TabMessageThphytoResponseReason> TabMessageThphytoResponseReasons { get; set; }
+
+    public virtual DbSet<TabMessageThphytoResponseRemark> TabMessageThphytoResponseRemarks { get; set; }
+
+    public virtual DbSet<TabMessageThphytoTransitCountry> TabMessageThphytoTransitCountries { get; set; }
+
+    public virtual DbSet<TabMessageThphytoUtilizeTransport> TabMessageThphytoUtilizeTransports { get; set; }
+
+    public virtual DbSet<TabMessageThphytoXml> TabMessageThphytoXmls { get; set; }
+
+    public virtual DbSet<TabMessageTxnOutbound> TabMessageTxnOutbounds { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder
             .UseCollation("utf8mb4_general_ci")
             .HasCharSet("utf8mb4");
+
+        modelBuilder.Entity<TabMessageEservicePayload>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("tab_message_eservice_payloads");
+
+            entity.HasIndex(e => e.Status, "IDX1_tab_message_eservice_payloads");
+
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("datetime")
+                .HasColumnName("created_at");
+            entity.Property(e => e.CreatedBy)
+                .HasMaxLength(100)
+                .HasColumnName("created_by");
+            entity.Property(e => e.DataObject).HasColumnType("text");
+            entity.Property(e => e.Status).HasMaxLength(10);
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnType("datetime")
+                .HasColumnName("updated_at");
+            entity.Property(e => e.UpdatedBy)
+                .HasMaxLength(100)
+                .HasColumnName("updated_by");
+        });
+
+        modelBuilder.Entity<TabMessageRepsonsePayload>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("tab_message_repsonse_payloads");
+
+            entity.HasIndex(e => e.Status, "IDX1_tab_message_repsonse_payloads_Status");
+
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("datetime")
+                .HasColumnName("created_at");
+            entity.Property(e => e.CreatedBy)
+                .HasMaxLength(100)
+                .HasColumnName("created_by");
+            entity.Property(e => e.DataObject).HasColumnType("text");
+            entity.Property(e => e.Status)
+                .HasMaxLength(10)
+                .HasDefaultValueSql("'WAIT'");
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnType("datetime")
+                .HasColumnName("updated_at");
+            entity.Property(e => e.UpdatedBy)
+                .HasMaxLength(100)
+                .HasColumnName("updated_by");
+        });
+
+        modelBuilder.Entity<TabMessageResponseSubmisison>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("tab_message_response_submisisons");
+
+            entity.HasIndex(e => e.ReferenceNumber, "IDX1_tab_message_response_submisisons");
+
+            entity.HasIndex(e => e.QueueId, "IDX2_tab_message_response_submisisons");
+
+            entity.HasIndex(e => e.MessageId, "IDX3_tab_message_response_submisisons");
+
+            entity.HasIndex(e => e.RefMessageId, "IDX4_tab_message_response_submisisons");
+
+            entity.HasIndex(e => e.DocumentNumber, "UK1_tab_message_response_submisisons").IsUnique();
+
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("datetime")
+                .HasColumnName("created_at");
+            entity.Property(e => e.CreatedBy)
+                .HasMaxLength(100)
+                .HasColumnName("created_by");
+            entity.Property(e => e.DocumentNumber).HasMaxLength(20);
+            entity.Property(e => e.FlagUpdate).HasMaxLength(10);
+            entity.Property(e => e.MarkSend)
+                .HasMaxLength(1)
+                .HasColumnName("mark_send");
+            entity.Property(e => e.MessageId).HasMaxLength(100);
+            entity.Property(e => e.MessageType).HasMaxLength(10);
+            entity.Property(e => e.QueueStatus).HasMaxLength(10);
+            entity.Property(e => e.RefMessageId).HasMaxLength(100);
+            entity.Property(e => e.ReferenceNumber).HasMaxLength(20);
+            entity.Property(e => e.RegistrationId)
+                .HasMaxLength(35)
+                .HasColumnName("RegistrationID");
+            entity.Property(e => e.ResponseCode).HasMaxLength(10);
+            entity.Property(e => e.ResponseDateTime).HasColumnType("datetime");
+            entity.Property(e => e.ResponseMessage).HasMaxLength(255);
+            entity.Property(e => e.ResponseToId)
+                .HasMaxLength(35)
+                .HasColumnName("ResponseToID");
+            entity.Property(e => e.ResponseType).HasMaxLength(10);
+            entity.Property(e => e.SendDate)
+                .HasColumnType("datetime")
+                .HasColumnName("send_date");
+            entity.Property(e => e.SuccessDate)
+                .HasColumnType("datetime")
+                .HasColumnName("success_date");
+            entity.Property(e => e.SystemTime)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("datetime");
+            entity.Property(e => e.TxSuccess)
+                .HasMaxLength(1)
+                .HasColumnName("tx_success");
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnType("datetime")
+                .HasColumnName("updated_at");
+            entity.Property(e => e.UpdatedBy)
+                .HasMaxLength(100)
+                .HasColumnName("updated_by");
+        });
+
+        modelBuilder.Entity<TabMessageSubmissionRequest>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("tab_message_submission_requests");
+
+            entity.HasIndex(e => e.ReferenceNumber, "IDX1_tab_message_submission_requests");
+
+            entity.HasIndex(e => e.LicenseNumber, "IDX2_tab_message_submission_requests");
+
+            entity.HasIndex(e => e.RefMessageId, "IDX3_tab_message_submission_requests");
+
+            entity.HasIndex(e => e.SendStatus, "IDX4_tab_message_submission_requests");
+
+            entity.Property(e => e.Amount).HasPrecision(10, 2);
+            entity.Property(e => e.ApplicantId)
+                .HasMaxLength(20)
+                .HasColumnName("ApplicantID");
+            entity.Property(e => e.ApplicantName).HasMaxLength(120);
+            entity.Property(e => e.ConsigneeCountryCode).HasMaxLength(2);
+            entity.Property(e => e.ConsigneeName).HasMaxLength(120);
+            entity.Property(e => e.ConsigneeTaxNumber).HasMaxLength(20);
+            entity.Property(e => e.ConsignorCountryCode).HasMaxLength(2);
+            entity.Property(e => e.ConsignorName).HasMaxLength(120);
+            entity.Property(e => e.ConsignorTaxNumber).HasMaxLength(20);
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("datetime")
+                .HasColumnName("created_at");
+            entity.Property(e => e.CreatedBy)
+                .HasMaxLength(100)
+                .HasColumnName("created_by");
+            entity.Property(e => e.CurrencyCode).HasMaxLength(3);
+            entity.Property(e => e.DestinationCountry).HasMaxLength(2);
+            entity.Property(e => e.EservicePayloadId).HasColumnName("EServicePayloadId");
+            entity.Property(e => e.FlagUpdate).HasMaxLength(10);
+            entity.Property(e => e.FormType).HasMaxLength(3);
+            entity.Property(e => e.GrossWeight).HasPrecision(10, 6);
+            entity.Property(e => e.GrossWeightUnitCode).HasMaxLength(3);
+            entity.Property(e => e.InboundAt).HasColumnType("datetime");
+            entity.Property(e => e.LicenseNumber).HasMaxLength(20);
+            entity.Property(e => e.MarkSend)
+                .HasMaxLength(1)
+                .HasColumnName("mark_send");
+            entity.Property(e => e.MessageId).HasMaxLength(100);
+            entity.Property(e => e.NetWeightUnitCode).HasMaxLength(3);
+            entity.Property(e => e.PackageUnitCode).HasMaxLength(2);
+            entity.Property(e => e.PlaceOfOrigin).HasMaxLength(2);
+            entity.Property(e => e.PortDischargeCode).HasMaxLength(5);
+            entity.Property(e => e.PortDischargeName).HasMaxLength(50);
+            entity.Property(e => e.PortLoadingCode).HasMaxLength(5);
+            entity.Property(e => e.PortLoadingName).HasMaxLength(50);
+            entity.Property(e => e.RefMessageId).HasMaxLength(100);
+            entity.Property(e => e.ReferenceNumber).HasMaxLength(20);
+            entity.Property(e => e.RegistrtionId)
+                .HasMaxLength(35)
+                .HasColumnName("RegistrtionID");
+            entity.Property(e => e.ReplacementForm).HasMaxLength(3);
+            entity.Property(e => e.SendDate)
+                .HasColumnType("datetime")
+                .HasColumnName("send_date");
+            entity.Property(e => e.SendStatus).HasMaxLength(10);
+            entity.Property(e => e.SuccessDate)
+                .HasColumnType("datetime")
+                .HasColumnName("success_date");
+            entity.Property(e => e.SystemTime)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("datetime");
+            entity.Property(e => e.TotalNetWeight).HasPrecision(10, 6);
+            entity.Property(e => e.TxSuccess)
+                .HasMaxLength(1)
+                .HasColumnName("tx_success");
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnType("datetime")
+                .HasColumnName("updated_at");
+            entity.Property(e => e.UpdatedBy)
+                .HasMaxLength(100)
+                .HasColumnName("updated_by");
+        });
 
         modelBuilder.Entity<TabMessageThphyto>(entity =>
         {
@@ -716,6 +915,35 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.UpdatedAt)
                 .HasColumnType("datetime")
                 .HasColumnName("updated_at");
+        });
+
+        modelBuilder.Entity<TabMessageTxnOutbound>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("tab_message_txn_outbounds");
+
+            entity.HasIndex(e => e.Status, "IDX1_tab_message_txn_outbounds");
+
+            entity.HasIndex(e => new { e.TxnType, e.KeyId }, "IDX2_tab_message_txn_outbounds");
+
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("datetime")
+                .HasColumnName("created_at");
+            entity.Property(e => e.CreatedBy)
+                .HasMaxLength(100)
+                .HasColumnName("created_by");
+            entity.Property(e => e.Description).HasMaxLength(100);
+            entity.Property(e => e.Status)
+                .HasMaxLength(10)
+                .HasDefaultValueSql("'WAIT'");
+            entity.Property(e => e.TxnType).HasMaxLength(15);
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnType("datetime")
+                .HasColumnName("updated_at");
+            entity.Property(e => e.UpdatedBy)
+                .HasMaxLength(100)
+                .HasColumnName("updated_by");
         });
 
         OnModelCreatingPartial(modelBuilder);

@@ -15,6 +15,9 @@ public partial class TabMessageThphytoItemPhysicalPackage
 
     public string? TypeCode { get; set; }
 
+    /// <summary>
+    /// 512*9
+    /// </summary>
     public string? ShippingMarks { get; set; }
 
     public int? Quantity { get; set; }
