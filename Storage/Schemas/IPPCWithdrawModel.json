@@ -46,8 +46,89 @@
       },
       "required": ["doc_name", "doc_type", "doc_id", "issue_party_name", "status_code", "issue_date", "signatory_authen"]
     },
-    "items": { "type": "array", "minItems": 1 },
-    "phytoCerts": { "type": "array" }
+    "consignment": {
+      "type": "object",
+      "properties": {
+        "export_country": {
+          "type": "object",
+          "properties": { "id": { "type": ["string"] }, "name": { "type": ["string"] } },
+          "required": ["id", "name"]
+        },
+        "import_country": {
+          "type": "object",
+          "properties": { "id": { "type": ["string"] }, "name": { "type": ["string"] } },
+          "required": ["id", "name"]
+        },
+        "consignor_party": { "type": "object" },
+        "consignee_party": { "type": "object" },
+        "unloading_baseport": {
+          "type": "object",
+          "properties": { "name": { "type": ["string"] } },
+          "required": ["name"]
+        },
+        "main_carriages": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "properties": { "mode_code": { "type": ["string", "integer"] } },
+            "required": ["mode_code"]
+          }
+        }
+      },
+      "required": ["export_country", "import_country", "consignor_party", "consignee_party", "unloading_baseport", "main_carriages"]
+    },
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "descriptions": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "properties": { "name": { "type": ["string"] } },
+              "required": ["name"]
+            }
+          },
+          "origin_countries": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "properties": { "id": { "type": ["string"] }, "name": { "type": ["string"] } },
+              "required": ["id", "name"]
+            }
+          },
+          "intend_uses": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "properties": { "name": { "type": ["string"] } },
+              "required": ["name"]
+            }
+          }
+        },
+        "required": ["descriptions", "origin_countries", "intend_uses"]
+      }
+    },
+    "phytoCerts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "sequenceNo": { "type": ["integer", "string"] },
+          "Name": { "type": "string" },
+          "documentNo": { "type": "string" },
+          "PdfObject": { "type": "string" }
+        },
+        "required": ["sequenceNo", "Name", "documentNo", "PdfObject"]
+      }
+    }
   },
-  "required": ["xc_document", "items", "phytoCerts"]
+  "required": ["xc_document", "consignment", "items", "phytoCerts"]
 }
