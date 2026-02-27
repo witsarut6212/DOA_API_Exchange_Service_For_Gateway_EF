@@ -12,11 +12,16 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
     public class SubmissionEPhytoController : ControllerBase
     {
         private readonly ISubmissionService _submissionService;
+        private readonly IProgressQueue _queue;
         private readonly IConfiguration _config;
 
-        public SubmissionEPhytoController(ISubmissionService submissionService, IConfiguration config)
+        public SubmissionEPhytoController(
+            ISubmissionService submissionService,
+            IProgressQueue queue,
+            IConfiguration config)
         {
             _submissionService = submissionService;
+            _queue = queue;
             _config = config;
         }
 
@@ -25,34 +30,30 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
         {
             var title = _config["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
 
-            var result = await _submissionService.UpdateProgressAsync(request);
+            // STEP 1 ตามภาพ: Create Record response_payload (Status = WAIT)
+            var result = await _submissionService.SaveResponsePayloadAsync(request);
 
-            if (result)
+            if (!result)
             {
-                return Ok(new ApiResponse<object>
+                return BadRequest(new ApiResponse<object>
                 {
-                    Info = new ApiInfo
-                    {
-                        Title = title,
-                        Status = 200,
-                        Detail = "Successfully updated ePhyto progress."
-                    },
-                    Data = new { MessageId = request.MessageId, Status = request.Status }
+                    Info = new ApiInfo { Title = title, Status = 400, Detail = "Failed to create response payload." },
+                    Error = new ApiError { TraceId = HttpContext.TraceIdentifier, Instance = HttpContext.Request.Path }
                 });
             }
 
-            return BadRequest(new ApiResponse<object>
+            // โยน request ไปให้ Worker (BackgroundService) จับไป "process payload"
+            _queue.Enqueue(request);
+
+            // วนมาตรง "ตอบกลับ 200" ตาม Flowchart 
+            return Ok(new ApiResponse<object>
             {
-                Info = new ApiInfo
-                {
-                    Title = title,
-                    Status = 400,
-                    Detail = "Failed to update ePhyto progress."
-                },
-                Error = new ApiError
-                {
-                    TraceId = HttpContext.TraceIdentifier,
-                    Instance = HttpContext.Request.Path
+                Info = new ApiInfo { Title = title, Status = 200, Detail = "Successfully received ePhyto progress." },
+                // ส่งค่ากลับไปหา client โดยดึงจากโครงสร้างใหม่
+                Data = new 
+                { 
+                    ReferenceNumber = request.DocumentControl.ReferenceNumber, 
+                    Status = request.DocumentControl.ResponseInfo.Status 
                 }
             });
         }

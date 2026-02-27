@@ -159,6 +159,12 @@ namespace DOA_API_Exchange_Service_For_Gateway.Extensions
             services.AddScoped<DOA_API_Exchange_Service_For_Gateway.Services.ISubmissionService, DOA_API_Exchange_Service_For_Gateway.Services.SubmissionService>();
             services.AddScoped<DOA_API_Exchange_Service_For_Gateway.Services.IAuthService, DOA_API_Exchange_Service_For_Gateway.Services.AuthService>();
             services.AddSingleton<DOA_API_Exchange_Service_For_Gateway.Services.ILogService, DOA_API_Exchange_Service_For_Gateway.Services.LogService>();
+
+            // Background Service: Queue + BackgroundService
+            // Singleton → มีตัวเดียว ทั้ง Controller และ BackgroundService ใช้ queue ตัวเดียวกัน
+            services.AddSingleton<DOA_API_Exchange_Service_For_Gateway.Services.IProgressQueue, DOA_API_Exchange_Service_For_Gateway.Services.ProgressQueue>();
+            // AddHostedService → .NET จะ start service อัตโนมัติตอน app เริ่ม
+            services.AddHostedService<DOA_API_Exchange_Service_For_Gateway.Services.ProgressBackgroundService>();
         }
     }
 }
