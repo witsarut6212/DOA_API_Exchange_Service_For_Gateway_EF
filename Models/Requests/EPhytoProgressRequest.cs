@@ -17,6 +17,22 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
 
         [JsonProperty("additionalDocuments")]
         public List<AdditionalDocument>? AdditionalDocuments { get; set; }
+
+        // --- Logic ควบคุมการแสดงผลฟิลด์ใน JSON ---
+
+        // จะแสดง additionalDocuments เฉพาะเมื่อเป็น ACCEPT และ AC015 เท่านั้น
+        public bool ShouldSerializeAdditionalDocuments()
+        {
+            return DocumentControl?.ResponseInfo?.Status == "ACCEPT" && 
+                   DocumentControl?.ResponseInfo?.Code == "AC015";
+        }
+
+        // จะแสดง payment เฉพาะเมื่อเป็น ACCEPT และ AC009 เท่านั้น
+        public bool ShouldSerializePayment()
+        {
+            return DocumentControl?.ResponseInfo?.Status == "ACCEPT" && 
+                   DocumentControl?.ResponseInfo?.Code == "AC009";
+        }
     }
 
     public class DocumentControl
