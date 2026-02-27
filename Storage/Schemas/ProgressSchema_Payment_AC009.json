@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "e-Phyto Progress Payment Schema (AC009)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "documentControl",
+    "details",
+    "payment"
+  ],
+  "properties": {
+    "documentControl": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [ "referenceNumber", "documentNumber", "responseInfo" ],
+      "properties": {
+        "referenceNumber": { "type": "string", "minLength": 1 },
+        "documentNumber": { "type": "string", "minLength": 1 },
+        "responseInfo": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [ "dateTime", "status", "code" ],
+          "properties": {
+            "dateTime": { "type": "string", "format": "date-time" },
+            "status": { "type": "string", "enum": [ "ACCEPT" ] },
+            "code": { "type": "string", "enum": [ "AC009" ] }
+          }
+        },
+        "messageType": { "type": "string" },
+        "remark": { "type": "string" }
+      }
+    },
+    "details": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "ItemNumber": { "type": [ "integer", "null" ] },
+          "reasonCode": { "type": "string" },
+          "reasonDescription": { "type": "string" }
+        }
+      }
+    },
+    "payment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [ "url", "message" ],
+      "properties": {
+        "url": { "type": "string", "format": "uri" },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "e-Phyto Progress Standard Schema (RJxxx, AC001-AC014)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "documentControl",
+    "details"
+  ],
+  "properties": {
+    "documentControl": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "referenceNumber",
+        "documentNumber",
+        "responseInfo"
+      ],
+      "properties": {
+        "referenceNumber": { "type": "string", "minLength": 1 },
+        "documentNumber": { "type": "string", "minLength": 1 },
+        "responseInfo": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [ "dateTime", "status", "code" ],
+          "properties": {
+            "dateTime": { "type": "string", "format": "date-time" },
+            "status": { "type": "string", "enum": [ "ACCEPT", "REJECT" ] },
+            "code": { "type": "string", "pattern": "^(AC|RJ)\\d{3}$" }
+          }
+        },
+        "messageType": { "type": "string" },
+        "remark": { "type": "string" }
+      }
+    },
+    "details": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [ "ItemNumber", "reasonCode", "reasonDescription" ],
+        "properties": {
+          "ItemNumber": { "type": [ "integer", "null" ] },
+          "reasonCode": { "type": "string", "minLength": 1 },
+          "reasonDescription": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,194 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [
+    "documentControl"
+  ],
+  "properties": {
+    "documentControl": {
+      "type": "object",
+      "required": [
+        "referenceNumber",
+        "documentNumber",
+        "responseInfo"
+      ],
+      "properties": {
+        "referenceNumber": {
+          "type": "string",
+          "minLength": 1
+        },
+        "documentNumber": {
+          "type": "string",
+          "minLength": 1
+        },
+        "responseInfo": {
+          "type": "object",
+          "required": [
+            "dateTime",
+            "status",
+            "code"
+          ],
+          "properties": {
+            "dateTime": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "ACCEPT",
+                "REJECT"
+              ]
+            },
+            "code": {
+              "type": "string",
+              "pattern": "^(AC|RJ)\\d{3}$"
+            }
+          }
+        },
+        "messageType": {
+          "type": "string"
+        },
+        "remark": {
+          "type": "string"
+        }
+      }
+    },
+    "details": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "ItemNumber": {
+            "type": [ "integer", "null" ]
+          },
+          "reasonCode": {
+            "type": "string"
+          },
+          "reasonDescription": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "payment": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "url"
+      ]
+    },
+    "additionalDocuments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "itemNumber": {
+            "type": [ "integer", "null" ]
+          },
+          "documentInfo": {
+            "type": "object",
+            "properties": {
+              "typeCode": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "issueDate": {
+                "type": "string"
+              },
+              "expireDate": {
+                "type": "string"
+              }
+            }
+          },
+          "providerAuthority": {
+            "type": "object",
+            "properties": {
+              "taxNumber": {
+                "type": "string"
+              }
+            }
+          },
+          "attachment": {
+            "type": "object",
+            "properties": {
+              "filename": {
+                "type": "string"
+              },
+              "fileType": {
+                "type": "string"
+              },
+              "fileBase64": {
+                "type": "string"
+              },
+              "remark": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "documentControl": {
+            "properties": {
+              "responseInfo": {
+                "properties": {
+                  "status": {
+                    "const": "ACCEPT"
+                  },
+                  "code": {
+                    "const": "AC009"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "payment"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "documentControl": {
+            "properties": {
+              "responseInfo": {
+                "properties": {
+                  "status": {
+                    "const": "ACCEPT"
+                  },
+                  "code": {
+                    "const": "AC015"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "additionalDocuments"
+        ]
+      }
+    }
+  ]
+}

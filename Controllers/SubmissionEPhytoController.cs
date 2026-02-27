@@ -1,6 +1,7 @@
 using DOA_API_Exchange_Service_For_Gateway.Models;
 using DOA_API_Exchange_Service_For_Gateway.Models.Requests;
 using DOA_API_Exchange_Service_For_Gateway.Services;
+using DOA_API_Exchange_Service_For_Gateway.Filters;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -26,6 +27,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
         }
 
         [HttpPost("progress")]
+        [ValidateProgressSchema]
         public async Task<IActionResult> UpdateProgress([FromBody] EPhytoProgressRequest request)
         {
             var title = _config["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
