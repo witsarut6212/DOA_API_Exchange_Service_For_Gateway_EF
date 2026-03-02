@@ -153,7 +153,6 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
         {
             var title = _configuration["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
 
-            // เก็บ doc_id ไว้ใน HttpContext.Items เผื่อ Middleware ต้องใช้ใน log
             HttpContext.Items["doc_id"] = request.XcDocument.DocId;
 
             if (await _ePhytoService.IsDocumentExists(request.XcDocument.DocId, request.XcDocument.DocType, request.XcDocument.StatusCode))

@@ -32,16 +32,13 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 {
                     string messageId = Guid.NewGuid().ToString();
                     
-                    // 1. Map and Save Main Document
                     var thphyto = MapToThPhyto(request, messageId, source);
                     _context.TabMessageThphytos.Add(thphyto);
 
-                    // 2. Map and Save Related Data
                     MapIncludedNotes(request.XcDocument.IncludeNotes, messageId);
                     MapReferenceDocs(request, messageId);
                     MapTransportInfo(request.Consignment, messageId);
                     
-                    // 3. Map and Save Items
                     MapItems(request.Items, messageId);
 
                     await _context.SaveChangesAsync();
@@ -64,7 +61,6 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             var doc = request.XcDocument;
             var consignment = request.Consignment;
 
-            // Handle IssueLocation which can be string or object
             string? authLocationName = null;
             if (doc.SignatoryAuthen?.IssueLocation != null)
             {
@@ -197,7 +193,6 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
 
         private void MapItemDetails(EPhytoItem item, string messageId, string itemId)
         {
-            // Descriptions
             if (item.Descriptions != null)
             {
                 foreach (var d in item.Descriptions)
@@ -212,7 +207,6 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 }
             }
 
-            // Common Names
             if (item.CommonNames != null)
             {
                 foreach (var c in item.CommonNames)
@@ -227,7 +221,6 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 }
             }
 
-            // Additional Notes
             MapItemAdditionalNotes(item.AdditionalNotes, messageId, itemId);
         }
 

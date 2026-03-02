@@ -14,27 +14,19 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
     // ทำให้ Controller และ BackgroundService ใช้ queue ตัวเดียวกัน
     public class ProgressQueue : IProgressQueue
     {
-        // Channel<T> = queue ที่ thread-safe ของ .NET
-        private readonly Channel<EPhytoProgressRequest> _channel;
+        private readonly Channel<(int payloadId, EPhytoProgressRequest request)> _channel;
 
         public ProgressQueue()
         {
-            // CreateUnbounded = queue ไม่จำกัดขนาด
-            // ถ้าต้องการจำกัด เช่น ไม่เกิน 100 → ใช้ Channel.CreateBounded(100)
-            _channel = Channel.CreateUnbounded<EPhytoProgressRequest>();
+            _channel = Channel.CreateUnbounded<(int payloadId, EPhytoProgressRequest request)>();
         }
 
-        // Controller เรียก Enqueue() เพื่อส่งงานเข้า queue
-        // TryWrite = ใส่ของลงท่อ → return ทันที ไม่รอ
-        public void Enqueue(EPhytoProgressRequest request)
+        public void Enqueue(int payloadId, EPhytoProgressRequest request)
         {
-            _channel.Writer.TryWrite(request);
+            _channel.Writer.TryWrite((payloadId, request));
         }
 
-        // BackgroundService เรียก DequeueAsync() เพื่อรับงานออกจาก queue
-        // ReadAsync = รอจนกว่าจะมีของใน queue แล้วค่อยดึงออกมา
-        // ถ้า queue ว่าง → จะ await ไว้เฉยๆ ไม่กิน CPU
-        public async Task<EPhytoProgressRequest> DequeueAsync(CancellationToken cancellationToken)
+        public async Task<(int payloadId, EPhytoProgressRequest request)> DequeueAsync(CancellationToken cancellationToken)
         {
             return await _channel.Reader.ReadAsync(cancellationToken);
         }

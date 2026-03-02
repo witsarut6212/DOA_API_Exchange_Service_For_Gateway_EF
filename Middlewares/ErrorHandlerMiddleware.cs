@@ -44,7 +44,6 @@ namespace DOA_API_Exchange_Service_For_Gateway.Middlewares
         {
             _logger.LogError(exception, "An unhandled exception occurred.");
 
-            // Custom Log: บันทึก exception ลง JSON Log file
             await _logService.LogExceptionAsync(
                 exception: exception,
                 instance: context.Request.Path,

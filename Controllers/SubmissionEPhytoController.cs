@@ -32,10 +32,10 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
         {
             var title = _config["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
 
-            // STEP 1 ตามภาพ: Create Record response_payload (Status = WAIT)
-            var result = await _submissionService.SaveResponsePayloadAsync(request);
+            // Step 1: Save Payload
+            var payloadId = await _submissionService.SaveResponsePayloadAsync(request);
 
-            if (!result)
+            if (payloadId == 0)
             {
                 return BadRequest(new ApiResponse<object>
                 {
@@ -44,14 +44,12 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                 });
             }
 
-            // โยน request ไปให้ Worker (BackgroundService) จับไป "process payload"
-            _queue.Enqueue(request);
+            // Step 2: Queue for background processing
+            _queue.Enqueue(payloadId, request);
 
-            // วนมาตรง "ตอบกลับ 200" ตาม Flowchart 
             return Ok(new ApiResponse<object>
             {
                 Info = new ApiInfo { Title = title, Status = 200, Detail = "Successfully received ePhyto progress." },
-                // ส่งค่ากลับไปหา client โดยดึงจากโครงสร้างใหม่
                 Data = new 
                 { 
                     ReferenceNumber = request.DocumentControl.ReferenceNumber, 

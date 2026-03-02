@@ -2,9 +2,7 @@ using Microsoft.AspNetCore.Mvc.ApplicationModels;
 
 namespace DOA_API_Exchange_Service_For_Gateway.Middlewares
 {
-    /// <summary>
-    /// Convention สำหรับเพิ่ม Route Prefix ให้กับทุก Controller โดยอ่านค่าจาก appsettings.json (ApiSettings:RoutePrefix)
-    /// </summary>
+
     public class GlobalRoutePrefixConvention : IApplicationModelConvention
     {
         private readonly AttributeRouteModel _routePrefix;

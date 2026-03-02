@@ -16,10 +16,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             _logger = logger;
         }
 
-        // =========================================================
-        // STEP 1: เซฟลงตาราง response_payload ก่อนตอบ 200
-        // =========================================================
-        public async Task<bool> SaveResponsePayloadAsync(EPhytoProgressRequest request)
+        public async Task<int> SaveResponsePayloadAsync(EPhytoProgressRequest request)
         {
             try
             {
@@ -34,22 +31,20 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 _context.TabMessageRepsonsePayloads.Add(payload);
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation("Step1 done - Created response_payload for Ref: {Ref}", 
-                    request.DocumentControl.ReferenceNumber);
-                return true;
+                _logger.LogInformation("Step 1: Saved payload for Ref: {Ref} (ID: {Id})", 
+                    request.DocumentControl.ReferenceNumber, payload.Id);
+                
+                return payload.Id;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Step1 failed - Error saving payload for Ref: {Ref}", 
+                _logger.LogError(ex, "Step 1 Failed: Error saving payload for Ref: {Ref}", 
                     request.DocumentControl.ReferenceNumber);
-                return false;
+                return 0;
             }
         }
 
-        // =========================================================
-        // STEP 2 (Background): ประมวลผลเบื้องหลัง
-        // =========================================================
-        public async Task ProcessPayloadAsync(EPhytoProgressRequest request)
+        public async Task ProcessPayloadAsync(int payloadId, EPhytoProgressRequest request)
         {
             var strategy = _context.Database.CreateExecutionStrategy();
 
@@ -58,38 +53,51 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 using var transaction = await _context.Database.BeginTransactionAsync();
                 try
                 {
-                    // ใช้ ReferenceNumber หรือ DocumentNumber ในการหา Message เดิมในระบบ
                     var referenceNo = request.DocumentControl.ReferenceNumber;
                     var newStatus = request.DocumentControl.ResponseInfo.Status;
                     var updateTime = request.DocumentControl.ResponseInfo.DateTime;
 
-                    // แก้ไข: ค้นหาจากตาราง thphyto โดยอิงจาก DocId หรือ Reference 
-                    // (ตรงนี้คุณอาจต้องเช็คว่าใน DB ของคุณใช้ column ไหนเก็บค่านี้)
+                    // Update TabMessageThphyto
                     var thphyto = await _context.TabMessageThphytos
                         .FirstOrDefaultAsync(x => x.DocId == referenceNo || x.MessageId == referenceNo);
 
+                    string processingResult = "NOT_FOUND";
                     if (thphyto != null)
                     {
                         thphyto.MessageStatus = newStatus;
-                        thphyto.ResponseStatus = request.DocumentControl.ResponseInfo.Code; // เก็บ code ตอบกลับ
+                        thphyto.ResponseStatus = request.DocumentControl.ResponseInfo.Code;
                         thphyto.ResponseAt = updateTime;
                         thphyto.LastUpdate = DateTime.Now;
-
-                        await _context.SaveChangesAsync();
-                        await transaction.CommitAsync();
-
-                        _logger.LogInformation("Step2 done - Processed background for Ref: {Ref}", referenceNo);
+                        processingResult = "SUCCESS";
                     }
-                    else
+
+                    // Update Payload Status
+                    var payload = await _context.TabMessageRepsonsePayloads.FindAsync(payloadId);
+                    if (payload != null)
                     {
-                        _logger.LogWarning("Background Process - ReferenceNumber not found in thphyto: {Ref}", referenceNo);
+                        payload.Status = processingResult;
+                        payload.UpdatedAt = DateTime.Now;
+                        payload.UpdatedBy = "BACKGROUND";
                     }
+
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    _logger.LogInformation("Step 2: Processed Ref: {Ref} (Result: {Result})", referenceNo, processingResult);
                 }
                 catch (Exception ex)
                 {
                     await transaction.RollbackAsync();
-                    _logger.LogError(ex, "Step2 failed - Background Processing for Ref: {Ref}", 
-                        request.DocumentControl.ReferenceNumber);
+                    _logger.LogError(ex, "Step 2 Failed: Processing Ref: {Ref}", request.DocumentControl.ReferenceNumber);
+                    
+                    // Mark payload as FAIL
+                    var payload = await _context.TabMessageRepsonsePayloads.FindAsync(payloadId);
+                    if (payload != null)
+                    {
+                        payload.Status = "FAIL";
+                        payload.UpdatedAt = DateTime.Now;
+                        await _context.SaveChangesAsync();
+                    }
                 }
             });
         }
