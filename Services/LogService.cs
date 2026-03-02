@@ -29,7 +29,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             var entry = new ExceptionLogEntry
             {
                 Timestamp = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-                Service = "API Exchange Service For Gateway",
+                Service = instance, // ใช้ค่าเดียวกับ instance ตามรูปแบบงานเดิม
                 LogType = "exception",
                 ExceptionType = exception.GetType().Name,
                 ExceptionMessage = exception.Message,

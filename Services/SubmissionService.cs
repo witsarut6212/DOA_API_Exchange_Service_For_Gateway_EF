@@ -9,11 +9,13 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
     {
         private readonly AppDbContext _context;
         private readonly ILogger<SubmissionService> _logger;
+        private readonly ILogService _logService;
 
-        public SubmissionService(AppDbContext context, ILogger<SubmissionService> logger)
+        public SubmissionService(AppDbContext context, ILogger<SubmissionService> logger, ILogService logService)
         {
             _context = context;
             _logger = logger;
+            _logService = logService;
         }
 
         public async Task<int> SaveResponsePayloadAsync(EPhytoProgressRequest request)
@@ -38,6 +40,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             }
             catch (Exception ex)
             {
+                await _logService.LogExceptionAsync(ex, "/api-doa-gw/v1.0/submission/ephyto/progress");
                 _logger.LogError(ex, "Step 1 Failed: Error saving payload for Ref: {Ref}", 
                     request.DocumentControl.ReferenceNumber);
                 return 0;
@@ -46,57 +49,109 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
 
         public async Task ProcessPayloadAsync(int payloadId, EPhytoProgressRequest request)
         {
-            var strategy = _context.Database.CreateExecutionStrategy();
+            // 1. Update Record response_payload (Status = PROCESSING)
+            var payload = await _context.TabMessageRepsonsePayloads.FindAsync(payloadId);
+            if (payload == null)
+            {
+                _logger.LogError("Payload ID {Id} not found.", payloadId);
+                return;
+            }
 
+            try
+            {
+                payload.Status = "PROCESSING";
+                payload.UpdatedAt = DateTime.Now;
+                payload.UpdatedBy = "BACKGROUND";
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                await _logService.LogExceptionAsync(ex, "/api-doa-gw/v1.0/submission/ephyto/progress");
+                _logger.LogError(ex, "Failed to update payload status to PROCESSING for ID {Id}", payloadId);
+                return;
+            }
+
+            // 2. Start Transaction Logic
+            var strategy = _context.Database.CreateExecutionStrategy();
             await strategy.ExecuteAsync(async () =>
             {
                 using var transaction = await _context.Database.BeginTransactionAsync();
                 try
                 {
-                    var referenceNo = request.DocumentControl.ReferenceNumber;
-                    var newStatus = request.DocumentControl.ResponseInfo.Status;
-                    var updateTime = request.DocumentControl.ResponseInfo.DateTime;
-
-                    // Update TabMessageThphyto
-                    var thphyto = await _context.TabMessageThphytos
-                        .FirstOrDefaultAsync(x => x.DocId == referenceNo || x.MessageId == referenceNo);
-
-                    string processingResult = "NOT_FOUND";
-                    if (thphyto != null)
+                    // --- FOR TESTING: Trigger forced error if Remark starts with [FORCE_ERROR] ---
+                    if (request.DocumentControl.Remark?.StartsWith("[FORCE_ERROR]") == true)
                     {
-                        thphyto.MessageStatus = newStatus;
-                        thphyto.ResponseStatus = request.DocumentControl.ResponseInfo.Code;
-                        thphyto.ResponseAt = updateTime;
-                        thphyto.LastUpdate = DateTime.Now;
-                        processingResult = "SUCCESS";
+                        throw new Exception("Simulated Background Service Error for testing logs.");
                     }
 
-                    // Update Payload Status
-                    var payload = await _context.TabMessageRepsonsePayloads.FindAsync(payloadId);
-                    if (payload != null)
+                    // 3. Create Record response_submisison (QueueStatus = WAIT)
+                    var submission = new TabMessageResponseSubmisison
                     {
-                        payload.Status = processingResult;
-                        payload.UpdatedAt = DateTime.Now;
-                        payload.UpdatedBy = "BACKGROUND";
-                    }
+                        ResponseType = request.DocumentControl.ResponseInfo.Status,
+                        ReferenceNumber = request.DocumentControl.ReferenceNumber,
+                        DocumentNumber = request.DocumentControl.DocumentNumber,
+                        MessageType = request.DocumentControl.MessageType ?? "",
+                        ResponseCode = request.DocumentControl.ResponseInfo.Code,
+                        ResponseMessage = request.DocumentControl.Remark ?? "",
+                        ResponseDateTime = request.DocumentControl.ResponseInfo.DateTime,
+                        RegistrationId = "", // Default or map if available
+                        ResponseToId = request.DocumentControl.ReferenceNumber,
+                        QueueStatus = "WAIT",
+                        SystemTime = DateTime.Now,
+                        ResponsePayloadId = payloadId,
+                        FlagUpdate = "N",
+                        CreatedAt = DateTime.Now,
+                        CreatedBy = "BACKGROUND"
+                    };
+
+                    _context.TabMessageResponseSubmisisons.Add(submission);
+                    await _context.SaveChangesAsync();
+
+                    // 4. Create Record txn_outbounds (KeyId = response_submission.Id, TxnType = EPC-0201, Status = WAIT)
+                    var outbound = new TabMessageTxnOutbound
+                    {
+                        KeyId = submission.Id,
+                        TxnType = "EPC-0201",
+                        Description = $"Process ePhyto Progress Ref: {request.DocumentControl.ReferenceNumber}",
+                        Status = "WAIT",
+                        CreatedAt = DateTime.Now,
+                        CreatedBy = "BACKGROUND"
+                    };
+
+                    _context.TabMessageTxnOutbounds.Add(outbound);
+
+                    // 5. Update Record response_payload (Status = SUCCESS)
+                    payload.Status = "SUCCESS";
+                    payload.UpdatedAt = DateTime.Now;
 
                     await _context.SaveChangesAsync();
+                    
+                    // 6. Commit Transaction
                     await transaction.CommitAsync();
 
-                    _logger.LogInformation("Step 2: Processed Ref: {Ref} (Result: {Result})", referenceNo, processingResult);
+                    _logger.LogInformation("Background processing SUCCESS for Ref: {Ref} (Submission ID: {SubId})", 
+                        request.DocumentControl.ReferenceNumber, submission.Id);
                 }
                 catch (Exception ex)
                 {
                     await transaction.RollbackAsync();
-                    _logger.LogError(ex, "Step 2 Failed: Processing Ref: {Ref}", request.DocumentControl.ReferenceNumber);
                     
-                    // Mark payload as FAIL
-                    var payload = await _context.TabMessageRepsonsePayloads.FindAsync(payloadId);
-                    if (payload != null)
+                    // บันทึก Log ลงไฟล์ JSON ผ่าน LogService
+                    await _logService.LogExceptionAsync(ex, "/api-doa-gw/v1.0/submission/ephyto/progress", payloadId.ToString());
+                    
+                    _logger.LogError(ex, "Background processing FAILED for Ref: {Ref}", request.DocumentControl.ReferenceNumber);
+
+                    // 7. Update Record response_payload (Status = FAIL)
+                    try
                     {
                         payload.Status = "FAIL";
                         payload.UpdatedAt = DateTime.Now;
                         await _context.SaveChangesAsync();
+                    }
+                    catch (Exception logEx)
+                    {
+                        await _logService.LogExceptionAsync(logEx, "/api-doa-gw/v1.0/submission/ephyto/progress");
+                        _logger.LogError(logEx, "Failed to mark payload as FAIL for ID {Id}", payloadId);
                     }
                 }
             });
