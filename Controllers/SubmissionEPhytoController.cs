@@ -50,7 +50,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
             // วนมาตรง "ตอบกลับ 200" ตาม Flowchart 
             return Ok(new ApiResponse<object>
             {
-                Info = new ApiInfo { Title = title, Status = 200, Detail = "Successfully received ePhyto progress. (Validated)" },
+                Info = new ApiInfo { Title = title, Status = 200, Detail = "Successfully received ePhyto progress." },
                 // ส่งค่ากลับไปหา client โดยดึงจากโครงสร้างใหม่
                 Data = new 
                 { 
