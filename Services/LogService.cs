@@ -119,7 +119,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 now.ToString("MM")
             );
 
-            string logFileName = $"log-{now:yyyy-MM-dd}.json";
+            string logFileName = $"log-{now:yyyy-MM-dd}.log";
 
             return Path.Combine(logDirectory, logFileName);
         }

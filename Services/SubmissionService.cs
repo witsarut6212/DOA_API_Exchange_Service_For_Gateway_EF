@@ -79,10 +79,12 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 try
                 {
                     // --- FOR TESTING: Trigger forced error if Remark starts with [FORCE_ERROR] ---
+                    /*
                     if (request.DocumentControl.Remark?.StartsWith("[FORCE_ERROR]") == true)
                     {
                         throw new Exception("Simulated Background Service Error for testing logs.");
                     }
+                    */
 
                     // 3. Check for existing record to avoid Duplicate Error (Upsert Logic)
                     var submission = await _context.TabMessageResponseSubmisisons
