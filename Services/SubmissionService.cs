@@ -78,14 +78,6 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 using var transaction = await _context.Database.BeginTransactionAsync();
                 try
                 {
-                    // --- FOR TESTING: Trigger forced error if Remark starts with [FORCE_ERROR] ---
-                    /*
-                    if (request.DocumentControl.Remark?.StartsWith("[FORCE_ERROR]") == true)
-                    {
-                        throw new Exception("Simulated Background Service Error for testing logs.");
-                    }
-                    */
-
                     // 3. Insert New Submission (Duplicate check is now handled at Controller level)
                     var submission = new TabMessageResponseSubmisison
                     {
