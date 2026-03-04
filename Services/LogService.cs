@@ -24,24 +24,58 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             _configuration = configuration;
         }
 
-        public async Task LogExceptionAsync(Exception exception, string instance, string? requestId = null)
+        public async Task LogExceptionAsync(Exception exception, string instance)
         {
+            var serviceTitle = _configuration["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
+
             var entry = new ExceptionLogEntry
             {
                 Timestamp = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-                Service = instance, // ใช้ค่าเดียวกับ instance ตามรูปแบบงานเดิม
+                Service = serviceTitle, // กลับไปใช้ชื่อ Service หลัก (Title) ตามต้องการ
                 LogType = "exception",
                 ExceptionType = exception.GetType().Name,
                 ExceptionMessage = exception.Message,
-                StackTrace = exception.StackTrace ?? string.Empty,
-                Instance = instance,
-                RequestId = requestId
+                InnerException = GetFullInnerExceptionMessage(exception),
+                StackTrace = GetShortenedStackTrace(exception.StackTrace), // กรอง Stack Trace ให้สั้นและไล่ง่าย
+                Instance = instance
             };
 
             await WriteLogEntryAsync(entry);
         }
 
+        private string GetShortenedStackTrace(string? stackTrace)
+        {
+            if (string.IsNullOrEmpty(stackTrace)) return string.Empty;
 
+            var lines = stackTrace.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+            
+            // กรองเอาเฉพาะบรรทัดที่มีชื่อโปรเจกต์ของเรา เพื่อให้ไล่ Code ง่ายขึ้น
+            var projectLines = lines
+                .Where(l => l.Contains("DOA_API_Exchange_Service_For_Gateway"))
+                .ToList();
+
+            if (!projectLines.Any())
+            {
+                // ถ้าไม่เจอชื่อโปรเจกต์เลย (เป็น Error นอกเหนือความคาดหมาย) ให้เอาบรรทัดแรกมาแสดง
+                return lines.FirstOrDefault()?.Trim() ?? string.Empty;
+            }
+
+            return string.Join(Environment.NewLine, projectLines.Select(l => l.Trim()));
+        }
+
+        private string? GetFullInnerExceptionMessage(Exception ex)
+        {
+            if (ex.InnerException == null) return null;
+            
+            var messages = new List<string>();
+            var inner = ex.InnerException;
+            while (inner != null)
+            {
+                messages.Add(inner.Message);
+                inner = inner.InnerException;
+            }
+            return string.Join(" --> ", messages);
+        }
 
         private async Task WriteLogEntryAsync(ExceptionLogEntry entry)
         {
@@ -108,13 +142,13 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
         [JsonPropertyName("exception_message")]
         public string ExceptionMessage { get; set; } = string.Empty;
 
+        [JsonPropertyName("inner_exception")] // เพิ่มฟิลด์ใหม่
+        public string? InnerException { get; set; }
+
         [JsonPropertyName("stack_trace")]
         public string StackTrace { get; set; } = string.Empty;
 
         [JsonPropertyName("instance")]
         public string Instance { get; set; } = string.Empty;
-
-        [JsonPropertyName("request_id")]
-        public string? RequestId { get; set; }
     }
 }

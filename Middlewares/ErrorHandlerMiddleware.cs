@@ -46,8 +46,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Middlewares
 
             await _logService.LogExceptionAsync(
                 exception: exception,
-                instance: context.Request.Path,
-                requestId: context.Items.TryGetValue("doc_id", out var docId) ? docId?.ToString() : null
+                instance: context.Request.Path
             );
 
             var title = _configuration["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";

@@ -84,27 +84,52 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                         throw new Exception("Simulated Background Service Error for testing logs.");
                     }
 
-                    // 3. Create Record response_submisison (QueueStatus = WAIT)
-                    var submission = new TabMessageResponseSubmisison
-                    {
-                        ResponseType = request.DocumentControl.ResponseInfo.Status,
-                        ReferenceNumber = request.DocumentControl.ReferenceNumber,
-                        DocumentNumber = request.DocumentControl.DocumentNumber,
-                        MessageType = request.DocumentControl.MessageType ?? "",
-                        ResponseCode = request.DocumentControl.ResponseInfo.Code,
-                        ResponseMessage = request.DocumentControl.Remark ?? "",
-                        ResponseDateTime = request.DocumentControl.ResponseInfo.DateTime,
-                        RegistrationId = "", // Default or map if available
-                        ResponseToId = request.DocumentControl.ReferenceNumber,
-                        QueueStatus = "WAIT",
-                        SystemTime = DateTime.Now,
-                        ResponsePayloadId = payloadId,
-                        FlagUpdate = "N",
-                        CreatedAt = DateTime.Now,
-                        CreatedBy = "BACKGROUND"
-                    };
+                    // 3. Check for existing record to avoid Duplicate Error (Upsert Logic)
+                    var submission = await _context.TabMessageResponseSubmisisons
+                        .FirstOrDefaultAsync(s => s.DocumentNumber == request.DocumentControl.DocumentNumber);
 
-                    _context.TabMessageResponseSubmisisons.Add(submission);
+                    if (submission != null)
+                    {
+                        // CASE: Update Existing
+                        submission.ResponseType = request.DocumentControl.ResponseInfo.Status;
+                        submission.ReferenceNumber = request.DocumentControl.ReferenceNumber;
+                        submission.ResponseCode = request.DocumentControl.ResponseInfo.Code;
+                        submission.ResponseMessage = request.DocumentControl.Remark ?? "";
+                        submission.ResponseDateTime = request.DocumentControl.ResponseInfo.DateTime;
+                        submission.ResponsePayloadId = payloadId;
+                        submission.SystemTime = DateTime.Now;
+                        submission.FlagUpdate = "Y"; // Mark as Updated
+                        submission.UpdatedAt = DateTime.Now;
+                        submission.UpdatedBy = "BACKGROUND";
+
+                        _logger.LogInformation("Updating existing submission for Doc: {Doc}", request.DocumentControl.DocumentNumber);
+                    }
+                    else
+                    {
+                        // CASE: Insert New
+                        submission = new TabMessageResponseSubmisison
+                        {
+                            ResponseType = request.DocumentControl.ResponseInfo.Status,
+                            ReferenceNumber = request.DocumentControl.ReferenceNumber,
+                            DocumentNumber = request.DocumentControl.DocumentNumber,
+                            MessageType = request.DocumentControl.MessageType ?? "",
+                            ResponseCode = request.DocumentControl.ResponseInfo.Code,
+                            ResponseMessage = request.DocumentControl.Remark ?? "",
+                            ResponseDateTime = request.DocumentControl.ResponseInfo.DateTime,
+                            RegistrationId = "",
+                            ResponseToId = request.DocumentControl.ReferenceNumber,
+                            QueueStatus = "WAIT",
+                            SystemTime = DateTime.Now,
+                            ResponsePayloadId = payloadId,
+                            FlagUpdate = "N",
+                            CreatedAt = DateTime.Now,
+                            CreatedBy = "BACKGROUND"
+                        };
+
+                        _context.TabMessageResponseSubmisisons.Add(submission);
+                        _logger.LogInformation("Creating new submission for Doc: {Doc}", request.DocumentControl.DocumentNumber);
+                    }
+
                     await _context.SaveChangesAsync();
 
                     // 4. Create Record txn_outbounds (KeyId = response_submission.Id, TxnType = EPC-0201, Status = WAIT)
@@ -137,16 +162,23 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                     await transaction.RollbackAsync();
                     
                     // บันทึก Log ลงไฟล์ JSON ผ่าน LogService
-                    await _logService.LogExceptionAsync(ex, "/api-doa-gw/v1.0/submission/ephyto/progress", payloadId.ToString());
+                    await _logService.LogExceptionAsync(ex, "/api-doa-gw/v1.0/submission/ephyto/progress");
                     
                     _logger.LogError(ex, "Background processing FAILED for Ref: {Ref}", request.DocumentControl.ReferenceNumber);
 
                     // 7. Update Record response_payload (Status = FAIL)
+                    // สำคัญ: ต้อง Clear tracking เพื่อไม่ให้ตอน Save FAIL มันพยายามไปเซฟข้อมูลที่พังซ้ำอีกรอบ
+                    _context.ChangeTracker.Clear();
+
                     try
                     {
-                        payload.Status = "FAIL";
-                        payload.UpdatedAt = DateTime.Now;
-                        await _context.SaveChangesAsync();
+                        var failPayload = await _context.TabMessageRepsonsePayloads.FindAsync(payloadId);
+                        if (failPayload != null)
+                        {
+                            failPayload.Status = "FAIL";
+                            failPayload.UpdatedAt = DateTime.Now;
+                            await _context.SaveChangesAsync();
+                        }
                     }
                     catch (Exception logEx)
                     {
