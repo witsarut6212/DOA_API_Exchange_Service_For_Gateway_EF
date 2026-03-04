@@ -6,5 +6,6 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
     {
         Task<int> SaveResponsePayloadAsync(EPhytoProgressRequest request);
         Task ProcessPayloadAsync(int payloadId, EPhytoProgressRequest request);
+        Task<bool> IsDocumentNumberDuplicateAsync(string documentNumber);
     }
 }

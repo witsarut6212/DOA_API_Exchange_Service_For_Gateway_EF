@@ -14,7 +14,7 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<TabMessageEservicePayload> TabMessageEservicePayloads { get; set; }
 
-    public virtual DbSet<TabMessageRepsonsePayload> TabMessageRepsonsePayloads { get; set; }
+    public virtual DbSet<TabMessageResponsePayload> TabMessageResponsePayloads { get; set; }
 
     public virtual DbSet<TabMessageResponseSubmisison> TabMessageResponseSubmisisons { get; set; }
 
@@ -100,13 +100,13 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("updated_by");
         });
 
-        modelBuilder.Entity<TabMessageRepsonsePayload>(entity =>
+        modelBuilder.Entity<TabMessageResponsePayload>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.ToTable("tab_message_repsonse_payloads");
+            entity.ToTable("tab_message_response_payloads");
 
-            entity.HasIndex(e => e.Status, "IDX1_tab_message_repsonse_payloads_Status");
+            entity.HasIndex(e => e.Status, "IDX1_tab_message_response_payloads_Status");
 
             entity.Property(e => e.CreatedAt)
                 .HasColumnType("datetime")

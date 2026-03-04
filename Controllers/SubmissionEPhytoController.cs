@@ -32,6 +32,25 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
         {
             var title = _config["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
 
+            // Step 0: Intercept Duplicate DocumentNumber (As requested by auditor)
+            if (await _submissionService.IsDocumentNumberDuplicateAsync(request.DocumentControl.DocumentNumber))
+            {
+                return Conflict(new ApiResponse<object>
+                {
+                    Info = new ApiInfo 
+                    { 
+                        Title = title, 
+                        Status = 409, 
+                        Detail = $"Duplicate DocumentNumber found: '{request.DocumentControl.DocumentNumber}'. This document already exists in the system." 
+                    },
+                    Error = new ApiError 
+                    { 
+                        TraceId = HttpContext.TraceIdentifier, 
+                        Instance = HttpContext.Request.Path 
+                    }
+                });
+            }
+
             // Step 1: Save Payload
             var payloadId = await _submissionService.SaveResponsePayloadAsync(request);
 

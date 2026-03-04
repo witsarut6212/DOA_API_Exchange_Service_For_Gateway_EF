@@ -22,7 +22,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
         {
             try
             {
-                var payload = new TabMessageRepsonsePayload
+                var payload = new TabMessageResponsePayload
                 {
                     Status = "WAIT",
                     DataObject = Newtonsoft.Json.JsonConvert.SerializeObject(request),
@@ -30,7 +30,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                     CreatedBy = "SYSTEM"
                 };
 
-                _context.TabMessageRepsonsePayloads.Add(payload);
+                _context.TabMessageResponsePayloads.Add(payload);
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation("Step 1: Saved payload for Ref: {Ref} (ID: {Id})", 
@@ -50,7 +50,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
         public async Task ProcessPayloadAsync(int payloadId, EPhytoProgressRequest request)
         {
             // 1. Update Record response_payload (Status = PROCESSING)
-            var payload = await _context.TabMessageRepsonsePayloads.FindAsync(payloadId);
+            var payload = await _context.TabMessageResponsePayloads.FindAsync(payloadId);
             if (payload == null)
             {
                 _logger.LogError("Payload ID {Id} not found.", payloadId);
@@ -86,51 +86,28 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                     }
                     */
 
-                    // 3. Check for existing record to avoid Duplicate Error (Upsert Logic)
-                    var submission = await _context.TabMessageResponseSubmisisons
-                        .FirstOrDefaultAsync(s => s.DocumentNumber == request.DocumentControl.DocumentNumber);
-
-                    if (submission != null)
+                    // 3. Insert New Submission (Duplicate check is now handled at Controller level)
+                    var submission = new TabMessageResponseSubmisison
                     {
-                        // CASE: Update Existing
-                        submission.ResponseType = request.DocumentControl.ResponseInfo.Status;
-                        submission.ReferenceNumber = request.DocumentControl.ReferenceNumber;
-                        submission.ResponseCode = request.DocumentControl.ResponseInfo.Code;
-                        submission.ResponseMessage = request.DocumentControl.Remark ?? "";
-                        submission.ResponseDateTime = request.DocumentControl.ResponseInfo.DateTime;
-                        submission.ResponsePayloadId = payloadId;
-                        submission.SystemTime = DateTime.Now;
-                        submission.FlagUpdate = "Y"; // Mark as Updated
-                        submission.UpdatedAt = DateTime.Now;
-                        submission.UpdatedBy = "BACKGROUND";
+                        ResponseType = request.DocumentControl.ResponseInfo.Status,
+                        ReferenceNumber = request.DocumentControl.ReferenceNumber,
+                        DocumentNumber = request.DocumentControl.DocumentNumber,
+                        MessageType = request.DocumentControl.MessageType ?? "",
+                        ResponseCode = request.DocumentControl.ResponseInfo.Code,
+                        ResponseMessage = request.DocumentControl.Remark ?? "",
+                        ResponseDateTime = request.DocumentControl.ResponseInfo.DateTime,
+                        RegistrationId = "",
+                        ResponseToId = request.DocumentControl.ReferenceNumber,
+                        QueueStatus = "WAIT",
+                        SystemTime = DateTime.Now,
+                        ResponsePayloadId = payloadId,
+                        FlagUpdate = "N",
+                        CreatedAt = DateTime.Now,
+                        CreatedBy = "BACKGROUND"
+                    };
 
-                        _logger.LogInformation("Updating existing submission for Doc: {Doc}", request.DocumentControl.DocumentNumber);
-                    }
-                    else
-                    {
-                        // CASE: Insert New
-                        submission = new TabMessageResponseSubmisison
-                        {
-                            ResponseType = request.DocumentControl.ResponseInfo.Status,
-                            ReferenceNumber = request.DocumentControl.ReferenceNumber,
-                            DocumentNumber = request.DocumentControl.DocumentNumber,
-                            MessageType = request.DocumentControl.MessageType ?? "",
-                            ResponseCode = request.DocumentControl.ResponseInfo.Code,
-                            ResponseMessage = request.DocumentControl.Remark ?? "",
-                            ResponseDateTime = request.DocumentControl.ResponseInfo.DateTime,
-                            RegistrationId = "",
-                            ResponseToId = request.DocumentControl.ReferenceNumber,
-                            QueueStatus = "WAIT",
-                            SystemTime = DateTime.Now,
-                            ResponsePayloadId = payloadId,
-                            FlagUpdate = "N",
-                            CreatedAt = DateTime.Now,
-                            CreatedBy = "BACKGROUND"
-                        };
-
-                        _context.TabMessageResponseSubmisisons.Add(submission);
-                        _logger.LogInformation("Creating new submission for Doc: {Doc}", request.DocumentControl.DocumentNumber);
-                    }
+                    _context.TabMessageResponseSubmisisons.Add(submission);
+                    _logger.LogInformation("Creating new submission for Doc: {Doc}", request.DocumentControl.DocumentNumber);
 
                     await _context.SaveChangesAsync();
 
@@ -174,7 +151,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
 
                     try
                     {
-                        var failPayload = await _context.TabMessageRepsonsePayloads.FindAsync(payloadId);
+                        var failPayload = await _context.TabMessageResponsePayloads.FindAsync(payloadId);
                         if (failPayload != null)
                         {
                             failPayload.Status = "FAIL";
@@ -189,6 +166,13 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                     }
                 }
             });
+        }
+        public async Task<bool> IsDocumentNumberDuplicateAsync(string documentNumber)
+        {
+            if (string.IsNullOrEmpty(documentNumber)) return false;
+            
+            return await _context.TabMessageResponseSubmisisons
+                .AnyAsync(s => s.DocumentNumber == documentNumber);
         }
     }
 }
