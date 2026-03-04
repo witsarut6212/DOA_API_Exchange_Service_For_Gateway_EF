@@ -82,42 +82,15 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 using var transaction = await _context.Database.BeginTransactionAsync();
                 try
                 {
-                    // 3. Insert New Submission (Duplicate check is now handled at Controller level)
-                    var submission = new TabMessageResponseSubmisison
-                    {
-                        ResponseType = request.DocumentControl.ResponseInfo.Status,
-                        ReferenceNumber = request.DocumentControl.ReferenceNumber,
-                        DocumentNumber = request.DocumentControl.DocumentNumber,
-                        MessageType = request.DocumentControl.MessageType ?? "",
-                        ResponseCode = request.DocumentControl.ResponseInfo.Code,
-                        ResponseMessage = request.DocumentControl.Remark ?? "",
-                        ResponseDateTime = request.DocumentControl.ResponseInfo.DateTime,
-                        RegistrationId = "",
-                        ResponseToId = request.DocumentControl.ReferenceNumber,
-                        QueueStatus = "WAIT",
-                        SystemTime = DateTime.Now,
-                        ResponsePayloadId = payloadId,
-                        FlagUpdate = "N",
-                        CreatedAt = DateTime.Now,
-                        CreatedBy = "BACKGROUND"
-                    };
-
+                    // 3. Insert New Submission
+                    var submission = CreateSubmissionRecord(payloadId, request);
                     _context.TabMessageResponseSubmisisons.Add(submission);
                     _logger.LogInformation("Creating new submission for Doc: {Doc}", request.DocumentControl.DocumentNumber);
 
                     await _context.SaveChangesAsync();
 
-                    // 4. Create Record txn_outbounds (KeyId = response_submission.Id, TxnType = EPC-0201, Status = WAIT)
-                    var outbound = new TabMessageTxnOutbound
-                    {
-                        KeyId = submission.Id,
-                        TxnType = "EPC-0201",
-                        Description = $"Process ePhyto Progress Ref: {request.DocumentControl.ReferenceNumber}",
-                        Status = "WAIT",
-                        CreatedAt = DateTime.Now,
-                        CreatedBy = "BACKGROUND"
-                    };
-
+                    // 4. Create Record txn_outbounds
+                    var outbound = CreateOutboundRecord(submission.Id, request.DocumentControl.ReferenceNumber);
                     _context.TabMessageTxnOutbounds.Add(outbound);
 
                     // 5. Update Record response_payload (Status = SUCCESS)
@@ -170,5 +143,44 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             return await _context.TabMessageResponseSubmisisons
                 .AnyAsync(s => s.DocumentNumber == documentNumber);
         }
+
+        #region Private Helper Methods for Entity Mapping
+
+        private TabMessageResponseSubmisison CreateSubmissionRecord(int payloadId, EPhytoProgressRequest request)
+        {
+            return new TabMessageResponseSubmisison
+            {
+                ResponseType = request.DocumentControl.ResponseInfo.Status,
+                ReferenceNumber = request.DocumentControl.ReferenceNumber,
+                DocumentNumber = request.DocumentControl.DocumentNumber,
+                MessageType = request.DocumentControl.MessageType ?? "",
+                ResponseCode = request.DocumentControl.ResponseInfo.Code,
+                ResponseMessage = request.DocumentControl.Remark ?? "",
+                ResponseDateTime = request.DocumentControl.ResponseInfo.DateTime,
+                RegistrationId = "",
+                ResponseToId = request.DocumentControl.ReferenceNumber,
+                QueueStatus = "WAIT",
+                SystemTime = DateTime.Now,
+                ResponsePayloadId = payloadId,
+                FlagUpdate = "N",
+                CreatedAt = DateTime.Now,
+                CreatedBy = "BACKGROUND"
+            };
+        }
+
+        private TabMessageTxnOutbound CreateOutboundRecord(int submissionId, string referenceNumber)
+        {
+            return new TabMessageTxnOutbound
+            {
+                KeyId = submissionId,
+                TxnType = "EPC-0201",
+                Description = $"Process ePhyto Progress Ref: {referenceNumber}",
+                Status = "WAIT",
+                CreatedAt = DateTime.Now,
+                CreatedBy = "BACKGROUND"
+            };
+        }
+
+        #endregion
     }
 }
