@@ -16,29 +16,42 @@
         "issue_party_name": { "type": ["string"] },
         "include_notes": {
           "type": ["array"],
-          "minItems": 1,
+          "minItems": 6,
           "items": {
             "type": "object",
             "properties": {
-              "subject": { "type": ["string"] },
+              "subject": { 
+                "type": ["string"],
+                "enum": ["SPSFL", "ADEDL", "ADIPEDL", "ADDIEDL", "ADAOEDL", "DMCL"]
+              },
               "contents": {
                 "type": ["array"],
                 "minItems": 1,
                 "items": {
                   "type": "object",
                   "properties": { "content": { "type": ["string", "integer"] } },
-                  "required": ["content"]
+                  "required": ["content"],
+                  "additionalProperties": false
                 }
               }
             },
             "required": ["subject", "contents"],
+            "additionalProperties": false,
             "allOf": [
               {
                 "if": { "properties": { "subject": { "enum": ["SPSFL", "DMCL"] } } },
                 "then": { "properties": { "contents": { "maxItems": 1 } } }
               }
             ]
-          }
+          },
+          "allOf": [
+            { "contains": { "properties": { "subject": { "const": "SPSFL" } } } },
+            { "contains": { "properties": { "subject": { "const": "ADEDL" } } } },
+            { "contains": { "properties": { "subject": { "const": "ADIPEDL" } } } },
+            { "contains": { "properties": { "subject": { "const": "ADDIEDL" } } } },
+            { "contains": { "properties": { "subject": { "const": "ADAOEDL" } } } },
+            { "contains": { "properties": { "subject": { "const": "DMCL" } } } }
+          ]
         },
         "reference_docs": {
           "type": ["array"],
