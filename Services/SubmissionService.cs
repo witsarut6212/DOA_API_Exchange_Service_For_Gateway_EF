@@ -10,12 +10,16 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
         private readonly AppDbContext _context;
         private readonly ILogger<SubmissionService> _logger;
         private readonly ILogService _logService;
+        private readonly IConfiguration _configuration;
+        private readonly string _logInstancePath;
 
-        public SubmissionService(AppDbContext context, ILogger<SubmissionService> logger, ILogService logService)
+        public SubmissionService(AppDbContext context, ILogger<SubmissionService> logger, ILogService logService, IConfiguration configuration)
         {
             _context = context;
             _logger = logger;
             _logService = logService;
+            _configuration = configuration;
+            _logInstancePath = _configuration["ApiSettings:SubmissionProgressPath"] ?? "UNKNOWN_PATH";
         }
 
         public async Task<int> SaveResponsePayloadAsync(EPhytoProgressRequest request)
@@ -40,7 +44,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             }
             catch (Exception ex)
             {
-                await _logService.LogExceptionAsync(ex, "/api-doa-gw/v1.0/submission/ephyto/progress");
+                await _logService.LogExceptionAsync(ex, _logInstancePath);
                 _logger.LogError(ex, "Step 1 Failed: Error saving payload for Ref: {Ref}", 
                     request.DocumentControl.ReferenceNumber);
                 return 0;
@@ -66,7 +70,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             }
             catch (Exception ex)
             {
-                await _logService.LogExceptionAsync(ex, "/api-doa-gw/v1.0/submission/ephyto/progress");
+                await _logService.LogExceptionAsync(ex, _logInstancePath);
                 _logger.LogError(ex, "Failed to update payload status to PROCESSING for ID {Id}", payloadId);
                 return;
             }
@@ -133,7 +137,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                     await transaction.RollbackAsync();
                     
                     // บันทึก Log ลงไฟล์ JSON ผ่าน LogService
-                    await _logService.LogExceptionAsync(ex, "/api-doa-gw/v1.0/submission/ephyto/progress");
+                    await _logService.LogExceptionAsync(ex, _logInstancePath);
                     
                     _logger.LogError(ex, "Background processing FAILED for Ref: {Ref}", request.DocumentControl.ReferenceNumber);
 
@@ -153,7 +157,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                     }
                     catch (Exception logEx)
                     {
-                        await _logService.LogExceptionAsync(logEx, "/api-doa-gw/v1.0/submission/ephyto/progress");
+                        await _logService.LogExceptionAsync(logEx, _logInstancePath);
                         _logger.LogError(logEx, "Failed to mark payload as FAIL for ID {Id}", payloadId);
                     }
                 }
