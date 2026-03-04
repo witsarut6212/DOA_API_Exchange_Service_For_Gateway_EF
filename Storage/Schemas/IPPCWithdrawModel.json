@@ -39,9 +39,16 @@
               "required": ["name", "specfied_person_name"]
             },
             "issue_location": { "type": ["string", "object"] },
-            "include_clauses": { "type": "array" }
+            "include_clauses": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": { "id": { "type": ["string", "integer"] } },
+                "required": ["id"]
+              }
+            }
           },
-          "required": ["provider_party", "issue_location"]
+          "required": ["provider_party", "issue_location", "include_clauses"]
         }
       },
       "required": ["doc_name", "doc_type", "doc_id", "issue_party_name", "status_code", "issue_date", "signatory_authen"]
@@ -59,8 +66,22 @@
           "properties": { "id": { "type": ["string"] }, "name": { "type": ["string"] } },
           "required": ["id", "name"]
         },
-        "consignor_party": { "type": "object" },
-        "consignee_party": { "type": "object" },
+        "consignor_party": {
+          "type": "object",
+          "properties": {
+            "name": { "type": ["string"] },
+            "adress_line1": { "type": ["string"] }
+          },
+          "required": ["name", "adress_line1"]
+        },
+        "consignee_party": {
+          "type": "object",
+          "properties": {
+            "name": { "type": ["string"] },
+            "adress_line1": { "type": ["string"] }
+          },
+          "required": ["name", "adress_line1"]
+        },
         "unloading_baseport": {
           "type": "object",
           "properties": { "name": { "type": ["string"] } },
