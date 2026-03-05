@@ -14,11 +14,11 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
     // [Route("api-doa-gw/v1.0/application")] // You can change to this later using your prefix settings
     public class ApplicationController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IApplicationService _applicationService;
 
-        public ApplicationController(AppDbContext context)
+        public ApplicationController(IApplicationService applicationService)
         {
-            _context = context;
+            _applicationService = applicationService;
         }
 
         [HttpPost("register")]
@@ -31,41 +31,18 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                 return BadRequest(ResponseWriter.CreateError(title, "Invalid request body.", 400));
             }
 
-            // 1. Check for Duplicate AppName or AppNickName
-            var existingApp = await _context.ApplicationExternals
-                .FirstOrDefaultAsync(a => a.AppName == request.AppName || a.AppNickName == request.AppNickName);
+            var result = await _applicationService.RegisterApplicationAsync(request);
 
-            if (existingApp != null)
+            if (!result.Success)
             {
-                var duplicateWarning = existingApp.AppName == request.AppName ? "AppName" : "AppNickName";
-                return Conflict(ResponseWriter.CreateError(title, $"{duplicateWarning} is already registered.", 409));
+                if (result.Message.Contains("already registered"))
+                {
+                    return Conflict(ResponseWriter.CreateError(title, result.Message, 409));
+                }
+                return StatusCode(500, ResponseWriter.CreateError(title, result.Message, 500));
             }
 
-            // 2. Create the new Application External Record
-            var newApplication = new ApplicationExternal
-            {
-                AppRoleId = 0, // Default value
-                CliendId = Guid.NewGuid().ToString(), // Generate UUID v4
-                CallbackUrl = request.CallbackUrl,
-                HostUrl = request.HostUrl,
-                AppName = request.AppName,
-                AppNickName = request.AppNickName,
-                CreatedAt = DateTime.Now
-            };
-
-            // 3. Save to Database
-            await _context.ApplicationExternals.AddAsync(newApplication);
-            await _context.SaveChangesAsync();
-
-            // 4. Return Output
-            var response = new ApplicationRegisterResponse
-            {
-                AppName = newApplication.AppName,
-                AppNickName = newApplication.AppNickName,
-                ClientId = newApplication.CliendId // Map กลับเป็น ClientId ใน JSON response
-            };
-
-            return Ok(ResponseWriter.CreateSuccess(title, response, "Application registered successfully."));
+            return Ok(ResponseWriter.CreateSuccess(title, result.Data, result.Message));
         }
     }
 }

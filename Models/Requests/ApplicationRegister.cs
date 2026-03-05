@@ -16,9 +16,4 @@ public class ApplicationRegisterRequest
     public string AppNickName { get; set; } = null!;
 }
 
-public class ApplicationRegisterResponse
-{
-    public string AppName { get; set; } = null!;
-    public string AppNickName { get; set; } = null!;
-    public string ClientId { get; set; } = null!;
 }

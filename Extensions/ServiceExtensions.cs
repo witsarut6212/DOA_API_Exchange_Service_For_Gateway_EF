@@ -158,7 +158,9 @@ namespace DOA_API_Exchange_Service_For_Gateway.Extensions
             services.AddScoped<DOA_API_Exchange_Service_For_Gateway.Services.IEPhytoService, DOA_API_Exchange_Service_For_Gateway.Services.EPhytoService>();
             services.AddScoped<DOA_API_Exchange_Service_For_Gateway.Services.ISubmissionService, DOA_API_Exchange_Service_For_Gateway.Services.SubmissionService>();
             services.AddScoped<DOA_API_Exchange_Service_For_Gateway.Services.IAuthService, DOA_API_Exchange_Service_For_Gateway.Services.AuthService>();
+            services.AddScoped<DOA_API_Exchange_Service_For_Gateway.Services.IApplicationService, DOA_API_Exchange_Service_For_Gateway.Services.ApplicationService>();
             services.AddSingleton<DOA_API_Exchange_Service_For_Gateway.Services.ILogService, DOA_API_Exchange_Service_For_Gateway.Services.LogService>();
+
 
             services.AddSingleton<DOA_API_Exchange_Service_For_Gateway.Services.IProgressQueue, DOA_API_Exchange_Service_For_Gateway.Services.ProgressQueue>();
             services.AddHostedService<DOA_API_Exchange_Service_For_Gateway.Services.ProgressBackgroundService>();
