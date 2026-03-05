@@ -156,32 +156,10 @@
           "Name": { "type": "string" },
           "documentNo": { "type": "string" },
           "PdfObject": { "type": "string" }
-        }
+        },
+        "required": ["sequenceNo", "Name", "documentNo", "PdfObject"]
       }
     }
   },
-  "required": ["xc_document", "consignment", "items", "phytoCerts"],
-  "allOf": [
-    {
-      "if": {
-        "properties": {
-          "xc_document": {
-            "properties": {
-              "status_code": { "enum": ["40", 40] }
-            }
-          }
-        }
-      },
-      "then": {
-        "properties": {
-          "phytoCerts": {
-            "minItems": 1,
-            "items": {
-              "required": ["sequenceNo", "Name", "documentNo", "PdfObject"]
-            }
-          }
-        }
-      }
-    }
-  ]
+  "required": ["xc_document", "consignment", "items", "phytoCerts"]
 }
