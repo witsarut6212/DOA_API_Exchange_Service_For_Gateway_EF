@@ -16,6 +16,8 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<TabMessageResponsePayload> TabMessageResponsePayloads { get; set; }
 
+    public virtual DbSet<ApplicationExternal> ApplicationExternals { get; set; }
+
     public virtual DbSet<TabMessageResponseSubmisison> TabMessageResponseSubmisisons { get; set; }
 
     public virtual DbSet<TabMessageSubmissionRequest> TabMessageSubmissionRequests { get; set; }
@@ -945,6 +947,33 @@ public partial class AppDbContext : DbContext
                 .HasMaxLength(100)
                 .HasColumnName("updated_by");
         });
+
+        modelBuilder.Entity<ApplicationExternal>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("application_externals");
+
+            entity.Property(e => e.Id).HasColumnName("Id");
+            entity.Property(e => e.AppRoleId).HasColumnName("AppRoleId");
+            entity.Property(e => e.AppName).HasMaxLength(100).HasColumnName("AppName");
+            entity.Property(e => e.AppNickName).HasMaxLength(100).HasColumnName("AppNickName");
+            entity.Property(e => e.HostUrl).HasMaxLength(255).HasColumnName("HostUrl");
+            entity.Property(e => e.CallbackUrl).HasMaxLength(255).HasColumnName("CallbackUrl");
+            entity.Property(e => e.CliendId).HasMaxLength(100).HasColumnName("CliendId"); // อย่าลืม d
+            entity.Property(e => e.SecretKey).HasMaxLength(255).HasColumnName("SecretKey");
+            entity.Property(e => e.IsActive).HasColumnName("IsActive");
+            entity.Property(e => e.IsVerified).HasColumnName("IsVerified");
+            entity.Property(e => e.VerifiedAt).HasColumnType("datetime").HasColumnName("VerifiedAt");
+            entity.Property(e => e.SystemTime).HasColumnType("datetime").HasColumnName("SystemTime");
+            
+            // 4 คอลัมน์ล่างเป็น snake_case ตามรูป
+            entity.Property(e => e.CreatedAt).HasColumnType("datetime").HasColumnName("created_at");
+            entity.Property(e => e.CreatedBy).HasMaxLength(100).HasColumnName("created_by");
+            entity.Property(e => e.UpdatedAt).HasColumnType("datetime").HasColumnName("updated_at");
+            entity.Property(e => e.UpdatedBy).HasMaxLength(100).HasColumnName("updated_by");
+        });
+
 
         OnModelCreatingPartial(modelBuilder);
     }

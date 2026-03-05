@@ -1,12 +1,5 @@
 namespace DOA_API_Exchange_Service_For_Gateway.Services
 {
-    // BackgroundService = base class ของ .NET สำหรับงานที่รันตลอดเวลาใน background
-    // จดทะเบียนด้วย AddHostedService → เริ่มทำงานตอน app start และหยุดตอน app ปิด
-    //
-    // ทำไมต้องใช้ BackgroundService แทน fire-and-forget?
-    // - BackgroundService เป็น Singleton → อยู่ตลอดชีวิต app
-    // - ใช้ IServiceScopeFactory สร้าง Scope ใหม่ทุกครั้งที่ทำงาน
-    //   → ได้ DbContext ใหม่ที่ไม่ถูก dispose ไปพร้อมกับ HTTP request
     public class ProgressBackgroundService : BackgroundService
     {
         private readonly IProgressQueue _queue;
