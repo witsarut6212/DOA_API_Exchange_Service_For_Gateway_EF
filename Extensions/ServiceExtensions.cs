@@ -162,6 +162,9 @@ namespace DOA_API_Exchange_Service_For_Gateway.Extensions
 
             services.AddSingleton<DOA_API_Exchange_Service_For_Gateway.Services.IProgressQueue, DOA_API_Exchange_Service_For_Gateway.Services.ProgressQueue>();
             services.AddHostedService<DOA_API_Exchange_Service_For_Gateway.Services.ProgressBackgroundService>();
+
+            services.AddSingleton<DOA_API_Exchange_Service_For_Gateway.Services.IEPhytoSubmissionQueue, DOA_API_Exchange_Service_For_Gateway.Services.EPhytoSubmissionQueue>();
+            services.AddHostedService<DOA_API_Exchange_Service_For_Gateway.Services.EPhytoSubmissionBackgroundService>();
         }
     }
 }

@@ -17,12 +17,14 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
     public class EPhytoController : ControllerBase
     {
         private readonly IEPhytoService _ePhytoService;
+        private readonly IEPhytoSubmissionQueue _submissionQueue;
         private readonly IConfiguration _configuration;
         private readonly IWebHostEnvironment _env;
 
-        public EPhytoController(IEPhytoService ePhytoService, IConfiguration configuration, IWebHostEnvironment env)
+        public EPhytoController(IEPhytoService ePhytoService, IEPhytoSubmissionQueue submissionQueue, IConfiguration configuration, IWebHostEnvironment env)
         {
             _ePhytoService = ePhytoService;
+            _submissionQueue = submissionQueue;
             _configuration = configuration;
             _env = env;
         }
@@ -41,7 +43,25 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                 return BadRequest(ResponseWriter.CreateError(title, "Invalid request format after schema validation.", 400));
             }
 
-            return await ProcessSubmission(request, "ASW");
+            // Check Duplicate
+            if (await _ePhytoService.IsDocumentExists(request.XcDocument.DocId, request.XcDocument.DocType, request.XcDocument.StatusCode))
+            {
+                var data = new Dictionary<string, string> { { "doc_id", request.XcDocument.DocId } };
+                return Conflict(ResponseWriter.CreateError(title, $"Document {request.XcDocument.DocId} is already exists.", 409, HttpContext.TraceIdentifier, HttpContext.Request.Path, data));
+            }
+
+            // Step 1: Save Payload
+            var payloadId = await _ePhytoService.SaveEPhytoPayloadAsync(request, "ASW");
+            if (payloadId == 0)
+            {
+                return StatusCode(500, ResponseWriter.CreateError(title, "Failed to save submission payload.", 500));
+            }
+
+            // Step 2: Enqueue → Background Service จะ process ต่อ
+            _submissionQueue.Enqueue(payloadId, request, "ASW");
+
+            var successData = new Dictionary<string, string> { { "doc_id", request.XcDocument.DocId } };
+            return Ok(ResponseWriter.CreateSuccess(title, successData, "ได้รับข้อมูลเรียบร้อยแล้ว ระบบกำลังประมวลผล"));
         }
 
         [HttpPost("ippc/normal")]
@@ -117,6 +137,41 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                     extractErrors = (errs) => {
                         foreach (var e in errs)
                         {
+                            // ─── Special case: allOf+contains pattern ───────────────────────────────
+                            // เมื่อ subject ใดขาดไป Newtonsoft จะสร้าง child errors สำหรับทุก item
+                            // ในอาร์เรย์ที่ไม่ match (รวมถึง subject ที่มีอยู่แล้ว) ซึ่งทำให้ error
+                            // เยอะเกินจริง → ดักไว้ที่นี่แล้วรายงาน error เดียวที่ระบุ subject ที่ขาด
+                            if (e.ErrorType == ErrorType.Contains)
+                            {
+                                string? missingSubject = null;
+                                try
+                                {
+                                    // ค้นหา const value ที่คาดหวัง จาก child errors ชั้นแรกหรือชั้นที่สอง
+                                    var constError = e.ChildErrors
+                                        .FirstOrDefault(c => c.ErrorType == ErrorType.Const && c.Schema?.Const != null);
+
+                                    if (constError == null)
+                                    {
+                                        constError = e.ChildErrors
+                                            .SelectMany(c => c.ChildErrors)
+                                            .FirstOrDefault(c => c.ErrorType == ErrorType.Const && c.Schema?.Const != null);
+                                    }
+
+                                    missingSubject = constError?.Schema?.Const?.ToString();
+                                }
+                                catch { /* ignore — fallback to generic message */ }
+
+                                var field = string.IsNullOrEmpty(e.Path) ? "include_notes" : e.Path;
+                                var description = missingSubject != null
+                                    ? $"Field subject '{missingSubject}' is required in include_notes."
+                                    : "One or more required subjects are missing in include_notes.";
+
+                                if (!validations.Any(v => v.Field == field && v.Description == description))
+                                    validations.Add(new ApiValidation { Field = field, Description = description });
+
+                                continue; // ไม่ recurse เข้า children
+                            }
+
                             if (e.ChildErrors.Any())
                             {
                                 extractErrors(e.ChildErrors);
@@ -140,6 +195,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                             }
                         }
                     };
+
 
                     extractErrors(errors);
 

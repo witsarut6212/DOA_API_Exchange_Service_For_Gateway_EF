@@ -9,17 +9,156 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
     {
         private readonly AppDbContext _context;
         private readonly ILogger<EPhytoService> _logger;
+        private readonly ILogService _logService;
+        private readonly IConfiguration _configuration;
 
-        public EPhytoService(AppDbContext context, ILogger<EPhytoService> logger)
+        public EPhytoService(AppDbContext context, ILogger<EPhytoService> logger, ILogService logService, IConfiguration configuration)
         {
             _context = context;
             _logger = logger;
+            _logService = logService;
+            _configuration = configuration;
         }
 
         public async Task<bool> IsDocumentExists(string docId, string docType, string docStatus)
         {
             return await _context.TabMessageThphytos.AnyAsync(t => t.DocId == docId && t.DocType == docType && t.DocStatus == docStatus);
         }
+
+        // ─── New Async Pattern (Payload → Queue → Background) ────────────────────
+
+        /// <summary>
+        /// Step 1: บันทึก raw JSON body ลง tab_message_response_payloads แล้วคืน payload ID
+        /// </summary>
+        public async Task<int> SaveEPhytoPayloadAsync(EPhytoRequest request, string source)
+        {
+            try
+            {
+                var payload = new TabMessageResponsePayload
+                {
+                    Status = "WAIT",
+                    DataObject = Newtonsoft.Json.JsonConvert.SerializeObject(request),
+                    CreatedAt = DateTime.Now,
+                    CreatedBy = source
+                };
+
+                _context.TabMessageResponsePayloads.Add(payload);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Step 1 [{Source}]: Saved payload for DocId: {DocId} (PayloadId: {Id})",
+                    source, request.XcDocument?.DocId, payload.Id);
+
+                return payload.Id;
+            }
+            catch (Exception ex)
+            {
+                var instancePath = _configuration["ApiSettings:RoutePrefix"] ?? "UNKNOWN";
+                await _logService.LogExceptionAsync(ex, instancePath);
+                _logger.LogError(ex, "Step 1 [{Source}] Failed: Error saving payload for DocId: {DocId}",
+                    source, request.XcDocument?.DocId);
+                return 0;
+            }
+        }
+
+        /// <summary>
+        /// Step 2 (Background): ดึง payload มาประมวลผล → บันทึกลง tab_message_thphyto และตาราง related ทั้งหมด
+        /// </summary>
+        public async Task ProcessEPhytoPayloadAsync(int payloadId, EPhytoRequest request, string source)
+        {
+            var instancePath = _configuration["ApiSettings:RoutePrefix"] ?? "UNKNOWN";
+
+            // Update Status → PROCESSING
+            var payload = await _context.TabMessageResponsePayloads.FindAsync(payloadId);
+            if (payload == null)
+            {
+                _logger.LogError("[{Source}] Payload ID {Id} not found.", source, payloadId);
+                return;
+            }
+
+            try
+            {
+                payload.Status = "PROCESSING";
+                payload.UpdatedAt = DateTime.Now;
+                payload.UpdatedBy = "BACKGROUND";
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                await _logService.LogExceptionAsync(ex, instancePath);
+                _logger.LogError(ex, "[{Source}] Failed to update payload to PROCESSING for ID {Id}", source, payloadId);
+                return;
+            }
+
+            // Transaction: Insert ลงตารางทั้งหมด
+            var strategy = _context.Database.CreateExecutionStrategy();
+            await strategy.ExecuteAsync(async () =>
+            {
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                try
+                {
+                    string messageId = Guid.NewGuid().ToString();
+
+                    // Step A: Insert TabMessageThphyto ก่อนเพื่อได้ Id
+                    var thphyto = MapToThPhyto(request, messageId, source);
+                    _context.TabMessageThphytos.Add(thphyto);
+                    await _context.SaveChangesAsync(); // ← ได้ thphyto.Id แล้ว
+
+                    // Step B: Insert ตาราง related records
+                    MapIncludedNotes(request.XcDocument.IncludeNotes, messageId);
+                    MapReferenceDocs(request, messageId);
+                    MapTransportInfo(request.Consignment, messageId);
+                    MapItems(request.Items, messageId);
+
+                    // Step C: Insert TabMessageTxnOutbound (KeyId = thphyto.Id)
+                    _context.TabMessageTxnOutbounds.Add(new TabMessageTxnOutbound
+                    {
+                        KeyId       = thphyto.Id,
+                        TxnType     = "EPC-0101",
+                        Description = "",
+                        Status      = "WAIT",
+                        CreatedAt   = DateTime.Now,
+                        CreatedBy   = "BACKGROUND"
+                    });
+
+                    // Step D: Update payload → SUCCESS
+                    payload.Status    = "SUCCESS";
+                    payload.UpdatedAt = DateTime.Now;
+                    payload.UpdatedBy = "BACKGROUND";
+
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    _logger.LogInformation("[{Source}] Background processing SUCCESS for DocId: {DocId} (MessageId: {MessageId}, ThphytoId: {ThId})",
+                        source, request.XcDocument?.DocId, messageId, thphyto.Id);
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    await _logService.LogExceptionAsync(ex, instancePath);
+                    _logger.LogError(ex, "[{Source}] Background processing FAILED for DocId: {DocId}", source, request.XcDocument?.DocId);
+
+                    _context.ChangeTracker.Clear();
+                    try
+                    {
+                        var failPayload = await _context.TabMessageResponsePayloads.FindAsync(payloadId);
+                        if (failPayload != null)
+                        {
+                            failPayload.Status    = "FAIL";
+                            failPayload.UpdatedAt = DateTime.Now;
+                            failPayload.UpdatedBy = "BACKGROUND";
+                            await _context.SaveChangesAsync();
+                        }
+                    }
+                    catch (Exception logEx)
+                    {
+                        await _logService.LogExceptionAsync(logEx, instancePath);
+                        _logger.LogError(logEx, "[{Source}] Failed to mark payload FAIL for ID {Id}", source, payloadId);
+                    }
+                }
+            });
+        }
+
+        // ─── Legacy Sync Method (ยังคงไว้เผื่อใช้งานอื่น) ──────────────────────
 
         public async Task<bool> SubmitEPhytoAsync(EPhytoRequest request, string source)
         {
@@ -38,7 +177,6 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                     MapIncludedNotes(request.XcDocument.IncludeNotes, messageId);
                     MapReferenceDocs(request, messageId);
                     MapTransportInfo(request.Consignment, messageId);
-                    
                     MapItems(request.Items, messageId);
 
                     await _context.SaveChangesAsync();
