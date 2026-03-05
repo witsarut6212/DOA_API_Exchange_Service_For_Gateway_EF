@@ -957,17 +957,16 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Id).HasColumnName("Id");
             entity.Property(e => e.AppRoleId).HasColumnName("AppRoleId");
             entity.Property(e => e.AppName).HasMaxLength(100).HasColumnName("AppName");
-            entity.Property(e => e.AppNickName).HasMaxLength(100).HasColumnName("AppNickName");
-            entity.Property(e => e.HostUrl).HasMaxLength(255).HasColumnName("HostUrl");
-            entity.Property(e => e.CallbackUrl).HasMaxLength(255).HasColumnName("CallbackUrl");
-            entity.Property(e => e.CliendId).HasMaxLength(100).HasColumnName("CliendId"); // อย่าลืม d
-            entity.Property(e => e.SecretKey).HasMaxLength(255).HasColumnName("SecretKey");
-            entity.Property(e => e.IsActive).HasColumnName("IsActive");
-            entity.Property(e => e.IsVerified).HasColumnName("IsVerified");
-            entity.Property(e => e.VerifiedAt).HasColumnType("datetime").HasColumnName("VerifiedAt");
+            entity.Property(e => e.AppNickName).HasMaxLength(20).HasColumnName("AppNickName");
+            entity.Property(e => e.HostUrl).HasMaxLength(200).HasColumnName("HostUrl");
+            entity.Property(e => e.CallbackUrl).HasMaxLength(100).HasColumnName("CallbackUrl");
+            entity.Property(e => e.CliendId).HasMaxLength(50).HasColumnName("CliendId");
+            entity.Property(e => e.SecretKey).HasMaxLength(200).HasColumnName("SecretKey");
+            entity.Property(e => e.IsActive).HasMaxLength(1).HasColumnName("IsActive");
+            entity.Property(e => e.IsVerified).HasMaxLength(1).HasColumnName("IsVerified");
+            entity.Property(e => e.VerfiedAt).HasColumnType("datetime").HasColumnName("VerfiedAt");
             entity.Property(e => e.SystemTime).HasColumnType("datetime").HasColumnName("SystemTime");
             
-            // 4 คอลัมน์ล่างเป็น snake_case ตามรูป
             entity.Property(e => e.CreatedAt).HasColumnType("datetime").HasColumnName("created_at");
             entity.Property(e => e.CreatedBy).HasMaxLength(100).HasColumnName("created_by");
             entity.Property(e => e.UpdatedAt).HasColumnType("datetime").HasColumnName("updated_at");

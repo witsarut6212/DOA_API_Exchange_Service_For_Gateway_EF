@@ -15,5 +15,3 @@ public class ApplicationRegisterRequest
     [Required]
     public string AppNickName { get; set; } = null!;
 }
-
-}

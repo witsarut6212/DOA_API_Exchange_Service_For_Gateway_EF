@@ -38,8 +38,9 @@ public class ApplicationService : IApplicationService
             AppName = request.AppName,
             AppNickName = request.AppNickName,
             CreatedAt = DateTime.Now,
-            IsActive = 1,      // Default to active
-            IsVerified = 0      // Default to not verified
+            SystemTime = DateTime.Now,
+            IsActive = "Y",      // Default to active
+            IsVerified = "N"      // Default to not verified
         };
 
         // 3. Save to Database
@@ -50,7 +51,8 @@ public class ApplicationService : IApplicationService
         }
         catch (Exception ex)
         {
-            return (false, $"Internal Error: {ex.Message}", null);
+            var innerError = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+            return (false, $"Internal Error: {innerError}", null);
         }
 
         // 4. Prepare Response Data

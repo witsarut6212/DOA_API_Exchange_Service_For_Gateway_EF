@@ -6,12 +6,12 @@ using DOA_API_Exchange_Service_For_Gateway.Models.Requests;
 using System;
 using System.Threading.Tasks;
 using DOA_API_Exchange_Service_For_Gateway.Helpers;
+using DOA_API_Exchange_Service_For_Gateway.Services;
 
 namespace DOA_API_Exchange_Service_For_Gateway.Controllers
 {
     [ApiController]
-    [Route("api-doa-gw/application")]
-    // [Route("api-doa-gw/v1.0/application")] // You can change to this later using your prefix settings
+    [Route("application")]
     public class ApplicationController : ControllerBase
     {
         private readonly IApplicationService _applicationService;

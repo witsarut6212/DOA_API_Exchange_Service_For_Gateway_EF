@@ -17,19 +17,19 @@ public partial class ApplicationExternal
 
     public string? CallbackUrl { get; set; }
 
-    public string CliendId { get; set; } = null!; // สังเกตว่าสะกด CliendId ตามรูป
+    public string CliendId { get; set; } = null!; // System generate UUID v4
 
     public string? SecretKey { get; set; }
 
-    public sbyte? IsActive { get; set; }
+    public string IsActive { get; set; } = "Y";
 
-    public sbyte? IsVerified { get; set; }
+    public string IsVerified { get; set; } = "N";
 
-    public DateTime? VerifiedAt { get; set; }
+    public DateTime? VerfiedAt { get; set; }
 
-    public DateTime? SystemTime { get; set; }
+    public DateTime SystemTime { get; set; } // Not Null ตามรูป
 
-    public DateTime CreatedAt { get; set; }
+    public DateTime? CreatedAt { get; set; } // ในรูป allow null (created_at)
 
     public string? CreatedBy { get; set; }
 
