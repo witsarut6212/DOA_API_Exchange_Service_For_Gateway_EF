@@ -19,13 +19,16 @@ public class ApplicationService : IApplicationService
     public async Task<(bool Success, string Message, object? Data)> RegisterApplicationAsync(ApplicationRegisterRequest request)
     {
         // 1. Check for Duplicate AppName or AppNickName
-        var existingApp = await _context.ApplicationExternals
-            .FirstOrDefaultAsync(a => a.AppName == request.AppName || a.AppNickName == request.AppNickName);
+        var existingAppName = await _context.ApplicationExternals.AnyAsync(a => a.AppName == request.AppName);
+        var existingAppNickName = await _context.ApplicationExternals.AnyAsync(a => a.AppNickName == request.AppNickName);
 
-        if (existingApp != null)
+        if (existingAppName || existingAppNickName)
         {
-            var duplicateWarning = existingApp.AppName == request.AppName ? "AppName" : "AppNickName";
-            return (false, $"{duplicateWarning} is already registered.", null);
+            var duplicates = new List<string>();
+            if (existingAppName) duplicates.Add("AppName");
+            if (existingAppNickName) duplicates.Add("AppNickName");
+
+            return (false, $"{string.Join(" and ", duplicates)} is already registered.", null);
         }
 
         // 2. Create the new Application External Record
