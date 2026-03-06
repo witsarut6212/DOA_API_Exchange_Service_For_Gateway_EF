@@ -22,14 +22,14 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             _logInstancePath = _configuration["ApiSettings:SubmissionProgressPath"] ?? "UNKNOWN_PATH";
         }
 
-        public async Task<int> SaveResponsePayloadAsync(EPhytoProgressRequest request)
+        public async Task<int> SaveResponsePayloadAsync(string rawDataObject, string? docId = null)
         {
             try
             {
                 var payload = new TabMessageResponsePayload
                 {
                     Status = "WAIT",
-                    DataObject = Newtonsoft.Json.JsonConvert.SerializeObject(request),
+                    DataObject = rawDataObject,
                     CreatedAt = DateTime.Now,
                     CreatedBy = "SYSTEM"
                 };
@@ -38,7 +38,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation("Step 1: Saved payload for Ref: {Ref} (ID: {Id})", 
-                    request.DocumentControl.ReferenceNumber, payload.Id);
+                    docId, payload.Id);
                 
                 return payload.Id;
             }
@@ -46,7 +46,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             {
                 await _logService.LogExceptionAsync(ex, _logInstancePath);
                 _logger.LogError(ex, "Step 1 Failed: Error saving payload for Ref: {Ref}", 
-                    request.DocumentControl.ReferenceNumber);
+                    docId);
                 return 0;
             }
         }

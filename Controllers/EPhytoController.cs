@@ -4,6 +4,7 @@ using DOA_API_Exchange_Service_For_Gateway.Services;
 using DOA_API_Exchange_Service_For_Gateway.Helpers;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema;
+using Newtonsoft.Json;
 using DOA_API_Exchange_Service_For_Gateway.Models;
 using System.Collections.Generic;
 using System.Linq;
@@ -51,7 +52,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
             }
 
             // Step 1: Save Payload
-            var payloadId = await _ePhytoService.SaveEPhytoPayloadAsync(request, "ASW");
+            var payloadId = await _ePhytoService.SaveEPhytoPayloadAsync(rawRequest.ToString(Formatting.None), "ASW", request.XcDocument?.DocId);
             if (payloadId == 0)
             {
                 return StatusCode(500, ResponseWriter.CreateError(title, "Failed to save submission payload.", 500));
@@ -92,7 +93,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
             }
 
             // Step 1: Save Payload
-            var payloadId = await _ePhytoService.SaveEPhytoPayloadAsync(request, "IPPC");
+            var payloadId = await _ePhytoService.SaveEPhytoPayloadAsync(rawRequest.ToString(Formatting.None), "IPPC", request.XcDocument?.DocId);
             if (payloadId == 0)
             {
                 return StatusCode(500, ResponseWriter.CreateError(title, "Failed to save submission payload.", 500));
@@ -134,7 +135,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
             }
 
             // Step 1: Save Payload
-            var payloadId = await _ePhytoService.SaveEPhytoPayloadAsync(request, "IPPC_REEXPORT");
+            var payloadId = await _ePhytoService.SaveEPhytoPayloadAsync(rawRequest.ToString(Formatting.None), "IPPC_REEXPORT", request.XcDocument?.DocId);
             if (payloadId == 0)
             {
                 return StatusCode(500, ResponseWriter.CreateError(title, "Failed to save submission payload.", 500));
@@ -175,7 +176,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
             }
 
             // Step 1: Save Payload
-            var payloadId = await _ePhytoService.SaveEPhytoPayloadAsync(request, "IPPC_WITHDRAW");
+            var payloadId = await _ePhytoService.SaveEPhytoPayloadAsync(rawRequest.ToString(Formatting.None), "IPPC_WITHDRAW", request.XcDocument?.DocId);
             if (payloadId == 0)
             {
                 return StatusCode(500, ResponseWriter.CreateError(title, "Failed to save submission payload.", 500));

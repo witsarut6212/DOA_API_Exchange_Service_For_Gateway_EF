@@ -30,14 +30,14 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
         /// <summary>
         /// Step 1: บันทึก raw JSON body ลง tab_message_response_payloads แล้วคืน payload ID
         /// </summary>
-        public async Task<int> SaveEPhytoPayloadAsync(EPhytoRequest request, string source)
+        public async Task<int> SaveEPhytoPayloadAsync(string rawDataObject, string source, string? docId = null)
         {
             try
             {
                 var payload = new TabMessageResponsePayload
                 {
                     Status = "WAIT",
-                    DataObject = Newtonsoft.Json.JsonConvert.SerializeObject(request),
+                    DataObject = rawDataObject,
                     CreatedAt = DateTime.Now,
                     CreatedBy = source
                 };
@@ -46,7 +46,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation("Step 1 [{Source}]: Saved payload for DocId: {DocId} (PayloadId: {Id})",
-                    source, request.XcDocument?.DocId, payload.Id);
+                    source, docId, payload.Id);
 
                 return payload.Id;
             }
@@ -55,7 +55,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 var instancePath = _configuration["ApiSettings:RoutePrefix"] ?? "UNKNOWN";
                 await _logService.LogExceptionAsync(ex, instancePath);
                 _logger.LogError(ex, "Step 1 [{Source}] Failed: Error saving payload for DocId: {DocId}",
-                    source, request.XcDocument?.DocId);
+                    source, docId);
                 return 0;
             }
         }

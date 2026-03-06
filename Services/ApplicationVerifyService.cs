@@ -72,7 +72,7 @@ public class ApplicationVerifyService : IApplicationVerifyService
                 };
                 */
 
-                return (200, "ระบบยืนยันการตรวจสอบแล้ว", null);
+                return (200, "ระบบยืนยันการตรวจสอบเสร็จเรียบร้อยแล้ว", null);
             }
             catch (Exception ex)
             {

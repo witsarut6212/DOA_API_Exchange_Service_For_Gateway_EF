@@ -4,6 +4,8 @@ using DOA_API_Exchange_Service_For_Gateway.Services;
 using DOA_API_Exchange_Service_For_Gateway.Filters;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
 namespace DOA_API_Exchange_Service_For_Gateway.Controllers
 {
@@ -28,9 +30,19 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
 
         [HttpPost("progress")]
         [ValidateProgressSchema]
-        public async Task<IActionResult> UpdateProgress([FromBody] EPhytoProgressRequest request)
+        public async Task<IActionResult> UpdateProgress([FromBody] JObject rawRequest)
         {
             var title = _config["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
+            var request = rawRequest.ToObject<EPhytoProgressRequest>();
+
+            if (request == null || request.DocumentControl == null)
+            {
+                return BadRequest(new ApiResponse<object>
+                {
+                    Info = new ApiInfo { Title = title, Status = 400, Detail = "Invalid request format." },
+                    Error = new ApiError { TraceId = HttpContext.TraceIdentifier, Instance = HttpContext.Request.Path }
+                });
+            }
 
             // Step 0: Intercept Duplicate DocumentNumber (As requested by auditor)
             if (await _submissionService.IsDocumentNumberDuplicateAsync(request.DocumentControl.DocumentNumber))
@@ -52,7 +64,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
             }
 
             // Step 1: Save Payload
-            var payloadId = await _submissionService.SaveResponsePayloadAsync(request);
+            var payloadId = await _submissionService.SaveResponsePayloadAsync(rawRequest.ToString(Formatting.None), request.DocumentControl.ReferenceNumber);
 
             if (payloadId == 0)
             {
