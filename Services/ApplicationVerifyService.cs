@@ -61,6 +61,7 @@ public class ApplicationVerifyService : IApplicationVerifyService
                 
                 await transaction.CommitAsync();
 
+                /*
                 var responseData = new
                 {
                     app.AppName,
@@ -69,8 +70,9 @@ public class ApplicationVerifyService : IApplicationVerifyService
                     app.IsVerified,
                     app.VerfiedAt
                 };
+                */
 
-                return (200, "ระบบยืนยันการตรวจสอบแล้ว", (object)responseData);
+                return (200, "ระบบยืนยันการตรวจสอบแล้ว", null);
             }
             catch (Exception ex)
             {

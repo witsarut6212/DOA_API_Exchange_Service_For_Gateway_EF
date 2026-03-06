@@ -141,7 +141,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
             }
 
             // Step 2: Enqueue → Background Service จะ process ต่อ
-            _submissionQueue.Enqueue(payloadId, request, "IPPC_REEXPORT");
+            _submissionQueue.Enqueue(payloadId, request, "IPPC");
 
             var successData = new Dictionary<string, string> { { "doc_id", request.XcDocument.DocId } };
             return Ok(ResponseWriter.CreateSuccess(title, successData, "ได้รับข้อมูลเรียบร้อยแล้ว ระบบกำลังประมวลผล"));
@@ -182,7 +182,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
             }
 
             // Step 2: Enqueue → Background Service จะ process ต่อ
-            _submissionQueue.Enqueue(payloadId, request, "IPPC_WITHDRAW");
+            _submissionQueue.Enqueue(payloadId, request, "IPPC");
 
             var successData = new Dictionary<string, string> { { "doc_id", request.XcDocument.DocId } };
             return Ok(ResponseWriter.CreateSuccess(title, successData, "ได้รับข้อมูลเรียบร้อยแล้ว ระบบกำลังประมวลผล"));
