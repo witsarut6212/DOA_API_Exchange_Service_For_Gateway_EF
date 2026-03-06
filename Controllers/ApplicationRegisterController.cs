@@ -1,10 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using DOA_API_Exchange_Service_For_Gateway.Data;
-using DOA_API_Exchange_Service_For_Gateway.Models.Entities;
 using DOA_API_Exchange_Service_For_Gateway.Models.Requests;
-using System;
-using System.Threading.Tasks;
 using DOA_API_Exchange_Service_For_Gateway.Helpers;
 using DOA_API_Exchange_Service_For_Gateway.Services;
 
@@ -12,13 +7,13 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
 {
     [ApiController]
     [Route("application")]
-    public class ApplicationController : ControllerBase
+    public class ApplicationRegisterController : ControllerBase
     {
-        private readonly IApplicationService _applicationService;
+        private readonly IApplicationRegistrationService _registrationService;
 
-        public ApplicationController(IApplicationService applicationService)
+        public ApplicationRegisterController(IApplicationRegistrationService registrationService)
         {
-            _applicationService = applicationService;
+            _registrationService = registrationService;
         }
 
         [HttpPost("register")]
@@ -31,7 +26,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                 return BadRequest(ResponseWriter.CreateError(title, "Invalid request body.", 400));
             }
 
-            var result = await _applicationService.RegisterApplicationAsync(request);
+            var result = await _registrationService.RegisterApplicationAsync(request);
 
             if (!result.Success)
             {

@@ -1,30 +1,33 @@
-using System;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using DOA_API_Exchange_Service_For_Gateway.Data;
-using DOA_API_Exchange_Service_For_Gateway.Models.Entities;
 using DOA_API_Exchange_Service_For_Gateway.Models.Requests;
 
 namespace DOA_API_Exchange_Service_For_Gateway.Services;
 
-public class ApplicationService : IApplicationService
+public interface IApplicationRegistrationService
 {
-    private readonly AppDbContext _context;
+    Task<(bool Success, string Message, object? Data)> RegisterApplicationAsync(ApplicationRegisterRequest request);
+}
 
-    public ApplicationService(AppDbContext context)
+public class ApplicationRegistrationService : IApplicationRegistrationService
+{
+    private readonly DOA_API_Exchange_Service_For_Gateway.Data.AppDbContext _context;
+    private readonly Microsoft.Extensions.Logging.ILogger<ApplicationRegistrationService> _logger;
+
+    public ApplicationRegistrationService(DOA_API_Exchange_Service_For_Gateway.Data.AppDbContext context, Microsoft.Extensions.Logging.ILogger<ApplicationRegistrationService> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     public async Task<(bool Success, string Message, object? Data)> RegisterApplicationAsync(ApplicationRegisterRequest request)
     {
         // 1. Check for Duplicate AppName or AppNickName
-        var existingAppName = await _context.ApplicationExternals.AnyAsync(a => a.AppName == request.AppName);
-        var existingAppNickName = await _context.ApplicationExternals.AnyAsync(a => a.AppNickName == request.AppNickName);
+        var existingAppName = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.AnyAsync(_context.ApplicationExternals, a => a.AppName == request.AppName);
+        var existingAppNickName = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.AnyAsync(_context.ApplicationExternals, a => a.AppNickName == request.AppNickName);
 
         if (existingAppName || existingAppNickName)
         {
-            var duplicates = new List<string>();
+            var duplicates = new System.Collections.Generic.List<string>();
             if (existingAppName) duplicates.Add("AppName");
             if (existingAppNickName) duplicates.Add("AppNickName");
 
@@ -32,18 +35,18 @@ public class ApplicationService : IApplicationService
         }
 
         // 2. Create the new Application External Record
-        var newApplication = new ApplicationExternal
+        var newApplication = new DOA_API_Exchange_Service_For_Gateway.Models.Entities.ApplicationExternal
         {
             AppRoleId = 0,
-            CliendId = Guid.NewGuid().ToString(), // UUID v4
+            CliendId = Guid.NewGuid().ToString(),
             CallbackUrl = request.CallbackUrl,
             HostUrl = request.HostUrl,
             AppName = request.AppName,
             AppNickName = request.AppNickName,
             CreatedAt = DateTime.Now,
             SystemTime = DateTime.Now,
-            IsActive = "Y",      // Default to active
-            IsVerified = "N"      // Default to not verified
+            IsActive = "Y",
+            IsVerified = "N"
         };
 
         // 3. Save to Database
@@ -54,6 +57,7 @@ public class ApplicationService : IApplicationService
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "RegisterApplicationAsync: Failed to save application {AppName}", request.AppName);
             var innerError = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
             return (false, $"Internal Error: {innerError}", null);
         }
