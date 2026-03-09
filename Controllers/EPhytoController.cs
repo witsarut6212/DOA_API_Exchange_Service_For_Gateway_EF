@@ -9,6 +9,7 @@ using DOA_API_Exchange_Service_For_Gateway.Models;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
+using System.Security.Claims;
 
 namespace DOA_API_Exchange_Service_For_Gateway.Controllers
 {
@@ -51,15 +52,18 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                 return Conflict(ResponseWriter.CreateError(title, $"Document {request.XcDocument.DocId} is already exists.", 409, HttpContext.TraceIdentifier, HttpContext.Request.Path, data));
             }
 
+            // Extract AppNickName from JWT
+            var appNickName = User.FindFirstValue("AppNickName") ?? "ASW";
+ 
             // Step 1: Save Payload
-            var payloadId = await _ePhytoService.SaveEPhytoPayloadAsync(rawRequest.ToString(Formatting.None), "ASW", request.XcDocument?.DocId);
+            var payloadId = await _ePhytoService.SaveEPhytoPayloadAsync(rawRequest.ToString(Formatting.None), appNickName, request.XcDocument?.DocId);
             if (payloadId == 0)
             {
                 return StatusCode(500, ResponseWriter.CreateError(title, "Failed to save submission payload.", 500));
             }
 
             // Step 2: Enqueue → Background Service จะ process ต่อ
-            _submissionQueue.Enqueue(payloadId, request, "ASW");
+            _submissionQueue.Enqueue(payloadId, request, appNickName);
 
             var successData = new Dictionary<string, string> { { "doc_id", request.XcDocument.DocId } };
             return Ok(ResponseWriter.CreateSuccess(title, successData, "ได้รับข้อมูลเรียบร้อยแล้ว ระบบกำลังประมวลผล"));
@@ -92,15 +96,18 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                 return Conflict(ResponseWriter.CreateError(title, $"Document {request.XcDocument.DocId} is already exists.", 409, HttpContext.TraceIdentifier, HttpContext.Request.Path, data));
             }
 
+            // Extract AppNickName from JWT
+            var appNickName = User.FindFirstValue("AppNickName") ?? "IPPC";
+ 
             // Step 1: Save Payload
-            var payloadId = await _ePhytoService.SaveEPhytoPayloadAsync(rawRequest.ToString(Formatting.None), "IPPC", request.XcDocument?.DocId);
+            var payloadId = await _ePhytoService.SaveEPhytoPayloadAsync(rawRequest.ToString(Formatting.None), appNickName, request.XcDocument?.DocId);
             if (payloadId == 0)
             {
                 return StatusCode(500, ResponseWriter.CreateError(title, "Failed to save submission payload.", 500));
             }
 
             // Step 2: Enqueue → Background Service จะ process ต่อ
-            _submissionQueue.Enqueue(payloadId, request, "IPPC");
+            _submissionQueue.Enqueue(payloadId, request, appNickName);
 
             var successData = new Dictionary<string, string> { { "doc_id", request.XcDocument.DocId } };
             return Ok(ResponseWriter.CreateSuccess(title, successData, "ได้รับข้อมูลเรียบร้อยแล้ว ระบบกำลังประมวลผล"));
@@ -134,15 +141,18 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                 return Conflict(ResponseWriter.CreateError(title, $"Document {request.XcDocument.DocId} is already exists.", 409, HttpContext.TraceIdentifier, HttpContext.Request.Path, data));
             }
 
+            // Extract AppNickName from JWT
+            var appNickName = User.FindFirstValue("AppNickName") ?? "IPPC_REEXPORT";
+ 
             // Step 1: Save Payload
-            var payloadId = await _ePhytoService.SaveEPhytoPayloadAsync(rawRequest.ToString(Formatting.None), "IPPC_REEXPORT", request.XcDocument?.DocId);
+            var payloadId = await _ePhytoService.SaveEPhytoPayloadAsync(rawRequest.ToString(Formatting.None), appNickName, request.XcDocument?.DocId);
             if (payloadId == 0)
             {
                 return StatusCode(500, ResponseWriter.CreateError(title, "Failed to save submission payload.", 500));
             }
 
             // Step 2: Enqueue → Background Service จะ process ต่อ
-            _submissionQueue.Enqueue(payloadId, request, "IPPC");
+            _submissionQueue.Enqueue(payloadId, request, appNickName);
 
             var successData = new Dictionary<string, string> { { "doc_id", request.XcDocument.DocId } };
             return Ok(ResponseWriter.CreateSuccess(title, successData, "ได้รับข้อมูลเรียบร้อยแล้ว ระบบกำลังประมวลผล"));
@@ -175,15 +185,18 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                 return Conflict(ResponseWriter.CreateError(title, $"Document {request.XcDocument.DocId} is already exists.", 409, HttpContext.TraceIdentifier, HttpContext.Request.Path, data));
             }
 
+            // Extract AppNickName from JWT
+            var appNickName = User.FindFirstValue("AppNickName") ?? "IPPC_WITHDRAW";
+ 
             // Step 1: Save Payload
-            var payloadId = await _ePhytoService.SaveEPhytoPayloadAsync(rawRequest.ToString(Formatting.None), "IPPC_WITHDRAW", request.XcDocument?.DocId);
+            var payloadId = await _ePhytoService.SaveEPhytoPayloadAsync(rawRequest.ToString(Formatting.None), appNickName, request.XcDocument?.DocId);
             if (payloadId == 0)
             {
                 return StatusCode(500, ResponseWriter.CreateError(title, "Failed to save submission payload.", 500));
             }
 
             // Step 2: Enqueue → Background Service จะ process ต่อ
-            _submissionQueue.Enqueue(payloadId, request, "IPPC");
+            _submissionQueue.Enqueue(payloadId, request, appNickName);
 
             var successData = new Dictionary<string, string> { { "doc_id", request.XcDocument.DocId } };
             return Ok(ResponseWriter.CreateSuccess(title, successData, "ได้รับข้อมูลเรียบร้อยแล้ว ระบบกำลังประมวลผล"));

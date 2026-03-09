@@ -5,19 +5,19 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
 {
     public class ProgressQueue : IProgressQueue
     {
-        private readonly Channel<(int payloadId, EPhytoProgressRequest request)> _channel;
+        private readonly Channel<(int payloadId, EPhytoProgressRequest request, string source)> _channel;
 
         public ProgressQueue()
         {
-            _channel = Channel.CreateUnbounded<(int payloadId, EPhytoProgressRequest request)>();
+            _channel = Channel.CreateUnbounded<(int payloadId, EPhytoProgressRequest request, string source)>();
         }
 
-        public void Enqueue(int payloadId, EPhytoProgressRequest request)
+        public void Enqueue(int payloadId, EPhytoProgressRequest request, string source)
         {
-            _channel.Writer.TryWrite((payloadId, request));
+            _channel.Writer.TryWrite((payloadId, request, source));
         }
 
-        public async Task<(int payloadId, EPhytoProgressRequest request)> DequeueAsync(CancellationToken cancellationToken)
+        public async Task<(int payloadId, EPhytoProgressRequest request, string source)> DequeueAsync(CancellationToken cancellationToken)
         {
             return await _channel.Reader.ReadAsync(cancellationToken);
         }

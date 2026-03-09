@@ -79,7 +79,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             {
                 payload.Status = "PROCESSING";
                 payload.UpdatedAt = DateTime.Now;
-                payload.UpdatedBy = "BACKGROUND";
+                payload.UpdatedBy = source;
                 await _context.SaveChangesAsync();
             }
             catch (Exception ex)
@@ -117,13 +117,13 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                         Description = "",
                         Status      = "WAIT",
                         CreatedAt   = DateTime.Now,
-                        CreatedBy   = "BACKGROUND"
+                        CreatedBy   = source
                     });
 
                     // Step D: Update payload → SUCCESS
                     payload.Status    = "SUCCESS";
                     payload.UpdatedAt = DateTime.Now;
-                    payload.UpdatedBy = "BACKGROUND";
+                    payload.UpdatedBy = source;
 
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
@@ -145,7 +145,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                         {
                             failPayload.Status    = "FAIL";
                             failPayload.UpdatedAt = DateTime.Now;
-                            failPayload.UpdatedBy = "BACKGROUND";
+                            failPayload.UpdatedBy = source;
                             await _context.SaveChangesAsync();
                         }
                     }
@@ -237,7 +237,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 ResponseStatus = "0101",
                 TimeStamp = DateTime.Now,
                 LastUpdate = DateTime.Now,
-                QueueStatus = "IN-QUEUE"
+                QueueStatus = "IN-QUEUE",
+                UserId = source
             };
         }
 

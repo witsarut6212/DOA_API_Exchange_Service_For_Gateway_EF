@@ -24,12 +24,12 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             {
                 try
                 {
-                    var (payloadId, request) = await _queue.DequeueAsync(stoppingToken);
+                    var (payloadId, request, source) = await _queue.DequeueAsync(stoppingToken);
 
                     using var scope = _scopeFactory.CreateScope();
                     var submissionService = scope.ServiceProvider.GetRequiredService<ISubmissionService>();
 
-                    await submissionService.ProcessPayloadAsync(payloadId, request);
+                    await submissionService.ProcessPayloadAsync(payloadId, request, source);
                 }
                 catch (OperationCanceledException)
                 {

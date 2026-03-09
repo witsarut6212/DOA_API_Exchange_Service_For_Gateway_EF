@@ -22,7 +22,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             _logInstancePath = _configuration["ApiSettings:SubmissionProgressPath"] ?? "UNKNOWN_PATH";
         }
 
-        public async Task<int> SaveResponsePayloadAsync(string rawDataObject, string? docId = null)
+        public async Task<int> SaveResponsePayloadAsync(string rawDataObject, string source, string? docId = null)
         {
             try
             {
@@ -31,7 +31,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                     Status = "WAIT",
                     DataObject = rawDataObject,
                     CreatedAt = DateTime.Now,
-                    CreatedBy = "SYSTEM"
+                    CreatedBy = source
                 };
 
                 _context.TabMessageResponsePayloads.Add(payload);
@@ -51,7 +51,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             }
         }
 
-        public async Task ProcessPayloadAsync(int payloadId, EPhytoProgressRequest request)
+        public async Task ProcessPayloadAsync(int payloadId, EPhytoProgressRequest request, string source)
         {
             // 1. Update Record response_payload (Status = PROCESSING)
             var payload = await _context.TabMessageResponsePayloads.FindAsync(payloadId);
@@ -65,7 +65,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             {
                 payload.Status = "PROCESSING";
                 payload.UpdatedAt = DateTime.Now;
-                payload.UpdatedBy = "BACKGROUND";
+                payload.UpdatedBy = source;
                 await _context.SaveChangesAsync();
             }
             catch (Exception ex)
@@ -83,19 +83,20 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 try
                 {
                     // 3. Insert New Submission
-                    var submission = CreateSubmissionRecord(payloadId, request);
+                    var submission = CreateSubmissionRecord(payloadId, request, source);
                     _context.TabMessageResponseSubmisisons.Add(submission);
                     _logger.LogInformation("Creating new submission for Doc: {Doc}", request.DocumentControl.DocumentNumber);
 
                     await _context.SaveChangesAsync();
 
                     // 4. Create Record txn_outbounds
-                    var outbound = CreateOutboundRecord(submission.Id, request.DocumentControl.ReferenceNumber);
+                    var outbound = CreateOutboundRecord(submission.Id, request.DocumentControl.ReferenceNumber, source);
                     _context.TabMessageTxnOutbounds.Add(outbound);
 
                     // 5. Update Record response_payload (Status = SUCCESS)
                     payload.Status = "SUCCESS";
                     payload.UpdatedAt = DateTime.Now;
+                    payload.UpdatedBy = source;
 
                     await _context.SaveChangesAsync();
                     
@@ -125,6 +126,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                         {
                             failPayload.Status = "FAIL";
                             failPayload.UpdatedAt = DateTime.Now;
+                            failPayload.UpdatedBy = source;
                             await _context.SaveChangesAsync();
                         }
                     }
@@ -146,7 +148,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
 
         #region Private Helper Methods for Entity Mapping
 
-        private TabMessageResponseSubmisison CreateSubmissionRecord(int payloadId, EPhytoProgressRequest request)
+        private TabMessageResponseSubmisison CreateSubmissionRecord(int payloadId, EPhytoProgressRequest request, string source)
         {
             return new TabMessageResponseSubmisison
             {
@@ -164,11 +166,11 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 ResponsePayloadId = payloadId,
                 FlagUpdate = "N",
                 CreatedAt = DateTime.Now,
-                CreatedBy = "BACKGROUND"
+                CreatedBy = source
             };
         }
 
-        private TabMessageTxnOutbound CreateOutboundRecord(int submissionId, string referenceNumber)
+        private TabMessageTxnOutbound CreateOutboundRecord(int submissionId, string referenceNumber, string source)
         {
             return new TabMessageTxnOutbound
             {
@@ -177,7 +179,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 Description = $"Process ePhyto Progress Ref: {referenceNumber}",
                 Status = "WAIT",
                 CreatedAt = DateTime.Now,
-                CreatedBy = "BACKGROUND"
+                CreatedBy = source
             };
         }
 

@@ -2,16 +2,22 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using DOA_API_Exchange_Service_For_Gateway.Data;
+using DOA_API_Exchange_Service_For_Gateway.Models;
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace DOA_API_Exchange_Service_For_Gateway.Services
 {
     public class AuthService : IAuthService
     {
         private readonly IConfiguration _configuration;
+        private readonly AppDbContext _dbContext;
 
-        public AuthService(IConfiguration configuration)
+        public AuthService(IConfiguration configuration, AppDbContext dbContext)
         {
             _configuration = configuration;
+            _dbContext = dbContext;
         }
 
         private (byte[] Key, string? Issuer, string? Audience) GetJwtConfiguration()
@@ -58,8 +64,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             {
                 Subject = new ClaimsIdentity(new[]
                 {
-                    new Claim("app_name", appName ?? string.Empty),
-                    new Claim("app_nick_name", appNickName ?? string.Empty)
+                    new Claim("AppName", appName ?? string.Empty),
+                    new Claim("AppNickName", appNickName ?? string.Empty)
                 }),
                 Expires = DateTime.UtcNow.AddMinutes(tokenLifetimeMinutes),
                 Issuer = issuer,
@@ -93,6 +99,69 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                     });
             }
             return new TokenRequestValidationResult(true, string.Empty, null);
+        }
+
+        public async Task<IssueTokenResult> IssueTokenAsync(string? clientId, string? credentialValue)
+        {
+            // 1. Validate client_id format (UUID)
+            if (string.IsNullOrWhiteSpace(clientId) || !Guid.TryParse(clientId, out _))
+            {
+                return new IssueTokenResult(false, "ไม่ได้ลงทะเบียน.", 401);
+            }
+
+            // 2. Validate credential_value in body
+            var validationResult = ValidateTokenRequest(credentialValue);
+            if (!validationResult.IsValid)
+            {
+                var validations = validationResult.Validations?
+                    .Select(v => new ApiValidation { Field = v.Field, Description = v.Description })
+                    .ToList();
+                return new IssueTokenResult(false, validationResult.Detail, 422, null, validations);
+            }
+
+            // 3. Find application by client_id
+            var application = await _dbContext.ApplicationExternals
+                .AsNoTracking()
+                .FirstOrDefaultAsync(a => a.CliendId == clientId);
+
+            if (application == null)
+            {
+                return new IssueTokenResult(false, "ไม่ได้ลงทะเบียน.", 401);
+            }
+
+            // 4. Check IsActive flag
+            if (!string.Equals(application.IsActive, "Y", StringComparison.OrdinalIgnoreCase))
+            {
+                return new IssueTokenResult(false, "ไม่ได้ลงทะเบียน.", 401);
+            }
+
+            // 5. Check IsVerified flag
+            if (!string.Equals(application.IsVerified, "Y", StringComparison.OrdinalIgnoreCase))
+            {
+                return new IssueTokenResult(false, "ยังไม่พร้อมให้ใช้งาน.", 401);
+            }
+
+            // 6. Read token lifetime from configuration
+            var jwtSettings = _configuration.GetSection("JwtSettings");
+            var lifetimeConfig = jwtSettings["TokenLifetimeMinutes"];
+            var tokenLifetimeMinutes = 15;
+
+            if (int.TryParse(lifetimeConfig, out var configuredLifetime) && configuredLifetime > 0)
+            {
+                tokenLifetimeMinutes = configuredLifetime;
+            }
+
+            // 7. Generate JWT token
+            var token = GenerateApplicationJwtToken(application.AppName, application.AppNickName, tokenLifetimeMinutes);
+            var expiredAt = DateTime.UtcNow.AddMinutes(tokenLifetimeMinutes);
+
+            var data = new
+            {
+                token,
+                expired_at = expiredAt.ToString("O")
+            };
+
+            return new IssueTokenResult(true, "ระบบยืนยันการตรวจสอบเสร็จเรียบร้อยแล้ว.", 200, data);
         }
     }
 }
