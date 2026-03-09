@@ -100,7 +100,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
             {
                 var errorNotRegistered = ResponseWriter.CreateError(
                     title,
-                    "ไม่ได้ลงทะเบียน",
+                    "ไม่ได้ลงทะเบียน.",
                     401,
                     HttpContext.TraceIdentifier,
                     HttpContext.Request.Path);
@@ -126,7 +126,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
             {
                 var errorInactive = ResponseWriter.CreateError(
                     title,
-                    "ไม่ได้ลงทะเบียน",
+                    "ไม่ได้ลงทะเบียน.",
                     401,
                     HttpContext.TraceIdentifier,
                     HttpContext.Request.Path);
@@ -139,7 +139,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
             {
                 var errorNotVerified = ResponseWriter.CreateError(
                     title,
-                    "ยังไม่พร้อมให้ใช้งาน",
+                    "ยังไม่พร้อมให้ใช้งาน.",
                     401,
                     HttpContext.TraceIdentifier,
                     HttpContext.Request.Path);
@@ -168,7 +168,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                 //app_name = application.AppNickName
             };
 
-            return Ok(ResponseWriter.CreateSuccess(title, data, "Token generated successfully."));
+            return Ok(ResponseWriter.CreateSuccess(title, data, "ระบบยืนยันการตรวจสอบเสร็จเรียบร้อยแล้ว."));
         }
     }
 }
