@@ -29,14 +29,14 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             {
                 try
                 {
-                    var (payloadId, request, source) = await _queue.DequeueAsync(stoppingToken);
+                    var (payloadId, request, source, systemOrigin) = await _queue.DequeueAsync(stoppingToken);
 
                     _logger.LogInformation("[{Source}] Dequeued PayloadId: {Id} — starting background process.", source, payloadId);
 
                     using var scope = _scopeFactory.CreateScope();
                     var ePhytoService = scope.ServiceProvider.GetRequiredService<IEPhytoService>();
 
-                    await ePhytoService.ProcessEPhytoPayloadAsync(payloadId, request, source);
+                    await ePhytoService.ProcessEPhytoPayloadAsync(payloadId, request, source, systemOrigin);
                 }
                 catch (OperationCanceledException)
                 {

@@ -9,8 +9,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
         string GenerateJwtToken(string username);
         bool ValidateCredentials(string username, string password);
         string GenerateApplicationJwtToken(string appName, string appNickName, int tokenLifetimeMinutes);
-        TokenRequestValidationResult ValidateTokenRequest(string? credentialValue);
-        Task<IssueTokenResult> IssueTokenAsync(string? clientId, string? credentialValue);
+        TokenRequestValidationResult ValidateTokenRequest(string? credentialType);
+        Task<IssueTokenResult> IssueTokenAsync(string? clientId, string? credentialType);
     }
 
     public record TokenRequestValidationResult(bool IsValid, string Detail, List<(string Field, string Description)>? Validations);

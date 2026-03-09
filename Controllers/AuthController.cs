@@ -50,7 +50,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
             var clientId = clientIdValues.ToString();
 
             // 2. Delegate logic to Service
-            var result = await _authService.IssueTokenAsync(clientId, request?.CredentialValue);
+            var result = await _authService.IssueTokenAsync(clientId, request?.CredentialType);
 
             // 3. Handle Result
             if (!result.Success)

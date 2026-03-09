@@ -65,10 +65,10 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
             }
 
             // Extract AppNickName from JWT
-            var appNickName = User.FindFirstValue("AppNickName") ?? "SYSTEM_PROGRESS";
+            var source = User.FindFirstValue("AppNickName") ?? "";
  
             // Step 1: Save Payload
-            var payloadId = await _submissionService.SaveResponsePayloadAsync(rawRequest.ToString(Formatting.None), appNickName, request.DocumentControl.ReferenceNumber);
+            var payloadId = await _submissionService.SaveResponsePayloadAsync(rawRequest.ToString(Formatting.None), source, request.DocumentControl.ReferenceNumber);
 
             if (payloadId == 0)
             {
@@ -80,7 +80,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
             }
 
             // Step 2: Queue for background processing
-            _queue.Enqueue(payloadId, request, appNickName);
+            _queue.Enqueue(payloadId, request, source);
 
             return Ok(new ApiResponse<object>
             {

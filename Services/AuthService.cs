@@ -86,22 +86,28 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             return validUser != null && validPass != null && username == validUser && password == validPass;
         }
 
-        public TokenRequestValidationResult ValidateTokenRequest(string? credentialValue)
+        public TokenRequestValidationResult ValidateTokenRequest(string? credentialType)
         {
-            if (string.IsNullOrWhiteSpace(credentialValue))
+            var validations = new List<(string Field, string Description)>();
+
+            if (string.IsNullOrWhiteSpace(credentialType))
             {
-                return new TokenRequestValidationResult(
-                    false,
-                    "One or more field validation failed.",
-                    new List<(string Field, string Description)>
-                    {
-                        ("credential_value", "The credential_value field is required.")
-                    });
+                validations.Add(("credential_type", "The credential_type field is required."));
             }
+            else if (credentialType != "1")
+            {
+                validations.Add(("credential_type", "The credential_type must be '1'."));
+            }
+
+            if (validations.Any())
+            {
+                return new TokenRequestValidationResult(false, "One or more field validation failed.", validations);
+            }
+
             return new TokenRequestValidationResult(true, string.Empty, null);
         }
 
-        public async Task<IssueTokenResult> IssueTokenAsync(string? clientId, string? credentialValue)
+        public async Task<IssueTokenResult> IssueTokenAsync(string? clientId, string? credentialType)
         {
             // 1. Validate client_id format (UUID)
             if (string.IsNullOrWhiteSpace(clientId) || !Guid.TryParse(clientId, out _))
@@ -109,8 +115,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 return new IssueTokenResult(false, "ไม่ได้ลงทะเบียน.", 401);
             }
 
-            // 2. Validate credential_value in body
-            var validationResult = ValidateTokenRequest(credentialValue);
+            // 2. Validate credential_type in body
+            var validationResult = ValidateTokenRequest(credentialType);
             if (!validationResult.IsValid)
             {
                 var validations = validationResult.Validations?
@@ -161,7 +167,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 expired_at = expiredAt.ToString("O")
             };
 
-            return new IssueTokenResult(true, "ระบบยืนยันการตรวจสอบเสร็จเรียบร้อยแล้ว.", 200, data);
+            return new IssueTokenResult(true, "ระบบตรวจสอบตัวตนเรียบร้อยแล้ว.", 200, data);
         }
     }
 }

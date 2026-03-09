@@ -5,8 +5,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
     public interface IEPhytoService
     {
         Task<bool> SubmitEPhytoAsync(EPhytoRequest request, string source);
-        Task<bool> IsDocumentExists(string docId, string docType, string docStatus);
-        Task<int> SaveEPhytoPayloadAsync(string rawDataObject, string source, string? docId = null);
-        Task ProcessEPhytoPayloadAsync(int payloadId, EPhytoRequest request, string source);
+        Task<bool> IsDocumentExists(string docType, string docStatus, string docId);
+        Task<int> SaveEPhytoPayloadAsync(string rawDataObject, string source, string systemOrigin, string? docId = null);
+        Task ProcessEPhytoPayloadAsync(int payloadId, EPhytoRequest request, string source, string systemOrigin);
     }
 }

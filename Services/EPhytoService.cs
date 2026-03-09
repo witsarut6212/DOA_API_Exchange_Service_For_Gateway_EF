@@ -20,9 +20,9 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             _configuration = configuration;
         }
 
-        public async Task<bool> IsDocumentExists(string docId, string docType, string docStatus)
+        public async Task<bool> IsDocumentExists(string docType, string docStatus, string docId)
         {
-            return await _context.TabMessageThphytos.AnyAsync(t => t.DocId == docId && t.DocType == docType && t.DocStatus == docStatus);
+            return await _context.TabMessageThphytos.AnyAsync(t => t.DocType == docType && t.DocStatus == docStatus && t.DocId == docId);
         }
 
         // ─── New Async Pattern (Payload → Queue → Background) ────────────────────
@@ -30,7 +30,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
         /// <summary>
         /// Step 1: บันทึก raw JSON body ลง tab_message_response_payloads แล้วคืน payload ID
         /// </summary>
-        public async Task<int> SaveEPhytoPayloadAsync(string rawDataObject, string source, string? docId = null)
+        public async Task<int> SaveEPhytoPayloadAsync(string rawDataObject, string source, string systemOrigin, string? docId = null)
         {
             try
             {
@@ -63,7 +63,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
         /// <summary>
         /// Step 2 (Background): ดึง payload มาประมวลผล → บันทึกลง tab_message_thphyto และตาราง related ทั้งหมด
         /// </summary>
-        public async Task ProcessEPhytoPayloadAsync(int payloadId, EPhytoRequest request, string source)
+        public async Task ProcessEPhytoPayloadAsync(int payloadId, EPhytoRequest request, string source, string systemOrigin)
         {
             var instancePath = _configuration["ApiSettings:RoutePrefix"] ?? "UNKNOWN";
 
@@ -99,7 +99,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                     string messageId = Guid.NewGuid().ToString();
 
                     // Step A: Insert TabMessageThphyto ก่อนเพื่อได้ Id
-                    var thphyto = MapToThPhyto(request, messageId, source);
+                    var thphyto = MapToThPhyto(request, messageId, source, systemOrigin);
                     _context.TabMessageThphytos.Add(thphyto);
                     await _context.SaveChangesAsync(); // ← ได้ thphyto.Id แล้ว
 
@@ -171,7 +171,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 {
                     string messageId = Guid.NewGuid().ToString();
                     
-                    var thphyto = MapToThPhyto(request, messageId, source);
+                    var thphyto = MapToThPhyto(request, messageId, source, source);
                     _context.TabMessageThphytos.Add(thphyto);
 
                     MapIncludedNotes(request.XcDocument.IncludeNotes, messageId);
@@ -194,7 +194,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
 
         #region Mapping Helpers (Private Methods)
 
-        private TabMessageThphyto MapToThPhyto(EPhytoRequest request, string messageId, string source)
+        private TabMessageThphyto MapToThPhyto(EPhytoRequest request, string messageId, string source, string systemOrigin)
         {
             var doc = request.XcDocument;
             var consignment = request.Consignment;
@@ -216,7 +216,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             {
                 MessageId = messageId,
                 MessageStatus = "NEW",
-                PhytoTo = source,
+                PhytoTo = systemOrigin,
                 DocName = doc.DocName,
                 DocId = doc.DocId,
                 DocType = doc.DocType,
@@ -238,7 +238,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 TimeStamp = DateTime.Now,
                 LastUpdate = DateTime.Now,
                 QueueStatus = "IN-QUEUE",
-                UserId = source
+                UserId = systemOrigin
             };
         }
 
