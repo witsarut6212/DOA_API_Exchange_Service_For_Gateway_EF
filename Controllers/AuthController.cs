@@ -20,6 +20,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
             _configuration = configuration;
         }
 
+        /*
         [HttpPost("login-mockup")]
         public IActionResult Login([FromBody] LoginRequest request)
         {
@@ -34,6 +35,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
 
             return Unauthorized(ResponseWriter.CreateError(title, "Incorrect credentials: Entering the wrong username or password.", 401, HttpContext.TraceIdentifier, HttpContext.Request.Path));
         }
+        */
 
         [HttpPost("token")]
         public async Task<IActionResult> GenerateToken([FromBody] AuthTokenRequest request)
