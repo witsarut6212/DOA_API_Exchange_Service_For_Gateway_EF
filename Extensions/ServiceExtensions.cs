@@ -109,6 +109,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Extensions
 
         public static void ConfigureControllers(this IServiceCollection services, IConfiguration configuration)
         {
+            services.AddMemoryCache();
             var routePrefix = configuration["ApiSettings:RoutePrefix"] ?? "api";
 
             services.AddControllers(options =>

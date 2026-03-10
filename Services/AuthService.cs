@@ -6,6 +6,8 @@ using DOA_API_Exchange_Service_For_Gateway.Data;
 using DOA_API_Exchange_Service_For_Gateway.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
+using Microsoft.Extensions.Caching.Memory;
+using DOA_API_Exchange_Service_For_Gateway.Models.Entities;
 
 namespace DOA_API_Exchange_Service_For_Gateway.Services
 {
@@ -13,11 +15,14 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
     {
         private readonly IConfiguration _configuration;
         private readonly AppDbContext _dbContext;
+        private readonly IMemoryCache _cache;
+        private const string AppCachePrefix = "App_";
 
-        public AuthService(IConfiguration configuration, AppDbContext dbContext)
+        public AuthService(IConfiguration configuration, AppDbContext dbContext, IMemoryCache cache)
         {
             _configuration = configuration;
             _dbContext = dbContext;
+            _cache = cache;
         }
 
         private (byte[] Key, string? Issuer, string? Audience) GetJwtConfiguration()
@@ -125,10 +130,26 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 return new IssueTokenResult(false, validationResult.Detail, 422, null, validations);
             }
 
-            // 3. Find application by client_id
-            var application = await _dbContext.ApplicationExternals
-                .AsNoTracking()
-                .FirstOrDefaultAsync(a => a.CliendId == clientId);
+            // 3. Find application by client_id (Using Cache)
+            var cacheKey = $"{AppCachePrefix}{clientId}";
+            
+            if (!_cache.TryGetValue(cacheKey, out ApplicationExternal? application))
+            {
+                // Cache Miss: Query from Database
+                application = await _dbContext.ApplicationExternals
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(a => a.CliendId == clientId);
+
+                if (application != null)
+                {
+                    // Cache Set (expire in 15 mins)
+                    var cacheOptions = new MemoryCacheEntryOptions()
+                        .SetSlidingExpiration(TimeSpan.FromMinutes(15))
+                        .SetAbsoluteExpiration(TimeSpan.FromMinutes(30));
+
+                    _cache.Set(cacheKey, application, cacheOptions);
+                }
+            }
 
             if (application == null)
             {
