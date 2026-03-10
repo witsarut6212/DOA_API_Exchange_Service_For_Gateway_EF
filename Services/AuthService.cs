@@ -16,7 +16,6 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
         private readonly IConfiguration _configuration;
         private readonly AppDbContext _dbContext;
         private readonly IMemoryCache _cache;
-        private const string AppCachePrefix = "App_";
 
         public AuthService(IConfiguration configuration, AppDbContext dbContext, IMemoryCache cache)
         {
@@ -130,26 +129,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 return new IssueTokenResult(false, validationResult.Detail, 422, null, validations);
             }
 
-            // 3. Find application by client_id (Using Cache)
-            var cacheKey = $"{AppCachePrefix}{clientId}";
-            
-            if (!_cache.TryGetValue(cacheKey, out ApplicationExternal? application))
-            {
-                // Cache Miss: Query from Database
-                application = await _dbContext.ApplicationExternals
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(a => a.CliendId == clientId);
-
-                if (application != null)
-                {
-                    // Cache Set (expire in 15 mins)
-                    var cacheOptions = new MemoryCacheEntryOptions()
-                        .SetSlidingExpiration(TimeSpan.FromMinutes(15))
-                        .SetAbsoluteExpiration(TimeSpan.FromMinutes(30));
-
-                    _cache.Set(cacheKey, application, cacheOptions);
-                }
-            }
+            // 3. Find application by client_id (Calling static method from Entity class)
+            var application = await ApplicationExternal.GetCachedAsync(_dbContext, _cache, clientId);
 
             if (application == null)
             {
