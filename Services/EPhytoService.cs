@@ -158,39 +158,6 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             });
         }
 
-        // ─── Legacy Sync Method (ยังคงไว้เผื่อใช้งานอื่น) ──────────────────────
-
-        public async Task<bool> SubmitEPhytoAsync(EPhytoRequest request, string source)
-        {
-            var strategy = _context.Database.CreateExecutionStrategy();
-
-            return await strategy.ExecuteAsync(async () =>
-            {
-                using var transaction = await _context.Database.BeginTransactionAsync();
-                try
-                {
-                    string messageId = Guid.NewGuid().ToString();
-                    
-                    var thphyto = MapToThPhyto(request, messageId, source, source);
-                    _context.TabMessageThphytos.Add(thphyto);
-
-                    MapIncludedNotes(request.XcDocument.IncludeNotes, messageId);
-                    MapReferenceDocs(request, messageId);
-                    MapTransportInfo(request.Consignment, messageId);
-                    MapItems(request.Items, messageId);
-
-                    await _context.SaveChangesAsync();
-                    await transaction.CommitAsync();
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    await transaction.RollbackAsync();
-                    _logger.LogError(ex, "Error submitting E-Phyto submission from {Source}", source);
-                    throw;
-                }
-            });
-        }
 
         #region Mapping Helpers (Private Methods)
 

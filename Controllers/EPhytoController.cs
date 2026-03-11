@@ -289,23 +289,6 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
             }
             return null;
         }
-
-        private async Task<IActionResult> ProcessSubmission(EPhytoRequest request, string source)
-        {
-            var title = _configuration["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
-
-            HttpContext.Items["doc_id"] = request.XcDocument.DocId;
-
-            if (await _ePhytoService.IsDocumentExists(request.XcDocument.DocType, request.XcDocument.StatusCode, request.XcDocument.DocId))
-            {
-                var data = new Dictionary<string, string> { { "doc_id", request.XcDocument.DocId } };
-                return Conflict(ResponseWriter.CreateError(title, $"Document {request.XcDocument.DocId} is already exists.", 409, HttpContext.TraceIdentifier, HttpContext.Request.Path, data));
-            }
-
-            await _ePhytoService.SubmitEPhytoAsync(request, source);
-
-            var successData = new Dictionary<string, string> { { "doc_id", request.XcDocument.DocId } };
-            return Ok(ResponseWriter.CreateSuccess(title, successData, "Upload ไฟล์ด้วย Base64 สำเร็จ"));
         }
     }
 }

@@ -20,22 +20,6 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
             _configuration = configuration;
         }
 
-        /*
-        [HttpPost("login-mockup")]
-        public IActionResult Login([FromBody] LoginRequest request)
-        {
-            var title = _configuration["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
-
-            if (_authService.ValidateCredentials(request.Username, request.Password))
-            {
-                var token = _authService.GenerateJwtToken(request.Username);
-                var data = new { token };
-                return Ok(ResponseWriter.CreateSuccess(title, data, "Authentication was successful."));
-            }
-
-            return Unauthorized(ResponseWriter.CreateError(title, "Incorrect credentials: Entering the wrong username or password.", 401, HttpContext.TraceIdentifier, HttpContext.Request.Path));
-        }
-        */
 
         [HttpPost("token")]
         public async Task<IActionResult> GenerateToken([FromBody] AuthTokenRequest request)

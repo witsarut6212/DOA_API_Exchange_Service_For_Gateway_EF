@@ -61,16 +61,6 @@ public class ApplicationVerifyService : IApplicationVerifyService
                 
                 await transaction.CommitAsync();
 
-                /*
-                var responseData = new
-                {
-                    app.AppName,
-                    app.AppNickName,
-                    app.CliendId,
-                    app.IsVerified,
-                    app.VerfiedAt
-                };
-                */
 
                 return (200, "ระบบยืนยันการตรวจสอบเสร็จเรียบร้อยแล้ว", null);
             }

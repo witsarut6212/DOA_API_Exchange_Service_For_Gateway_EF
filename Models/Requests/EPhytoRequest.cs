@@ -158,13 +158,6 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
 
         [JsonProperty("utilize_transport")]
         public List<UtilizeTransportRequest>? UtilizeTransport { get; set; }
-
-        // Keeping old fields for a while to avoid immediate service breakage if possible, 
-        // but transitioning to object structure
-        [JsonIgnore]
-        public string ExportCountryId => ExportCountry?.Id ?? "";
-        [JsonIgnore]
-        public string ImportCountryId => ImportCountry?.Id ?? "";
     }
 
     public class Party
