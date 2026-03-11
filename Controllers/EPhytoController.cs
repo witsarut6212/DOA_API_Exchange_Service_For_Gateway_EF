@@ -22,34 +22,39 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
         private readonly IEPhytoSubmissionQueue _submissionQueue;
         private readonly IConfiguration _configuration;
         private readonly IWebHostEnvironment _env;
+        private readonly IResponseHelper _response;
 
-        public EPhytoController(IEPhytoService ePhytoService, IEPhytoSubmissionQueue submissionQueue, IConfiguration configuration, IWebHostEnvironment env)
+        public EPhytoController(
+            IEPhytoService ePhytoService, 
+            IEPhytoSubmissionQueue submissionQueue, 
+            IConfiguration configuration, 
+            IWebHostEnvironment env,
+            IResponseHelper response)
         {
             _ePhytoService = ePhytoService;
             _submissionQueue = submissionQueue;
             _configuration = configuration;
             _env = env;
+            _response = response;
         }
 
         [HttpPost("asw/normal")]
         public async Task<IActionResult> AswEPhytoNormal([FromBody] JObject rawRequest)
         {
-            var title = _configuration["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
-
-            var validationResult = await ValidateRequest(rawRequest, "ASW-ePhytoNormalModel.json", title);
+            var validationResult = await ValidateRequest(rawRequest, "ASW-ePhytoNormalModel.json");
             if (validationResult != null) return validationResult;
 
             var request = rawRequest.ToObject<EPhytoRequest>();
             if (request == null || request.XcDocument == null)
             {
-                return BadRequest(ResponseWriter.CreateError(title, "Invalid request format after schema validation.", 400));
+                return BadRequest(_response.CreateError("Invalid request format after schema validation.", 400));
             }
 
             // Check Duplicate
             if (await _ePhytoService.IsDocumentExists(request.XcDocument.DocType, request.XcDocument.StatusCode, request.XcDocument.DocId))
             {
                 var data = new Dictionary<string, string> { { "doc_id", request.XcDocument.DocId } };
-                return Conflict(ResponseWriter.CreateError(title, $"Document {request.XcDocument.DocId} is already exists.", 409, HttpContext.TraceIdentifier, HttpContext.Request.Path, data));
+                return Conflict(_response.CreateError($"Document {request.XcDocument.DocId} is already exists.", 409, data));
             }
 
             // Extract AppNickName from JWT
@@ -57,44 +62,42 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
  
             // Step 1: Save Payload
             var systemOrigin = "ASW";
-            var payloadId = await _ePhytoService.SaveEPhytoPayloadAsync(rawRequest.ToString(Formatting.None), source, systemOrigin, request.XcDocument?.DocId);
+            var payloadId = await _ePhytoService.SaveEPhytoPayloadAsync(rawRequest.ToString(Formatting.None), source, systemOrigin, request.XcDocument!.DocId);
             if (payloadId == 0)
             {
-                return StatusCode(500, ResponseWriter.CreateError(title, "Failed to save submission payload.", 500));
+                return StatusCode(500, _response.CreateError("Failed to save submission payload.", 500));
             }
 
             // Step 2: Enqueue → Background Service จะ process ต่อ
             _submissionQueue.Enqueue(payloadId, request, source, systemOrigin);
 
-            var successData = new Dictionary<string, string> { { "doc_id", request.XcDocument.DocId } };
-            return Ok(ResponseWriter.CreateSuccess(title, successData, "ได้รับข้อมูลเรียบร้อยแล้ว ระบบกำลังประมวลผล"));
+            var successData = new Dictionary<string, string> { { "doc_id", request.XcDocument!.DocId } };
+            return Ok(_response.CreateSuccess(successData, "ได้รับข้อมูลเรียบร้อยแล้ว ระบบกำลังประมวลผล"));
         }
 
         [HttpPost("ippc/normal")]
         public async Task<IActionResult> IppcEPhytoNormal([FromBody] JObject rawRequest)
         {
-            var title = _configuration["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
-
-            var validationResult = await ValidateRequest(rawRequest, "IPPCNormalModel.json", title);
+            var validationResult = await ValidateRequest(rawRequest, "IPPCNormalModel.json");
             if (validationResult != null) return validationResult;
 
             var request = rawRequest.ToObject<EPhytoRequest>();
             if (request == null || request.XcDocument == null)
             {
-                return BadRequest(ResponseWriter.CreateError(title, "Invalid request format after schema validation.", 400));
+                return BadRequest(_response.CreateError("Invalid request format after schema validation.", 400));
             }
 
             if (request.XcDocument.DocType != "851" || request.XcDocument.StatusCode != "70")
             {
                 var validations = new List<ApiValidation> { new ApiValidation { Field = "xc_document", Description = "ippc/normal endpoint only accepts doc_type 851 and status_code 70." } };
-                return UnprocessableEntity(ResponseWriter.CreateError(title, "One or more field validation failed.", 422, null, null, null, validations));
+                return UnprocessableEntity(_response.CreateError("One or more field validation failed.", 422, null, validations));
             }
 
             // Check Duplicate
             if (await _ePhytoService.IsDocumentExists(request.XcDocument.DocType, request.XcDocument.StatusCode, request.XcDocument.DocId))
             {
                 var data = new Dictionary<string, string> { { "doc_id", request.XcDocument.DocId } };
-                return Conflict(ResponseWriter.CreateError(title, $"Document {request.XcDocument.DocId} is already exists.", 409, HttpContext.TraceIdentifier, HttpContext.Request.Path, data));
+                return Conflict(_response.CreateError($"Document {request.XcDocument.DocId} is already exists.", 409, data));
             }
 
             // Extract AppNickName from JWT
@@ -102,45 +105,43 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
  
             // Step 1: Save Payload
             var systemOrigin = "IPPC";
-            var payloadId = await _ePhytoService.SaveEPhytoPayloadAsync(rawRequest.ToString(Formatting.None), source, systemOrigin, request.XcDocument?.DocId);
+            var payloadId = await _ePhytoService.SaveEPhytoPayloadAsync(rawRequest.ToString(Formatting.None), source, systemOrigin, request.XcDocument!.DocId);
             if (payloadId == 0)
             {
-                return StatusCode(500, ResponseWriter.CreateError(title, "Failed to save submission payload.", 500));
+                return StatusCode(500, _response.CreateError("Failed to save submission payload.", 500));
             }
 
             // Step 2: Enqueue → Background Service จะ process ต่อ
             _submissionQueue.Enqueue(payloadId, request, source, systemOrigin);
 
-            var successData = new Dictionary<string, string> { { "doc_id", request.XcDocument.DocId } };
-            return Ok(ResponseWriter.CreateSuccess(title, successData, "ได้รับข้อมูลเรียบร้อยแล้ว ระบบกำลังประมวลผล"));
+            var successData = new Dictionary<string, string> { { "doc_id", request.XcDocument!.DocId } };
+            return Ok(_response.CreateSuccess(successData, "ได้รับข้อมูลเรียบร้อยแล้ว ระบบกำลังประมวลผล"));
         }
 
 
         [HttpPost("ippc/re-export")]
         public async Task<IActionResult> IppcEPhytoReexport([FromBody] JObject rawRequest)
         {
-            var title = _configuration["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
-
-            var validationResult = await ValidateRequest(rawRequest, "IPPCReexportModel.json", title);
+            var validationResult = await ValidateRequest(rawRequest, "IPPCReexportModel.json");
             if (validationResult != null) return validationResult;
 
             var request = rawRequest.ToObject<EPhytoRequest>();
             if (request == null || request.XcDocument == null)
             {
-                return BadRequest(ResponseWriter.CreateError(title, "Invalid request format after schema validation.", 400));
+                return BadRequest(_response.CreateError("Invalid request format after schema validation.", 400));
             }
 
             if (request.XcDocument.DocType != "657")
             {
                 var validations = new List<ApiValidation> { new ApiValidation { Field = "xc_document.doc_type", Description = "ippc/re-export endpoint only accepts doc_type 657." } };
-                return UnprocessableEntity(ResponseWriter.CreateError(title, "One or more field validation failed.", 422, null, null, null, validations));
+                return UnprocessableEntity(_response.CreateError("One or more field validation failed.", 422, null, validations));
             }
 
             // Check Duplicate
             if (await _ePhytoService.IsDocumentExists(request.XcDocument.DocType, request.XcDocument.StatusCode, request.XcDocument.DocId))
             {
                 var data = new Dictionary<string, string> { { "doc_id", request.XcDocument.DocId } };
-                return Conflict(ResponseWriter.CreateError(title, $"Document {request.XcDocument.DocId} is already exists.", 409, HttpContext.TraceIdentifier, HttpContext.Request.Path, data));
+                return Conflict(_response.CreateError($"Document {request.XcDocument.DocId} is already exists.", 409, data));
             }
 
             // Extract AppNickName from JWT
@@ -148,44 +149,42 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
  
             // Step 1: Save Payload
             var systemOrigin = "IPPC";
-            var payloadId = await _ePhytoService.SaveEPhytoPayloadAsync(rawRequest.ToString(Formatting.None), source, systemOrigin, request.XcDocument?.DocId);
+            var payloadId = await _ePhytoService.SaveEPhytoPayloadAsync(rawRequest.ToString(Formatting.None), source, systemOrigin, request.XcDocument!.DocId);
             if (payloadId == 0)
             {
-                return StatusCode(500, ResponseWriter.CreateError(title, "Failed to save submission payload.", 500));
+                return StatusCode(500, _response.CreateError("Failed to save submission payload.", 500));
             }
 
             // Step 2: Enqueue → Background Service จะ process ต่อ
             _submissionQueue.Enqueue(payloadId, request, source, systemOrigin);
 
-            var successData = new Dictionary<string, string> { { "doc_id", request.XcDocument.DocId } };
-            return Ok(ResponseWriter.CreateSuccess(title, successData, "ได้รับข้อมูลเรียบร้อยแล้ว ระบบกำลังประมวลผล"));
+            var successData = new Dictionary<string, string> { { "doc_id", request.XcDocument!.DocId } };
+            return Ok(_response.CreateSuccess(successData, "ได้รับข้อมูลเรียบร้อยแล้ว ระบบกำลังประมวลผล"));
         }
 
         [HttpPost("ippc/withdraw")]
         public async Task<IActionResult> IppcEPhytoToWithdraw([FromBody] JObject rawRequest)
         {
-            var title = _configuration["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
-
-            var validationResult = await ValidateRequest(rawRequest, "IPPCWithdrawModel.json", title);
+            var validationResult = await ValidateRequest(rawRequest, "IPPCWithdrawModel.json");
             if (validationResult != null) return validationResult;
 
             var request = rawRequest.ToObject<EPhytoRequest>();
             if (request == null || request.XcDocument == null)
             {
-                return BadRequest(ResponseWriter.CreateError(title, "Invalid request format after schema validation.", 400));
+                return BadRequest(_response.CreateError("Invalid request format after schema validation.", 400));
             }
 
             if (request.XcDocument.DocType != "851" || request.XcDocument.StatusCode != "40")
             {
                 var validations = new List<ApiValidation> { new ApiValidation { Field = "xc_document", Description = "ippc/withdraw endpoint only accepts doc_type 851 and status_code 40." } };
-                return UnprocessableEntity(ResponseWriter.CreateError(title, "One or more field validation failed.", 422, null, null, null, validations));
+                return UnprocessableEntity(_response.CreateError("One or more field validation failed.", 422, null, validations));
             }
 
             // Check Duplicate
             if (await _ePhytoService.IsDocumentExists(request.XcDocument.DocType, request.XcDocument.StatusCode, request.XcDocument.DocId))
             {
                 var data = new Dictionary<string, string> { { "doc_id", request.XcDocument.DocId } };
-                return Conflict(ResponseWriter.CreateError(title, $"Document {request.XcDocument.DocId} is already exists.", 409, HttpContext.TraceIdentifier, HttpContext.Request.Path, data));
+                return Conflict(_response.CreateError($"Document {request.XcDocument.DocId} is already exists.", 409, data));
             }
 
             // Extract AppNickName from JWT
@@ -193,20 +192,20 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
  
             // Step 1: Save Payload
             var systemOrigin = "IPPC";
-            var payloadId = await _ePhytoService.SaveEPhytoPayloadAsync(rawRequest.ToString(Formatting.None), source, systemOrigin, request.XcDocument?.DocId);
+            var payloadId = await _ePhytoService.SaveEPhytoPayloadAsync(rawRequest.ToString(Formatting.None), source, systemOrigin, request.XcDocument!.DocId);
             if (payloadId == 0)
             {
-                return StatusCode(500, ResponseWriter.CreateError(title, "Failed to save submission payload.", 500));
+                return StatusCode(500, _response.CreateError("Failed to save submission payload.", 500));
             }
 
             // Step 2: Enqueue → Background Service จะ process ต่อ
             _submissionQueue.Enqueue(payloadId, request, source, systemOrigin);
 
-            var successData = new Dictionary<string, string> { { "doc_id", request.XcDocument.DocId } };
-            return Ok(ResponseWriter.CreateSuccess(title, successData, "ได้รับข้อมูลเรียบร้อยแล้ว ระบบกำลังประมวลผล"));
+            var successData = new Dictionary<string, string> { { "doc_id", request.XcDocument!.DocId } };
+            return Ok(_response.CreateSuccess(successData, "ได้รับข้อมูลเรียบร้อยแล้ว ระบบกำลังประมวลผล"));
         }
 
-        private async Task<IActionResult?> ValidateRequest(JObject rawRequest, string schemaFileName, string title)
+        private async Task<IActionResult?> ValidateRequest(JObject rawRequest, string schemaFileName)
         {
             var schemaPath = Path.Combine(_env.ContentRootPath, _configuration["Configuration.StoragePath"] ?? "Storage", "Schemas", schemaFileName);
             if (System.IO.File.Exists(schemaPath))
@@ -222,16 +221,11 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                     extractErrors = (errs) => {
                         foreach (var e in errs)
                         {
-                            // ─── Special case: allOf+contains pattern ───────────────────────────────
-                            // เมื่อ subject ใดขาดไป Newtonsoft จะสร้าง child errors สำหรับทุก item
-                            // ในอาร์เรย์ที่ไม่ match (รวมถึง subject ที่มีอยู่แล้ว) ซึ่งทำให้ error
-                            // เยอะเกินจริง → ดักไว้ที่นี่แล้วรายงาน error เดียวที่ระบุ subject ที่ขาด
                             if (e.ErrorType == ErrorType.Contains)
                             {
                                 string? missingSubject = null;
                                 try
                                 {
-                                    // ค้นหา const value ที่คาดหวัง จาก child errors ชั้นแรกหรือชั้นที่สอง
                                     var constError = e.ChildErrors
                                         .FirstOrDefault(c => c.ErrorType == ErrorType.Const && c.Schema?.Const != null);
 
@@ -244,7 +238,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
 
                                     missingSubject = constError?.Schema?.Const?.ToString();
                                 }
-                                catch { /* ignore — fallback to generic message */ }
+                                catch { }
 
                                 var field = string.IsNullOrEmpty(e.Path) ? "include_notes" : e.Path;
                                 var description = missingSubject != null
@@ -254,7 +248,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                                 if (!validations.Any(v => v.Field == field && v.Description == description))
                                     validations.Add(new ApiValidation { Field = field, Description = description });
 
-                                continue; // ไม่ recurse เข้า children
+                                continue;
                             }
 
                             if (e.ChildErrors.Any())
@@ -281,10 +275,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                         }
                     };
 
-
                     extractErrors(errors);
-
-                    return UnprocessableEntity(ResponseWriter.CreateError(title, "One or more field validation failed.", 422, null, null, null, validations));
+                    return UnprocessableEntity(_response.CreateError("One or more field validation failed.", 422, null, validations));
                 }
             }
             return null;
