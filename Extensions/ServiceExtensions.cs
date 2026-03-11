@@ -127,8 +127,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Extensions
                 {
                     options.InvalidModelStateResponseFactory = context =>
                     {
-                        var config = context.HttpContext.RequestServices.GetRequiredService<IConfiguration>();
-                        var title = config["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
+                        var responseHelper = context.HttpContext.RequestServices.GetRequiredService<DOA_API_Exchange_Service_For_Gateway.Helpers.IResponseHelper>();
 
                         var validations = context.ModelState
                             .Where(e => e.Value?.Errors.Count > 0)
@@ -138,22 +137,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Extensions
                                 Description = er.ErrorMessage
                             })).ToList();
 
-                        var response = new ApiResponse<object>
-                        {
-                            Info = new ApiInfo
-                            {
-                                Title = title,
-                                Detail = "One or more field validation failed.",
-                                Status = 422
-                            },
-                            Validations = validations,
-                            Error = new ApiError
-                            {
-                                TraceId = context.HttpContext.TraceIdentifier,
-                                Instance = context.HttpContext.Request.Path
-                            }
-                        };
-
+                        var response = responseHelper.CreateError("One or more field validation failed.", 422, null, validations);
                         return new UnprocessableEntityObjectResult(response);
                     };
                 });

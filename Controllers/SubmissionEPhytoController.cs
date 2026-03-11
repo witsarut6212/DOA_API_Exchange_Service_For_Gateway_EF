@@ -2,6 +2,7 @@ using DOA_API_Exchange_Service_For_Gateway.Models;
 using DOA_API_Exchange_Service_For_Gateway.Models.Requests;
 using DOA_API_Exchange_Service_For_Gateway.Services;
 using DOA_API_Exchange_Service_For_Gateway.Filters;
+using DOA_API_Exchange_Service_For_Gateway.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
@@ -17,51 +18,33 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
     {
         private readonly ISubmissionService _submissionService;
         private readonly IProgressQueue _queue;
-        private readonly IConfiguration _config;
+        private readonly IResponseHelper _response;
 
         public SubmissionEPhytoController(
             ISubmissionService submissionService,
             IProgressQueue queue,
-            IConfiguration config)
+            IResponseHelper response)
         {
             _submissionService = submissionService;
             _queue = queue;
-            _config = config;
+            _response = response;
         }
 
         [HttpPost("progress")]
         [ValidateProgressSchema]
         public async Task<IActionResult> UpdateProgress([FromBody] JObject rawRequest)
         {
-            var title = _config["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
             var request = rawRequest.ToObject<EPhytoProgressRequest>();
 
             if (request == null || request.DocumentControl == null)
             {
-                return BadRequest(new ApiResponse<object>
-                {
-                    Info = new ApiInfo { Title = title, Status = 400, Detail = "Invalid request format." },
-                    Error = new ApiError { TraceId = HttpContext.TraceIdentifier, Instance = HttpContext.Request.Path }
-                });
+                return BadRequest(_response.CreateError("Invalid request format.", 400));
             }
 
             // Step 0: Intercept Duplicate DocumentNumber (As requested by auditor)
             if (await _submissionService.IsDocumentNumberDuplicateAsync(request.DocumentControl.DocumentNumber))
             {
-                return Conflict(new ApiResponse<object>
-                {
-                    Info = new ApiInfo 
-                    { 
-                        Title = title, 
-                        Status = 409, 
-                        Detail = $"Duplicate DocumentNumber found: '{request.DocumentControl.DocumentNumber}'. This document already exists in the system." 
-                    },
-                    Error = new ApiError 
-                    { 
-                        TraceId = HttpContext.TraceIdentifier, 
-                        Instance = HttpContext.Request.Path 
-                    }
-                });
+                return Conflict(_response.CreateError($"Duplicate DocumentNumber found: '{request.DocumentControl.DocumentNumber}'. This document already exists in the system.", 409));
             }
 
             // Extract AppNickName from JWT
@@ -72,25 +55,19 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
 
             if (payloadId == 0)
             {
-                return BadRequest(new ApiResponse<object>
-                {
-                    Info = new ApiInfo { Title = title, Status = 400, Detail = "Failed to create response payload." },
-                    Error = new ApiError { TraceId = HttpContext.TraceIdentifier, Instance = HttpContext.Request.Path }
-                });
+                return BadRequest(_response.CreateError("Failed to create response payload.", 400));
             }
 
             // Step 2: Queue for background processing
             _queue.Enqueue(payloadId, request, source);
 
-            return Ok(new ApiResponse<object>
-            {
-                Info = new ApiInfo { Title = title, Status = 200, Detail = "Successfully received ePhyto progress." },
-                Data = new 
-                { 
-                    ReferenceNumber = request.DocumentControl.ReferenceNumber, 
-                    Status = request.DocumentControl.ResponseInfo.Status 
-                }
-            });
+            var successData = new 
+            { 
+                ReferenceNumber = request.DocumentControl.ReferenceNumber, 
+                Status = request.DocumentControl.ResponseInfo.Status 
+            };
+
+            return Ok(_response.CreateSuccess(successData, "Successfully received ePhyto progress."));
         }
     }
 }

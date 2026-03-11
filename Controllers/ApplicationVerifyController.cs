@@ -10,30 +10,32 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
     public class ApplicationVerifyController : ControllerBase
     {
         private readonly IApplicationVerifyService _verifyService;
+        private readonly IResponseHelper _response;
 
-        public ApplicationVerifyController(IApplicationVerifyService verifyService)
+        public ApplicationVerifyController(
+            IApplicationVerifyService verifyService,
+            IResponseHelper response)
         {
             _verifyService = verifyService;
+            _response = response;
         }
 
         [HttpPost("verify")]
         public async Task<IActionResult> Verify([FromBody] ApplicationVerifyRequest request)
         {
-            var title = "API Exchange Service For Gateway";
-
             if (!ModelState.IsValid)
             {
-                return BadRequest(ResponseWriter.CreateError(title, "Invalid request body.", 400));
+                return BadRequest(_response.CreateError("Invalid request body.", 400));
             }
 
             var result = await _verifyService.VerifyApplicationAsync(request);
 
             if (result.StatusCode != 200)
             {
-                return StatusCode(result.StatusCode, ResponseWriter.CreateError(title, result.Message, result.StatusCode));
+                return StatusCode(result.StatusCode, _response.CreateError(result.Message, result.StatusCode));
             }
 
-            return Ok(ResponseWriter.CreateSuccess(title, result.Data, result.Message));
+            return Ok(_response.CreateSuccess(result.Data, result.Message));
         }
     }
 }

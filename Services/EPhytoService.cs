@@ -1,6 +1,7 @@
 using DOA_API_Exchange_Service_For_Gateway.Data;
 using DOA_API_Exchange_Service_For_Gateway.Models.Entities;
 using DOA_API_Exchange_Service_For_Gateway.Models.Requests;
+using DOA_API_Exchange_Service_For_Gateway.Helpers;
 using Microsoft.EntityFrameworkCore;
 
 namespace DOA_API_Exchange_Service_For_Gateway.Services
@@ -25,21 +26,16 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             return await _context.TabMessageThphytos.AnyAsync(t => t.DocType == docType && t.DocStatus == docStatus && t.DocId == docId);
         }
 
-        // ─── New Async Pattern (Payload → Queue → Background) ────────────────────
-
-        /// <summary>
-        /// Step 1: บันทึก raw JSON body ลง tab_message_response_payloads แล้วคืน payload ID
-        /// </summary>
         public async Task<int> SaveEPhytoPayloadAsync(string rawDataObject, string source, string systemOrigin, string? docId = null)
         {
+            _context.CurrentUser = source;
             try
             {
                 var payload = new TabMessageResponsePayload
                 {
-                    Status = "WAIT",
-                    DataObject = rawDataObject,
-                    CreatedAt = DateTime.Now,
-                    CreatedBy = source
+                    Status = ApiConstants.PayloadStatus.Wait,
+                    DataObject = rawDataObject
+                    // CreatedAt/By handled automatically by AppDbContext
                 };
 
                 _context.TabMessageResponsePayloads.Add(payload);
@@ -60,14 +56,11 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             }
         }
 
-        /// <summary>
-        /// Step 2 (Background): ดึง payload มาประมวลผล → บันทึกลง tab_message_thphyto และตาราง related ทั้งหมด
-        /// </summary>
         public async Task ProcessEPhytoPayloadAsync(int payloadId, EPhytoRequest request, string source, string systemOrigin)
         {
+            _context.CurrentUser = source;
             var instancePath = _configuration["ApiSettings:RoutePrefix"] ?? "UNKNOWN";
 
-            // Update Status → PROCESSING
             var payload = await _context.TabMessageResponsePayloads.FindAsync(payloadId);
             if (payload == null)
             {
@@ -77,9 +70,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
 
             try
             {
-                payload.Status = "PROCESSING";
-                payload.UpdatedAt = DateTime.Now;
-                payload.UpdatedBy = source;
+                payload.Status = ApiConstants.PayloadStatus.Processing;
+                // UpdatedAt/By handled automatically by AppDbContext
                 await _context.SaveChangesAsync();
             }
             catch (Exception ex)
@@ -89,7 +81,6 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 return;
             }
 
-            // Transaction: Insert ลงตารางทั้งหมด
             var strategy = _context.Database.CreateExecutionStrategy();
             await strategy.ExecuteAsync(async () =>
             {
@@ -98,32 +89,25 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 {
                     string messageId = Guid.NewGuid().ToString();
 
-                    // Step A: Insert TabMessageThphyto ก่อนเพื่อได้ Id
                     var thphyto = MapToThPhyto(request, messageId, source, systemOrigin);
                     _context.TabMessageThphytos.Add(thphyto);
-                    await _context.SaveChangesAsync(); // ← ได้ thphyto.Id แล้ว
+                    await _context.SaveChangesAsync();
 
-                    // Step B: Insert ตาราง related records
                     MapIncludedNotes(request.XcDocument.IncludeNotes, messageId);
                     MapReferenceDocs(request, messageId);
                     MapTransportInfo(request.Consignment, messageId);
                     MapItems(request.Items, messageId);
 
-                    // Step C: Insert TabMessageTxnOutbound (KeyId = thphyto.Id)
                     _context.TabMessageTxnOutbounds.Add(new TabMessageTxnOutbound
                     {
                         KeyId       = thphyto.Id,
-                        TxnType     = "EPC-0101",
+                        TxnType     = ApiConstants.TxnType.EPhytoSubmission,
                         Description = "",
-                        Status      = "WAIT",
-                        CreatedAt   = DateTime.Now,
-                        CreatedBy   = source
+                        Status      = ApiConstants.QueueStatus.Wait
+                        // CreatedAt/By handled automatically by AppDbContext
                     });
 
-                    // Step D: Update payload → SUCCESS
-                    payload.Status    = "SUCCESS";
-                    payload.UpdatedAt = DateTime.Now;
-                    payload.UpdatedBy = source;
+                    payload.Status = ApiConstants.PayloadStatus.Success;
 
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
@@ -143,9 +127,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                         var failPayload = await _context.TabMessageResponsePayloads.FindAsync(payloadId);
                         if (failPayload != null)
                         {
-                            failPayload.Status    = "FAIL";
-                            failPayload.UpdatedAt = DateTime.Now;
-                            failPayload.UpdatedBy = source;
+                            failPayload.Status = ApiConstants.PayloadStatus.Fail;
                             await _context.SaveChangesAsync();
                         }
                     }
@@ -157,7 +139,6 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 }
             });
         }
-
 
         #region Mapping Helpers (Private Methods)
 
@@ -204,7 +185,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 ResponseStatus = "0101",
                 TimeStamp = DateTime.Now,
                 LastUpdate = DateTime.Now,
-                QueueStatus = "IN-QUEUE",
+                QueueStatus = ApiConstants.QueueStatus.InQueue,
                 UserId = systemOrigin
             };
         }
@@ -223,8 +204,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 { 
                     MessageId = messageId, 
                     Subject = hn.Subject ?? "N/A", 
-                    Content = contentStr, 
-                    CreatedAt = DateTime.Now 
+                    Content = contentStr
+                    // CreatedAt handled automatically
                 });
             }
         }
@@ -243,8 +224,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                     DocId = request.XcDocument.DocId,
                     RefDocId = r.DocId ?? r.DocumentNo ?? "",
                     Filename = r.Filename ?? r.Name,
-                    PdfObject = r.PdfObject,
-                    CreatedAt = DateTime.Now
+                    PdfObject = r.PdfObject
+                    // CreatedAt handled automatically
                 });
             }
         }
@@ -258,8 +239,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                     _context.TabMessageThphytoUtilizeTransports.Add(new TabMessageThphytoUtilizeTransport
                     {
                         MessageId = messageId,
-                        SealNumber = ut.SealNumber,
-                        CreatedAt = DateTime.Now
+                        SealNumber = ut.SealNumber
+                        // CreatedAt handled automatically
                     });
                 }
             }
@@ -272,8 +253,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                     {
                         MessageId = messageId,
                         TransportModeCode = mc.ModeCode,
-                        TransportMeanName = mc.TransportMeanName,
-                        CreatedAt = DateTime.Now
+                        TransportMeanName = mc.TransportMeanName
+                        // CreatedAt handled automatically
                     });
                 }
             }
@@ -289,8 +270,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                     MessageId = messageId,
                     ItemId = itemId,
                     SequenceNo = int.TryParse(item.SequenceNo, out var seq) ? seq : 0,
-                    ProductScientName = item.ScientName,
-                    CreatedAt = DateTime.Now
+                    ProductScientName = item.ScientName
+                    // CreatedAt handled automatically
                 });
 
                 MapItemDetails(item, messageId, itemId);
@@ -307,8 +288,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                     {
                         MessageId = messageId,
                         ItemId = itemId,
-                        ProductDescription = d.Name ?? "",
-                        CreatedAt = DateTime.Now
+                        ProductDescription = d.Name ?? ""
+                        // CreatedAt handled automatically
                     });
                 }
             }
@@ -321,8 +302,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                     {
                         MessageId = messageId,
                         ItemId = itemId,
-                        ProudctCommonName = c.Name ?? "",
-                        CreatedAt = DateTime.Now
+                        ProudctCommonName = c.Name ?? ""
+                        // CreatedAt handled automatically
                     });
                 }
             }
@@ -342,8 +323,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                     MessageId = messageId,
                     ItemId = itemId,
                     AdditionalNoteId = additionalNoteId,
-                    Subject = n.Subject ?? "N/A",
-                    CreatedAt = DateTime.Now
+                    Subject = n.Subject ?? "N/A"
+                    // CreatedAt handled automatically
                 });
 
                 if (n.Contents != null)
@@ -355,8 +336,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                             MessageId = messageId,
                             ItemId = itemId,
                             AdditionalNoteId = additionalNoteId,
-                            NoteContent = c.Content ?? "",
-                            CreatedAt = DateTime.Now
+                            NoteContent = c.Content ?? ""
+                            // CreatedAt handled automatically
                         });
                     }
                 }

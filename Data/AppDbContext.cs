@@ -1,15 +1,84 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using DOA_API_Exchange_Service_For_Gateway.Models.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace DOA_API_Exchange_Service_For_Gateway.Data;
 
 public partial class AppDbContext : DbContext
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options)
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    public string? CurrentUser { get; set; }
+
+    public AppDbContext(DbContextOptions<AppDbContext> options, IHttpContextAccessor httpContextAccessor)
         : base(options)
     {
+        _httpContextAccessor = httpContextAccessor;
+    }
+
+    public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+    {
+        OnBeforeSaving();
+        return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+    }
+
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        OnBeforeSaving();
+        return base.SaveChangesAsync(cancellationToken);
+    }
+
+    public override int SaveChanges(bool acceptAllChangesOnSuccess)
+    {
+        OnBeforeSaving();
+        return base.SaveChanges(acceptAllChangesOnSuccess);
+    }
+
+    public override int SaveChanges()
+    {
+        OnBeforeSaving();
+        return base.SaveChanges();
+    }
+
+    private void OnBeforeSaving()
+    {
+        var entries = ChangeTracker.Entries();
+        var now = DateTime.Now;
+        
+        // 1. Priority: CurrentUser property (Manual override)
+        // 2. Secondary: HttpContext User Claims
+        // 3. Last Resort: "SYSTEM"
+        var user = CurrentUser 
+                   ?? _httpContextAccessor?.HttpContext?.User?.FindFirst("AppNickName")?.Value 
+                   ?? _httpContextAccessor?.HttpContext?.User?.Identity?.Name 
+                   ?? "SYSTEM";
+
+        foreach (var entry in entries)
+        {
+            var entityType = entry.Entity.GetType();
+
+            if (entry.State == EntityState.Added)
+            {
+                if (entityType.GetProperty("CreatedAt") != null)
+                    entry.Property("CreatedAt").CurrentValue = now;
+                
+                if (entityType.GetProperty("CreatedBy") != null)
+                    entry.Property("CreatedBy").CurrentValue = user;
+            }
+
+            if (entry.State == EntityState.Modified || entry.State == EntityState.Added)
+            {
+                if (entityType.GetProperty("UpdatedAt") != null)
+                    entry.Property("UpdatedAt").CurrentValue = now;
+                
+                if (entityType.GetProperty("UpdatedBy") != null)
+                    entry.Property("UpdatedBy").CurrentValue = user;
+            }
+        }
     }
 
     public virtual DbSet<TabMessageEservicePayload> TabMessageEservicePayloads { get; set; }

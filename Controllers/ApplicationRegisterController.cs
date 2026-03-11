@@ -10,20 +10,22 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
     public class ApplicationRegisterController : ControllerBase
     {
         private readonly IApplicationRegistrationService _registrationService;
+        private readonly IResponseHelper _response;
 
-        public ApplicationRegisterController(IApplicationRegistrationService registrationService)
+        public ApplicationRegisterController(
+            IApplicationRegistrationService registrationService,
+            IResponseHelper response)
         {
             _registrationService = registrationService;
+            _response = response;
         }
 
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] ApplicationRegisterRequest request)
         {
-            var title = "API Exchange Service For Gateway";
-
             if (!ModelState.IsValid)
             {
-                return BadRequest(ResponseWriter.CreateError(title, "Invalid request body.", 400));
+                return BadRequest(_response.CreateError("Invalid request body.", 400));
             }
 
             var result = await _registrationService.RegisterApplicationAsync(request);
@@ -32,12 +34,12 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
             {
                 if (result.Message.Contains("already registered"))
                 {
-                    return Conflict(ResponseWriter.CreateError(title, result.Message, 409));
+                    return Conflict(_response.CreateError(result.Message, 409));
                 }
-                return StatusCode(500, ResponseWriter.CreateError(title, result.Message, 500));
+                return StatusCode(500, _response.CreateError(result.Message, 500));
             }
 
-            return Ok(ResponseWriter.CreateSuccess(title, result.Data, result.Message));
+            return Ok(_response.CreateSuccess(result.Data, result.Message));
         }
     }
 }

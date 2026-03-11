@@ -1,6 +1,7 @@
 using DOA_API_Exchange_Service_For_Gateway.Data;
 using DOA_API_Exchange_Service_For_Gateway.Models.Entities;
 using DOA_API_Exchange_Service_For_Gateway.Models.Requests;
+using DOA_API_Exchange_Service_For_Gateway.Helpers;
 using Microsoft.EntityFrameworkCore;
 
 namespace DOA_API_Exchange_Service_For_Gateway.Services
@@ -24,14 +25,14 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
 
         public async Task<int> SaveResponsePayloadAsync(string rawDataObject, string source, string? docId = null)
         {
+            _context.CurrentUser = source;
             try
             {
                 var payload = new TabMessageResponsePayload
                 {
-                    Status = "WAIT",
-                    DataObject = rawDataObject,
-                    CreatedAt = DateTime.Now,
-                    CreatedBy = source
+                    Status = ApiConstants.PayloadStatus.Wait,
+                    DataObject = rawDataObject
+                    // CreatedAt/By handled automatically by AppDbContext
                 };
 
                 _context.TabMessageResponsePayloads.Add(payload);
@@ -53,7 +54,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
 
         public async Task ProcessPayloadAsync(int payloadId, EPhytoProgressRequest request, string source)
         {
-            // 1. Update Record response_payload (Status = PROCESSING)
+            _context.CurrentUser = source;
             var payload = await _context.TabMessageResponsePayloads.FindAsync(payloadId);
             if (payload == null)
             {
@@ -63,9 +64,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
 
             try
             {
-                payload.Status = "PROCESSING";
-                payload.UpdatedAt = DateTime.Now;
-                payload.UpdatedBy = source;
+                payload.Status = ApiConstants.PayloadStatus.Processing;
                 await _context.SaveChangesAsync();
             }
             catch (Exception ex)
@@ -75,32 +74,24 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 return;
             }
 
-            // 2. Start Transaction Logic
             var strategy = _context.Database.CreateExecutionStrategy();
             await strategy.ExecuteAsync(async () =>
             {
                 using var transaction = await _context.Database.BeginTransactionAsync();
                 try
                 {
-                    // 3. Insert New Submission
                     var submission = CreateSubmissionRecord(payloadId, request, source);
                     _context.TabMessageResponseSubmisisons.Add(submission);
                     _logger.LogInformation("Creating new submission for Doc: {Doc}", request.DocumentControl.DocumentNumber);
 
                     await _context.SaveChangesAsync();
 
-                    // 4. Create Record txn_outbounds
                     var outbound = CreateOutboundRecord(submission.Id, request.DocumentControl.ReferenceNumber, source);
                     _context.TabMessageTxnOutbounds.Add(outbound);
 
-                    // 5. Update Record response_payload (Status = SUCCESS)
-                    payload.Status = "SUCCESS";
-                    payload.UpdatedAt = DateTime.Now;
-                    payload.UpdatedBy = source;
+                    payload.Status = ApiConstants.PayloadStatus.Success;
 
                     await _context.SaveChangesAsync();
-                    
-                    // 6. Commit Transaction
                     await transaction.CommitAsync();
 
                     _logger.LogInformation("Background processing SUCCESS for Ref: {Ref} (Submission ID: {SubId})", 
@@ -109,14 +100,9 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 catch (Exception ex)
                 {
                     await transaction.RollbackAsync();
-                    
-                    // บันทึก Log ลงไฟล์ JSON ผ่าน LogService
                     await _logService.LogExceptionAsync(ex, _logInstancePath);
-                    
                     _logger.LogError(ex, "Background processing FAILED for Ref: {Ref}", request.DocumentControl.ReferenceNumber);
 
-                    // 7. Update Record response_payload (Status = FAIL)
-                    // สำคัญ: ต้อง Clear tracking เพื่อไม่ให้ตอน Save FAIL มันพยายามไปเซฟข้อมูลที่พังซ้ำอีกรอบ
                     _context.ChangeTracker.Clear();
 
                     try
@@ -124,9 +110,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                         var failPayload = await _context.TabMessageResponsePayloads.FindAsync(payloadId);
                         if (failPayload != null)
                         {
-                            failPayload.Status = "FAIL";
-                            failPayload.UpdatedAt = DateTime.Now;
-                            failPayload.UpdatedBy = source;
+                            failPayload.Status = ApiConstants.PayloadStatus.Fail;
                             await _context.SaveChangesAsync();
                         }
                     }
@@ -161,12 +145,11 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 ResponseDateTime = request.DocumentControl.ResponseInfo.DateTime,
                 RegistrationId = "",
                 ResponseToId = request.DocumentControl.ReferenceNumber,
-                QueueStatus = "WAIT",
+                QueueStatus = ApiConstants.QueueStatus.Wait,
                 SystemTime = DateTime.Now,
                 ResponsePayloadId = payloadId,
-                FlagUpdate = "N",
-                CreatedAt = DateTime.Now,
-                CreatedBy = source
+                FlagUpdate = ApiConstants.CommonStatus.No
+                // CreatedAt/By handled automatically
             };
         }
 
@@ -175,11 +158,10 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             return new TabMessageTxnOutbound
             {
                 KeyId = submissionId,
-                TxnType = "EPC-0201",
+                TxnType = ApiConstants.TxnType.EPhytoProgress,
                 Description = $"Process ePhyto Progress Ref: {referenceNumber}",
-                Status = "WAIT",
-                CreatedAt = DateTime.Now,
-                CreatedBy = source
+                Status = ApiConstants.QueueStatus.Wait
+                // CreatedAt/By handled automatically
             };
         }
 
