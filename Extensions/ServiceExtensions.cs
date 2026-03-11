@@ -104,6 +104,9 @@ namespace DOA_API_Exchange_Service_For_Gateway.Extensions
                         new List<string>()
                     }
                 });
+
+                // Add custom Header Filter for client_id
+                options.OperationFilter<DOA_API_Exchange_Service_For_Gateway.Helpers.SwaggerHeaderFilter>();
             });
         }
 
