@@ -289,6 +289,5 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
             }
             return null;
         }
-        }
     }
 }
