@@ -30,6 +30,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Helpers
         {
             public const string EPhytoSubmission = "EPC-0101";
             public const string EPhytoProgress = "EPC-0201";
+            public const string EPhytoCertificate = "EPC-0301";
+            public const string PqCertificate = "PQC-0101";
         }
     }
 }

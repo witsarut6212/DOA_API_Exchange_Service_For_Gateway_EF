@@ -81,7 +81,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 try
                 {
                     var submission = CreateSubmissionRecord(payloadId, request, source);
-                    _context.TabMessageResponseSubmisisons.Add(submission);
+                    _context.TabMessageResponseSubmissions.Add(submission);
                     _logger.LogInformation("Creating new submission for Doc: {Doc}", request.DocumentControl.DocumentNumber);
 
                     await _context.SaveChangesAsync();
@@ -126,15 +126,107 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
         {
             if (string.IsNullOrEmpty(documentNumber)) return false;
             
-            return await _context.TabMessageResponseSubmisisons
+            return await _context.TabMessageResponseSubmissions
                 .AnyAsync(s => s.DocumentNumber == documentNumber);
+        }
+
+        public async Task<int> SaveCertificatePayloadAsync(string rawDataObject, string source, string referenceNumber)
+        {
+            _context.CurrentUser = source;
+
+            try
+            {
+                var payload = new TabMessageResponsePayload
+                {
+                    Status = ApiConstants.PayloadStatus.Wait,
+                    DataObject = rawDataObject
+                };
+
+                _context.TabMessageResponsePayloads.Add(payload);
+                await _context.SaveChangesAsync();
+
+                var outbound = new TabMessageTxnOutbound
+                {
+                    KeyId = payload.Id,
+                    TxnType = ApiConstants.TxnType.EPhytoCertificate,
+                    Description = $"Process ePhyto Certificate Ref: {referenceNumber}",
+                    Status = ApiConstants.QueueStatus.Wait
+                };
+
+                _context.TabMessageTxnOutbounds.Add(outbound);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation(
+                    "Saved certificate payload and outbound for Ref: {Ref} (PayloadId: {PayloadId}, OutboundId: {OutboundId})",
+                    referenceNumber,
+                    payload.Id,
+                    outbound.Id);
+
+                return payload.Id;
+            }
+            catch (Exception ex)
+            {
+                await _logService.LogExceptionAsync(ex, _logInstancePath);
+                _logger.LogError(
+                    ex,
+                    "Error saving certificate payload/outbound for Ref: {Ref}",
+                    referenceNumber);
+
+                return 0;
+            }
+        }
+
+        public async Task<int> SavePqCertificatePayloadAsync(string rawDataObject, string source, string referenceNumber)
+        {
+            _context.CurrentUser = source;
+
+            try
+            {
+                var payload = new TabMessageResponsePayload
+                {
+                    Status = ApiConstants.PayloadStatus.Wait,
+                    DataObject = rawDataObject
+                };
+
+                _context.TabMessageResponsePayloads.Add(payload);
+                await _context.SaveChangesAsync();
+
+                var outbound = new TabMessageTxnOutbound
+                {
+                    KeyId = payload.Id,
+                    TxnType = ApiConstants.TxnType.PqCertificate,
+                    Description = $"Process PQ Certificate Ref: {referenceNumber}",
+                    Status = ApiConstants.QueueStatus.Wait
+                };
+
+                _context.TabMessageTxnOutbounds.Add(outbound);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation(
+                    "Saved PQ certificate payload and outbound for Ref: {Ref} (PayloadId: {PayloadId}, OutboundId: {OutboundId})",
+                    referenceNumber,
+                    payload.Id,
+                    outbound.Id);
+
+                return payload.Id;
+            }
+            catch (Exception ex)
+            {
+                await _logService.LogExceptionAsync(ex, _logInstancePath);
+                _logger.LogError(
+                    ex,
+                    "Error saving PQ certificate payload/outbound for Ref: {Ref}",
+                    referenceNumber);
+
+                return 0;
+            }
         }
 
         #region Private Helper Methods for Entity Mapping
 
-        private TabMessageResponseSubmisison CreateSubmissionRecord(int payloadId, EPhytoProgressRequest request, string source)
+        private TabMessageResponseSubmission CreateSubmissionRecord(int payloadId, EPhytoProgressRequest request, string source)
         {
-            return new TabMessageResponseSubmisison
+            return new TabMessageResponseSubmission
             {
                 ResponseType = request.DocumentControl.ResponseInfo.Status,
                 ReferenceNumber = request.DocumentControl.ReferenceNumber,

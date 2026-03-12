@@ -1,0 +1,1320 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Phyto Request Schema",
+  "description": "Schema for phytosanitary certificate requests (PQ7, PQ8, PQ9)",
+  "type": "object",
+  "required": [
+    "DocumentControl",
+    "Details",
+    "ShippingMarks"
+  ],
+  "properties": {
+    "DocumentControl": {
+      "type": "object",
+      "description": "Document control information",
+      "required": [
+        "ReferenceNumber",
+        "DocumentFunctionCode",
+        "FormType",
+        "SubmitForm",
+        "CertificateStatus",
+        "RegistrationID",
+        "Applicant",
+        "ConsignorExporter",
+        "ConsigneeImporter",
+        "ShipmentInfo",
+        "InspectionInfo"
+      ],
+      "properties": {
+        "ReferenceNumber": {
+          "type": "string",
+          "maxLength": 13,
+          "description": "Document reference number"
+        },
+        "DocumentFunctionCode": {
+          "type": "string",
+          "enum": ["4", "5", "9"],
+          "description": "Document function code"
+        },
+        "FormType": {
+          "type": "string",
+          "enum": ["pq7", "pq8", "pq9"],
+          "description": "Form type (pq7, pq8, or pq9)"
+        },
+        "ReplacementForm": {
+          "type": "string",
+          "enum": ["7", "8", "97", "98"],
+          "description": "Replacement form code (required when FormType is pq9)"
+        },
+        "SubmitForm": {
+          "type": "object",
+          "required": ["Date"],
+          "properties": {
+            "Date": {
+              "type": "string",
+              "format": "date",
+              "description": "Form submission date (YYYY-MM-DD)"
+            }
+          }
+        },
+        "CertificateStatus": {
+          "type": "string",
+          "enum": ["Draft"],
+          "maxLength": 10,
+          "description": "Certificate status"
+        },
+        "RegistrationID": {
+          "type": "string",
+          "maxLength": 35,
+          "description": "Registration ID"
+        },
+        "Applicant": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["Id", "IdType", "Name"],
+            "properties": {
+              "Id": {
+                "type": "string",
+                "maxLength": 17,
+                "description": "Applicant ID"
+              },
+              "IdType": {
+                "type": "string",
+                "enum": ["0", "1", "3"],
+                "description": "ID type (0=National ID, 1=Passport, 3=Corporate)"
+              },
+              "Name": {
+                "type": "string",
+                "maxLength": 120,
+                "description": "Applicant name"
+              },
+              "StreetAndNumber": {
+                "type": "string",
+                "maxLength": 255,
+                "description": "Street address and number"
+              },
+              "District": {
+                "type": "string",
+                "maxLength": 35,
+                "description": "District"
+              },
+              "SubProvice": {
+                "type": "string",
+                "maxLength": 35,
+                "description": "Sub-province"
+              },
+              "City": {
+                "type": "string",
+                "maxLength": 35,
+                "description": "City"
+              },
+              "Postcode": {
+                "type": "string",
+                "maxLength": 9,
+                "description": "Postal code"
+              },
+              "PhoneNumber": {
+                "type": "string",
+                "maxLength": 35,
+                "description": "Phone number"
+              },
+              "FaxNumber": {
+                "type": "string",
+                "maxLength": 35,
+                "description": "Fax number"
+              },
+              "Email": {
+                "type": "string",
+                "format": "email",
+                "maxLength": 255,
+                "description": "Email address"
+              },
+              "AttorneyIDCard": {
+                "type": "string",
+                "maxLength": 17,
+                "description": "Attorney ID card number"
+              },
+              "AttorneyName": {
+                "type": "string",
+                "maxLength": 120,
+                "description": "Attorney name"
+              }
+            }
+          }
+        },
+        "ConsignorExporter": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["TaxNumber", "CompanyName", "CountryCode"],
+            "properties": {
+              "TaxNumber": {
+                "type": "string",
+                "maxLength": 35,
+                "description": "Tax identification number"
+              },
+              "CompanyName": {
+                "type": "string",
+                "maxLength": 120,
+                "description": "Company name"
+              },
+              "AttorneyIDCard": {
+                "type": "string",
+                "maxLength": 17
+              },
+              "StreetAndNumber": {
+                "type": "string",
+                "maxLength": 255
+              },
+              "SubDistrict": {
+                "type": "string",
+                "maxLength": 35
+              },
+              "City": {
+                "type": "string",
+                "maxLength": 35
+              },
+              "Postcode": {
+                "type": "string",
+                "maxLength": 9
+              },
+              "CountryCode": {
+                "type": "string",
+                "maxLength": 2,
+                "description": "ISO country code"
+              },
+              "PhoneNumber": {
+                "type": "string",
+                "maxLength": 35
+              },
+              "FaxNumber": {
+                "type": "string",
+                "maxLength": 35
+              },
+              "Email": {
+                "type": "string",
+                "format": "email",
+                "maxLength": 255
+              }
+            }
+          }
+        },
+        "OnBeHalfCareOf": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "Code": {
+                "type": "string",
+                "enum": ["1", "2"],
+                "description": "On-behalf code"
+              },
+              "CompanyName": {
+                "type": "string",
+                "maxLength": 255
+              },
+              "AddrressLine1": {
+                "type": "string",
+                "maxLength": 255
+              },
+              "AddrressLine2": {
+                "type": "string",
+                "maxLength": 255
+              },
+              "City": {
+                "type": "string",
+                "maxLength": 35
+              },
+              "StateProvince": {
+                "type": "string",
+                "maxLength": 35
+              },
+              "Postcode": {
+                "type": "string",
+                "maxLength": 9
+              },
+              "CountryCode": {
+                "type": "string",
+                "maxLength": 2
+              },
+              "PhoneNumber": {
+                "type": "string",
+                "maxLength": 35
+              },
+              "FaxNumber": {
+                "type": "string",
+                "maxLength": 35
+              },
+              "Email": {
+                "type": "string",
+                "format": "email",
+                "maxLength": 255
+              }
+            }
+          }
+        },
+        "ConsigneeImporter": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["TaxNumber", "CompanyName"],
+            "properties": {
+              "TaxNumber": {
+                "type": "string",
+                "maxLength": 17,
+                "description": "Tax identification number"
+              },
+              "CompanyName": {
+                "type": "string",
+                "maxLength": 120,
+                "description": "Company name"
+              },
+              "AddrressLine1": {
+                "type": "string",
+                "maxLength": 70
+              },
+              "AddrressLine2": {
+                "type": "string",
+                "maxLength": 70
+              },
+              "City": {
+                "type": "string",
+                "maxLength": 35
+              },
+              "StateProvince": {
+                "type": "string",
+                "maxLength": 35
+              },
+              "Postcode": {
+                "type": "string",
+                "maxLength": 9
+              },
+              "CountryCode": {
+                "type": "string",
+                "maxLength": 2
+              },
+              "PhoneNumber": {
+                "type": "string",
+                "maxLength": 35
+              },
+              "FaxNumber": {
+                "type": "string",
+                "maxLength": 35
+              },
+              "Email": {
+                "type": "string",
+                "format": "email",
+                "maxLength": 255
+              }
+            }
+          }
+        },
+        "ShipmentInfo": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "Transportation",
+              "DestinationCountry",
+              "DischargePort",
+              "LoadingPort",
+              "DepartureOnBoard",
+              "TotalAmount",
+              "TotalPackage",
+              "GrossWeight",
+              "NetWeight"
+            ],
+            "properties": {
+              "Transportation": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "required": ["ModeCode", "VesselName"],
+                  "properties": {
+                    "ModeCode": {
+                      "type": "string",
+                      "maxLength": 1,
+                      "description": "Transport mode code"
+                    },
+                    "VesselName": {
+                      "type": "string",
+                      "maxLength": 35,
+                      "description": "Vessel/Vehicle name"
+                    },
+                    "BillNumber": {
+                      "type": "string",
+                      "maxLength": 35,
+                      "description": "Bill of lading number"
+                    }
+                  }
+                }
+              },
+              "DestinationCountry": {
+                "type": "string",
+                "maxLength": 2,
+                "description": "Destination country code"
+              },
+              "DischargePort": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "required": ["Code", "Name"],
+                  "properties": {
+                    "Code": {
+                      "type": "string",
+                      "maxLength": 5,
+                      "description": "Port code"
+                    },
+                    "Name": {
+                      "type": "string",
+                      "maxLength": 35,
+                      "description": "Port name"
+                    }
+                  }
+                }
+              },
+              "LoadingPort": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "required": ["Code", "Name"],
+                  "properties": {
+                    "Code": {
+                      "type": "string",
+                      "maxLength": 5
+                    },
+                    "Name": {
+                      "type": "string",
+                      "maxLength": 35
+                    }
+                  }
+                }
+              },
+              "DepartureOnBoard": {
+                "type": "object",
+                "required": ["Date"],
+                "properties": {
+                  "Date": {
+                    "type": "string",
+                    "format": "date",
+                    "description": "Departure on board date"
+                  }
+                }
+              },
+              "TotalAmount": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "required": ["Amount", "CurrencyCode"],
+                  "properties": {
+                    "Amount": {
+                      "type": "number",
+                      "description": "Total amount"
+                    },
+                    "CurrencyCode": {
+                      "type": "string",
+                      "maxLength": 3,
+                      "description": "Currency code (ISO 4217)"
+                    }
+                  }
+                }
+              },
+              "TotalPackage": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "required": ["Quantity", "TypeCode"],
+                  "properties": {
+                    "Quantity": {
+                      "type": "number",
+                      "description": "Package quantity"
+                    },
+                    "TypeCode": {
+                      "type": "string",
+                      "maxLength": 2,
+                      "description": "Package type code"
+                    }
+                  }
+                }
+              },
+              "GrossWeight": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "required": ["Weight", "UnitCode"],
+                  "properties": {
+                    "Weight": {
+                      "type": "number",
+                      "description": "Gross weight"
+                    },
+                    "UnitCode": {
+                      "type": "string",
+                      "maxLength": 3,
+                      "description": "Weight unit code"
+                    }
+                  }
+                }
+              },
+              "NetWeight": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "required": ["Weight", "UnitCode"],
+                  "properties": {
+                    "Weight": {
+                      "type": "number",
+                      "description": "Net weight"
+                    },
+                    "UnitCode": {
+                      "type": "string",
+                      "maxLength": 3
+                    }
+                  }
+                }
+              },
+              "PlaceOriginCountry": {
+                "type": "string",
+                "maxLength": 2,
+                "description": "Place of origin country code"
+              }
+            }
+          }
+        },
+        "InspectionInfo": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["IssueLocationCode", "OperateType"],
+            "properties": {
+              "IssueLocationCode": {
+                "type": "string",
+                "maxLength": 2,
+                "description": "Inspection location code"
+              },
+              "OperateType": {
+                "type": "string",
+                "enum": ["0", "1"],
+                "description": "Operation type (0=Third party, 1=Authority)"
+              },
+              "PlaceCode": {
+                "type": "string",
+                "maxLength": 2,
+                "description": "Place code (required when OperateType=1)"
+              },
+              "Due": {
+                "type": "object",
+                "properties": {
+                  "DateTimeString": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{1,3}Z$",
+                    "description": "Due date and time (ISO 8601 format)"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Details": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Item details",
+      "items": {
+        "type": "object",
+        "required": [
+          "ItemNumber",
+          "TradeDescrition",
+          "CommonName",
+          "ScientificName",
+          "ProductCode",
+          "NetWeight",
+          "Quantityinfo",
+          "PhysicalPackage",
+          "AmountInfo",
+          "Remark",
+          "ObjectiveCode",
+          "AdditionalDescription",
+          "Treatments",
+          "AdditionalDeclarations"
+        ],
+        "properties": {
+          "ItemNumber": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Item number"
+          },
+          "TradeDescrition": {
+            "type": "string",
+            "maxLength": 512,
+            "description": "Trade description"
+          },
+          "CommonName": {
+            "type": "string",
+            "maxLength": 512,
+            "description": "Common name of product"
+          },
+          "ScientificName": {
+            "type": "string",
+            "maxLength": 512,
+            "description": "Scientific name"
+          },
+          "ProductCode": {
+            "type": "string",
+            "maxLength": 35,
+            "description": "Product code"
+          },
+          "TariffInfo": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "Code": {
+                  "type": "string",
+                  "maxLength": 13,
+                  "description": "Tariff code"
+                },
+                "Statistical": {
+                  "type": "string",
+                  "maxLength": 3,
+                  "description": "Statistical code"
+                }
+              }
+            }
+          },
+          "ThaiGoodsDescrition": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "Thai goods description"
+          },
+          "NetWeight": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["Weight", "UnitCode"],
+              "properties": {
+                "Weight": {
+                  "type": "number",
+                  "minimum": 0,
+                  "description": "Net weight"
+                },
+                "UnitCode": {
+                  "type": "string",
+                  "maxLength": 3,
+                  "description": "Weight unit code"
+                }
+              }
+            }
+          },
+          "Quantityinfo": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["Quantity", "UnitCode"],
+              "properties": {
+                "Quantity": {
+                  "type": "number",
+                  "minimum": 0,
+                  "description": "Quantity"
+                },
+                "UnitCode": {
+                  "type": "string",
+                  "maxLength": 3,
+                  "description": "Quantity unit code"
+                }
+              }
+            }
+          },
+          "PhysicalPackage": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["LevelCode", "Quantity", "TypeCode"],
+              "properties": {
+                "LevelCode": {
+                  "type": "integer",
+                  "enum": [1, 2],
+                  "description": "Package level code"
+                },
+                "Quantity": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Package quantity"
+                },
+                "TypeCode": {
+                  "type": "string",
+                  "maxLength": 2,
+                  "description": "Package type code"
+                }
+              }
+            }
+          },
+          "AmountInfo": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["Value", "CurrencyCode"],
+              "properties": {
+                "Value": {
+                  "type": "number",
+                  "minimum": 0,
+                  "description": "Amount value"
+                },
+                "CurrencyCode": {
+                  "type": "string",
+                  "maxLength": 3,
+                  "description": "Currency code"
+                }
+              }
+            }
+          },
+          "Remark": {
+            "type": "string",
+            "maxLength": 512,
+            "description": "Remarks"
+          },
+          "Packaging": {
+            "type": "integer",
+            "enum": [1, 2, 3, 4],
+            "description": "Packaging code (required for pq8 or ReplacementForm=98)"
+          },
+          "ObjectiveCode": {
+            "type": "integer",
+            "enum": [1, 2, 3, 4, 5, 6],
+            "description": "Objective code"
+          },
+          "SendLab": {
+            "type": "integer",
+            "enum": [0, 1],
+            "description": "Send to lab flag (required for pq7)"
+          },
+          "AdditionalDescription": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["Product"],
+              "properties": {
+                "Lab": {
+                  "type": "string",
+                  "maxLength": 512,
+                  "description": "Lab description (required when SendLab=1)"
+                },
+                "Product": {
+                  "type": "string",
+                  "maxLength": 512,
+                  "description": "Product description"
+                }
+              }
+            }
+          },
+          "OriginCountries": {
+            "type": "array",
+            "description": "Origin countries (required for pq8 or ReplacementForm=98)",
+            "items": {
+              "type": "object",
+              "properties": {
+                "ItemNumber": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "CountryCode": {
+                  "type": "string",
+                  "maxLength": 2,
+                  "description": "Country code"
+                },
+                "RegistrationNumber": {
+                  "type": "string",
+                  "maxLength": 20,
+                  "description": "Registration number"
+                },
+                "LocationName": {
+                  "type": "string",
+                  "maxLength": 512,
+                  "description": "Location name"
+                },
+                "IssueDate": {
+                  "type": "object",
+                  "properties": {
+                    "Date": {
+                      "type": "string",
+                      "format": "date",
+                      "description": "Issue date"
+                    }
+                  }
+                },
+                "Remark": {
+                  "type": "string",
+                  "maxLength": 512,
+                  "description": "Remarks"
+                },
+                "ItemReferenceDocument": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["ItemNumber", "DocumentNumber", "DocumentType", "Attachment"],
+                    "properties": {
+                      "ItemNumber": {
+                        "type": "integer",
+                        "minimum": 1
+                      },
+                      "DocumentNumber": {
+                        "type": "string",
+                        "maxLength": 35,
+                        "description": "Document number"
+                      },
+                      "DocumentType": {
+                        "type": "object",
+                        "required": ["code", "name"],
+                        "properties": {
+                          "code": {
+                            "type": "string",
+                            "maxLength": 3,
+                            "description": "Document type code"
+                          },
+                          "name": {
+                            "type": "string",
+                            "maxLength": 70,
+                            "description": "Document type name"
+                          }
+                        }
+                      },
+                      "ProviderAuthority": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "TaxNumber": {
+                              "type": "string",
+                              "maxLength": 17
+                            }
+                          }
+                        }
+                      },
+                      "Issued": {
+                        "type": "object",
+                        "properties": {
+                          "Date": {
+                            "type": "string",
+                            "format": "date",
+                            "description": "Issue date"
+                          }
+                        }
+                      },
+                      "Expire": {
+                        "type": "object",
+                        "properties": {
+                          "Date": {
+                            "type": "string",
+                            "format": "date",
+                            "description": "Expiry date"
+                          }
+                        }
+                      },
+                      "Attachment": {
+                        "type": "array",
+                        "minItems": 1,
+                        "items": {
+                          "type": "object",
+                          "required": ["Filename", "FileID", "FileUrl"],
+                          "properties": {
+                            "Filename": {
+                              "type": "string",
+                              "maxLength": 100,
+                              "description": "Attachment filename"
+                            },
+                            "FileID": {
+                              "type": "string",
+                              "maxLength": 100,
+                              "description": "File ID"
+                            },
+                            "FileUrl": {
+                              "type": "string",
+                              "format": "uri",
+                              "maxLength": 255,
+                              "description": "File URL"
+                            }
+                          }
+                        }
+                      },
+                      "Remark": {
+                        "type": ["string", "null"],
+                        "maxLength": 255,
+                        "description": "Remarks"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "Treatments": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["ItemNumber"],
+              "properties": {
+                "ItemNumber": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "Treatment item number"
+                },
+                "Method": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "TypeCode": {
+                        "type": "string",
+                        "maxLength": 3,
+                        "description": "Treatment method type code"
+                      },
+                      "Description": {
+                        "type": "string",
+                        "maxLength": 70,
+                        "description": "Treatment description"
+                      }
+                    }
+                  }
+                },
+                "CompletionPeriod": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "StartDateTime": {
+                        "type": "object",
+                        "properties": {
+                          "DateTimeString": {
+                            "type": "string",
+                            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{1}$",
+                            "description": "Start date and time"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "Chemical": {
+                  "type": "string",
+                  "maxLength": 70,
+                  "description": "Chemical used"
+                },
+                "DurationMeasure": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "Duration": {
+                        "type": "string",
+                        "maxLength": 70,
+                        "description": "Duration"
+                      },
+                      "UnitCode": {
+                        "type": "string",
+                        "maxLength": 3,
+                        "description": "Duration unit code"
+                      }
+                    }
+                  }
+                },
+                "Temperature": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "ValueMeasure": {
+                        "type": "string",
+                        "maxLength": 5,
+                        "description": "Temperature value"
+                      },
+                      "UnitCode": {
+                        "type": "string",
+                        "maxLength": 5,
+                        "description": "Temperature unit code"
+                      }
+                    }
+                  }
+                },
+                "Concentration": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "ValueMeasure": {
+                        "type": "string",
+                        "maxLength": 70,
+                        "description": "Concentration value"
+                      },
+                      "UnitCode": {
+                        "type": "string",
+                        "maxLength": 3,
+                        "description": "Concentration unit code"
+                      }
+                    }
+                  }
+                },
+                "Remark": {
+                  "type": ["string", "null"],
+                  "maxLength": 512,
+                  "description": "Treatment remarks"
+                }
+              }
+            }
+          },
+          "AdditionalDeclarations": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["ItemNumber", "SubjectCode", "Description"],
+              "properties": {
+                "ItemNumber": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "Declaration item number"
+                },
+                "SubjectCode": {
+                  "type": "string",
+                  "maxLength": 5,
+                  "description": "Subject code"
+                },
+                "Description": {
+                  "type": "string",
+                  "maxLength": 512,
+                  "description": "Declaration description"
+                },
+                "AdditionalReferenceDocuments": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["DocumentType", "Attachment"],
+                    "properties": {
+                      "DocumentType": {
+                        "type": "object",
+                        "required": ["Code", "Name"],
+                        "properties": {
+                          "Code": {
+                            "type": "string",
+                            "maxLength": 3,
+                            "description": "Document type code"
+                          },
+                          "Name": {
+                            "type": "string",
+                            "maxLength": 70,
+                            "description": "Document type name"
+                          }
+                        }
+                      },
+                      "Attachment": {
+                        "type": "array",
+                        "minItems": 1,
+                        "items": {
+                          "type": "object",
+                          "required": ["Filename", "FileId", "FileUrl"],
+                          "properties": {
+                            "Filename": {
+                              "type": "string",
+                              "maxLength": 100,
+                              "description": "Filename"
+                            },
+                            "FileId": {
+                              "type": "string",
+                              "maxLength": 100,
+                              "description": "File ID"
+                            },
+                            "FileUrl": {
+                              "type": "string",
+                              "format": "uri",
+                              "maxLength": 255,
+                              "description": "File URL"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "ThirdPartyFumigations": {
+      "type": "array",
+      "description": "Third party fumigation information (required when OperateType=0)",
+      "items": {
+        "type": "object",
+        "required": [
+          "FirstName",
+          "LastName",
+          "CompanyCode",
+          "LocationName",
+          "SubDistrict",
+          "District",
+          "City",
+          "PhoneNumber",
+          "Due"
+        ],
+        "properties": {
+          "FirstName": {
+            "type": "string",
+            "maxLength": 120,
+            "description": "First name"
+          },
+          "LastName": {
+            "type": "string",
+            "maxLength": 120,
+            "description": "Last name"
+          },
+          "CompanyCode": {
+            "type": "string",
+            "maxLength": 35,
+            "description": "Company code"
+          },
+          "LocationName": {
+            "type": "string",
+            "maxLength": 120,
+            "description": "Location name"
+          },
+          "StreetAndNumber": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "SubDistrict": {
+            "type": "string",
+            "maxLength": 35
+          },
+          "District": {
+            "type": "string",
+            "maxLength": 35
+          },
+          "City": {
+            "type": "string",
+            "maxLength": 35
+          },
+          "Postcode": {
+            "type": "string",
+            "maxLength": 9
+          },
+          "PhoneNumber": {
+            "type": "string",
+            "maxLength": 35
+          },
+          "FaxNumber": {
+            "type": "string",
+            "maxLength": 35
+          },
+          "Email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 255
+          },
+          "Due": {
+            "type": "object",
+            "required": ["DateTimeString"],
+            "properties": {
+              "DateTimeString": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d$",
+                "description": "Due date and time (ISO 8601 format)"
+              }
+            }
+          }
+        }
+      }
+    },
+    "TransitCountries": {
+      "type": "array",
+      "description": "Transit countries information",
+      "items": {
+        "type": "object",
+        "required": ["CountryCode"],
+        "properties": {
+          "CountryCode": {
+            "type": "string",
+            "maxLength": 2,
+            "description": "Country code"
+          },
+          "City": {
+            "type": "string",
+            "maxLength": 35,
+            "description": "City"
+          },
+          "PortCode": {
+            "type": "string",
+            "maxLength": 5,
+            "description": "Port code"
+          },
+          "Remark": {
+            "type": ["string", "null"],
+            "maxLength": 255,
+            "description": "Remarks"
+          }
+        }
+      }
+    },
+    "Containers": {
+      "type": "array",
+      "description": "Container information",
+      "items": {
+        "type": "object",
+        "properties": {
+          "Number": {
+            "type": "string",
+            "maxLength": 17,
+            "description": "Container number"
+          },
+          "SealNumber": {
+            "type": "string",
+            "maxLength": 35,
+            "description": "Seal number"
+          }
+        }
+      }
+    },
+    "ShippingMarks": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Shipping marks information",
+      "items": {
+        "type": "object",
+        "required": ["Marking"],
+        "properties": {
+          "Marking": {
+            "type": "string",
+            "maxLength": 512,
+            "description": "Shipping mark"
+          }
+        }
+      }
+    },
+    "ReferenceDocuments": {
+      "type": "array",
+      "description": "Reference documents",
+      "items": {
+        "type": "object",
+        "required": [
+          "ItemNumber",
+          "DocumentNumber",
+          "CocumentType"
+        ],
+        "properties": {
+          "ItemNumber": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Reference document item number"
+          },
+          "DocumentNumber": {
+            "type": "string",
+            "maxLength": 35,
+            "description": "Document number"
+          },
+          "CocumentType": {
+            "type": "object",
+            "required": ["Code", "Name"],
+            "properties": {
+              "Code": {
+                "type": "string",
+                "maxLength": 3,
+                "description": "Document type code"
+              },
+              "Name": {
+                "type": "string",
+                "maxLength": 70,
+                "description": "Document type name"
+              }
+            }
+          },
+          "DetailItemNumber": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Detail item number"
+          },
+          "ProviderAuthority": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "TaxNumber": {
+                  "type": "string",
+                  "maxLength": 17
+                }
+              }
+            }
+          },
+          "Issued": {
+            "type": "object",
+            "properties": {
+              "Date": {
+                "type": "string",
+                "format": "date",
+                "description": "Issue date"
+              }
+            }
+          },
+          "Expire": {
+            "type": "object",
+            "properties": {
+              "Date": {
+                "type": "string",
+                "format": "date",
+                "description": "Expiry date"
+              }
+            }
+          },
+          "Attachment": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["Filename", "FileId", "FileUrl"],
+              "properties": {
+                "Filename": {
+                  "type": "string",
+                  "maxLength": 100,
+                  "description": "Attachment filename"
+                },
+                "FileId": {
+                  "type": "string",
+                  "maxLength": 100,
+                  "description": "File ID"
+                },
+                "FileUrl": {
+                  "type": "string",
+                  "format": "uri",
+                  "maxLength": 255,
+                  "description": "File URL"
+                }
+              }
+            }
+          },
+          "Remark": {
+            "type": ["string", "null"],
+            "maxLength": 255,
+            "description": "Remarks"
+          }
+        }
+      }
+    }
+  }
+}
+

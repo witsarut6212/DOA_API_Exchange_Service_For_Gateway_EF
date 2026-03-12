@@ -1,4 +1,3 @@
-using DOA_API_Exchange_Service_For_Gateway.Models;
 using DOA_API_Exchange_Service_For_Gateway.Models.Requests;
 using DOA_API_Exchange_Service_For_Gateway.Services;
 using DOA_API_Exchange_Service_For_Gateway.Filters;
@@ -8,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using System.Security.Claims;
+using DOA_API_Exchange_Service_For_Gateway.Models;
 
 namespace DOA_API_Exchange_Service_For_Gateway.Controllers
 {
@@ -68,6 +68,58 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
             };
 
             return Ok(_response.CreateSuccess(successData, "Successfully received ePhyto progress."));
+        }
+
+        [HttpPost("certificate")]
+        [ValidateCertificateSchema]
+        public async Task<IActionResult> SubmitCertificate([FromBody] JObject rawRequest)
+        {
+            var documentControl = rawRequest["DocumentControl"] as JObject;
+            if (documentControl == null)
+            {
+                return BadRequest(_response.CreateError("Invalid request format.", 400));
+            }
+
+            var referenceNumber = documentControl["ReferenceNumber"]?.ToString();
+
+            if (string.IsNullOrWhiteSpace(referenceNumber))
+            {
+                return BadRequest(_response.CreateError("ReferenceNumber is required.", 400));
+            }
+
+            var certificateStatus = documentControl["CertificateStatus"]?.ToString();
+            if (!string.Equals(certificateStatus, "Draft", StringComparison.OrdinalIgnoreCase))
+            {
+                var validations = new List<ApiValidation>
+                {
+                    new ApiValidation
+                    {
+                        Field = "DocumentControl.CertificateStatus",
+                        Description = "reject"
+                    }
+                };
+
+                return UnprocessableEntity(_response.CreateError("One or more field validation failed.", 422, null, validations));
+            }
+
+            var source = User.FindFirstValue("AppNickName") ?? string.Empty;
+
+            var payloadId = await _submissionService.SaveCertificatePayloadAsync(
+                rawRequest.ToString(Formatting.None),
+                source,
+                referenceNumber);
+
+            if (payloadId == 0)
+            {
+                return StatusCode(500, _response.CreateError("Failed to save submission payload.", 500));
+            }
+
+            var successData = new
+            {
+                ReferenceNumber = referenceNumber
+            };
+
+            return Ok(_response.CreateSuccess(successData, "Successfully received ePhyto certificate submission."));
         }
     }
 }
