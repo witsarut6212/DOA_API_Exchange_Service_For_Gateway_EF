@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace DOA_API_Exchange_Service_For_Gateway.Models.Entities;
 
-public partial class TabMessageResponseSubmisison
+public partial class TabMessageResponseSubmission
 {
     public int Id { get; set; }
 

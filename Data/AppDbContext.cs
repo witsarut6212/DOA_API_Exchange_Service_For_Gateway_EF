@@ -87,7 +87,7 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<ApplicationExternal> ApplicationExternals { get; set; }
 
-    public virtual DbSet<TabMessageResponseSubmisison> TabMessageResponseSubmisisons { get; set; }
+    public virtual DbSet<TabMessageResponseSubmission> TabMessageResponseSubmissions { get; set; }
 
     public virtual DbSet<TabMessageSubmissionRequest> TabMessageSubmissionRequests { get; set; }
 
@@ -197,21 +197,21 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("updated_by");
         });
 
-        modelBuilder.Entity<TabMessageResponseSubmisison>(entity =>
+        modelBuilder.Entity<TabMessageResponseSubmission>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.ToTable("tab_message_response_submisisons");
+            entity.ToTable("tab_message_response_submissions");
 
-            entity.HasIndex(e => e.ReferenceNumber, "IDX1_tab_message_response_submisisons");
+            entity.HasIndex(e => e.ReferenceNumber, "IDX1_tab_message_response_submissions");
 
-            entity.HasIndex(e => e.QueueId, "IDX2_tab_message_response_submisisons");
+            entity.HasIndex(e => e.QueueId, "IDX2_tab_message_response_submissions");
 
-            entity.HasIndex(e => e.MessageId, "IDX3_tab_message_response_submisisons");
+            entity.HasIndex(e => e.MessageId, "IDX3_tab_message_response_submissions");
 
-            entity.HasIndex(e => e.RefMessageId, "IDX4_tab_message_response_submisisons");
+            entity.HasIndex(e => e.RefMessageId, "IDX4_tab_message_response_submissions");
 
-            entity.HasIndex(e => e.DocumentNumber, "UK1_tab_message_response_submisisons").IsUnique();
+            entity.HasIndex(e => e.DocumentNumber, "UK1_tab_message_response_submissions").IsUnique();
 
             entity.Property(e => e.CreatedAt)
                 .HasColumnType("datetime")
