@@ -234,7 +234,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             // ในที่นี้เราเช็คว่าถ้ามีแล้ว ต้องเป็นสถานะที่ยังแก้ไขได้
             var existing = await _context.TabMessageThphytos
                 .Where(t => t.DocId == referenceNumber)
-                .OrderByDescending(t => t.CreatedAt)
+                .OrderByDescending(t => t.TimeStamp)
                 .FirstOrDefaultAsync();
 
             if (existing == null) return true; // ยังไม่มีข้อมูล แก้ไขได้ (เป็นใบใหม่)

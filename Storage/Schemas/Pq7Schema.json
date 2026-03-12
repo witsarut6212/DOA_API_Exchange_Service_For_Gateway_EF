@@ -139,20 +139,20 @@
             "Transportation": {
               "type": "object",
               "additionalProperties": false,
-              "required": ["ModeCode", "VesselName", "BillNumber"],
+              "required": ["ModeCode", "VesselName"],
               "properties": {
-                "ModeCode": { "type": "string", "minLength": 1 },
+                "ModeCode": { "type": "string", "enum": ["1", "2", "3", "4", "5", "6", "7", "8", "9"], "description": "UNECE Recommendation 19: Mode of Transport" },
                 "VesselName": { "type": "string", "minLength": 1 },
-                "BillNumber": { "type": "string", "minLength": 1 }
+                "BillNumber": { "type": ["string", "null"] }
               }
             },
-            "DestinationCountry": { "type": "string", "minLength": 1 },
+            "DestinationCountry": { "type": "string", "pattern": "^[a-zA-Z]{2}$", "description": "UNECE Recommendation 3 : ISO 3166" },
             "DischargePort": {
               "type": "object",
               "additionalProperties": false,
               "required": ["Code", "Name"],
               "properties": {
-                "Code": { "type": "string", "minLength": 1 },
+                "Code": { "type": "string", "pattern": "^[a-zA-Z0-9]{5}$", "description": "UN/CEFACT Recommendation 16 (UN/LOCODE)" },
                 "Name": { "type": "string", "minLength": 1 }
               }
             },
@@ -161,7 +161,7 @@
               "additionalProperties": false,
               "required": ["Code", "Name"],
               "properties": {
-                "Code": { "type": "string", "minLength": 1 },
+                "Code": { "type": "string", "pattern": "^[a-zA-Z0-9]{5}$", "description": "UN/CEFACT Recommendation 16 (UN/LOCODE)" },
                 "Name": { "type": "string", "minLength": 1 }
               }
             },
@@ -170,7 +170,7 @@
               "additionalProperties": false,
               "required": ["Date"],
               "properties": {
-                "Date": { "type": "string", "minLength": 1 }
+                "Date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$", "description": "Departure Date / On Board (ISO 8601/W3C) (YYYY-MM-DD)" }
               }
             },
             "TotalAmount": {
@@ -179,7 +179,7 @@
               "required": ["Amount", "CurrencyCode"],
               "properties": {
                 "Amount": { "type": "number" },
-                "CurrencyCode": { "type": "string", "minLength": 1 }
+                "CurrencyCode": { "type": "string", "enum": ["THB"], "description": "UNECE Recommendation 9 : ISO 4217 (กรมวิชาการเกษตรใช้มูลค่าเงินเป็นบาท)" }
               }
             },
             "TotalPackage": {
@@ -188,7 +188,7 @@
               "required": ["Quantity", "TypeCode"],
               "properties": {
                 "Quantity": { "type": "number" },
-                "TypeCode": { "type": "string", "minLength": 1 }
+                "TypeCode": { "type": "string", "minLength": 1, "description": "UNECE Recommendation 21: Package Unit Code" }
               }
             },
             "GrossWeight": {
@@ -197,7 +197,7 @@
               "required": ["Weight", "UnitCode"],
               "properties": {
                 "Weight": { "type": "number" },
-                "UnitCode": { "type": "string", "minLength": 1 }
+                "UnitCode": { "type": "string", "enum": ["KGM"], "description": "UNECE Recommendation 20: (ต้องระบุเป็นหน่วยกิโลกรัม KGM เท่านั้น)" }
               }
             },
             "NetWeight": {
@@ -206,27 +206,36 @@
               "required": ["Weight", "UnitCode"],
               "properties": {
                 "Weight": { "type": "number" },
-                "UnitCode": { "type": "string", "minLength": 1 }
+                "UnitCode": { "type": "string", "enum": ["KGM"], "description": "UNECE Recommendation 20: (ต้องระบุเป็นหน่วยกิโลกรัม KGM เท่านั้น)" }
               }
             },
-            "PlaceOriginCountry": { "type": "string", "minLength": 1 }
+            "PlaceOriginCountry": { "type": "string", "pattern": "^[a-zA-Z]{2}$", "description": "UNECE Recommendation 3 : ISO 3166" }
           }
         },
         "InspectionInfo": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["IssueLocationCode", "OperateType", "PlaceCode", "Due"],
+          "required": ["IssueLocationCode", "OperateType", "Due"],
           "properties": {
             "IssueLocationCode": { "type": "string", "minLength": 1 },
-            "OperateType": { "type": "string", "minLength": 1 },
-            "PlaceCode": { "type": "string", "minLength": 1 },
+            "OperateType": { "type": "string", "enum": ["0", "1"] },
+            "PlaceCode": { "type": ["string", "null"] },
             "Due": {
               "type": "object",
               "additionalProperties": false,
               "required": ["DateTimeString"],
               "properties": {
-                "DateTimeString": { "type": "string", "minLength": 1 }
+                "DateTimeString": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$", "description": "วันที่นัดหมายการตรวจสินค้า (DateTime ISO 8601) รูปแบบ YYYY-MM-DDTHH:mm:ss.sTZD" }
               }
+            }
+          },
+          "if": {
+            "properties": { "OperateType": { "const": "1" } }
+          },
+          "then": {
+            "required": ["PlaceCode"],
+            "properties": {
+              "PlaceCode": { "type": "string", "minLength": 1 }
             }
           }
         }
