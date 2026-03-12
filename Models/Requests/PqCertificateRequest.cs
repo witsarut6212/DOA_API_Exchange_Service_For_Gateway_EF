@@ -23,7 +23,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
         public string ReplacementForm { get; set; } = null!;
         public DateWrapper SubmitForm { get; set; } = null!;
         public string CertificateStatus { get; set; } = null!;
-        public string RegistrationID { get; set; } = null!;
+        public string? ApplicantDate { get; set; }
+        public string SenderRegistrationID { get; set; } = null!;
         public Applicant Applicant { get; set; } = null!;
         public ConsignorExporter ConsignorExporter { get; set; } = null!;
         public OnBeHalfCareOf? OnBeHalfCareOf { get; set; }
@@ -66,6 +67,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
         public string? AttorneyIDCard { get; set; }
         public string? StreetAndNumber { get; set; }
         public string? SubDistrict { get; set; }
+        public string? District { get; set; }
         public string? City { get; set; }
         public string? Postcode { get; set; }
         public string? CountryCode { get; set; }

@@ -46,7 +46,7 @@ public class ApplicationVerifyService : IApplicationVerifyService
 
         // 3. Update (Using Execution Strategy)
         var strategy = _context.Database.CreateExecutionStrategy();
-        return await strategy.ExecuteAsync(async () =>
+        return await strategy.ExecuteAsync<(int StatusCode, string Message, object? Data)>(async () =>
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -61,7 +61,6 @@ public class ApplicationVerifyService : IApplicationVerifyService
                 
                 await transaction.CommitAsync();
 
-
                 return (200, "ระบบยืนยันการตรวจสอบเสร็จเรียบร้อยแล้ว", null);
             }
             catch (Exception ex)
@@ -69,7 +68,7 @@ public class ApplicationVerifyService : IApplicationVerifyService
                 await transaction.RollbackAsync();
                 _logger.LogError(ex, "VerifyApplicationAsync: Failed to verify application for CliendId {CliendId}", request.CliendId);
                 var innerError = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
-                return (500, $"Internal Error: {innerError}", (object)null!);
+                return (500, $"Internal Error: {innerError}", null);
             }
         });
     }

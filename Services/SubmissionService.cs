@@ -180,6 +180,9 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
         {
             _context.CurrentUser = source;
 
+            // Optional: เช็ค CanEditCertificateAsync ตรงนี้เลยก็ได้ถ้าต้องการคุมที่ระดับ Service
+            // if (!await CanEditCertificateAsync(referenceNumber)) { return -1; }
+
             try
             {
                 var payload = new TabMessageResponsePayload
@@ -220,6 +223,24 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
 
                 return 0;
             }
+        }
+
+        public async Task<bool> CanEditCertificateAsync(string referenceNumber)
+        {
+            if (string.IsNullOrEmpty(referenceNumber)) return true; // ถ้าไม่มีเลข อนุมัติให้เป็นใบใหม่
+
+            // เช็คใน TabMessageThphytos ว่ามีเลขนี้อยู่แล้วหรือยัง
+            // หมายเหตุ: DocStatus สำหรับ Draft ปกติจะเป็น '01' หรือ 'Draft' ขึ้นอยู่กับระบบ
+            // ในที่นี้เราเช็คว่าถ้ามีแล้ว ต้องเป็นสถานะที่ยังแก้ไขได้
+            var existing = await _context.TabMessageThphytos
+                .Where(t => t.DocId == referenceNumber)
+                .OrderByDescending(t => t.CreatedAt)
+                .FirstOrDefaultAsync();
+
+            if (existing == null) return true; // ยังไม่มีข้อมูล แก้ไขได้ (เป็นใบใหม่)
+
+            // ยอมให้แก้ถ้า DocStatus เป็น '01' (Draft) หรือ 'Draft'
+            return existing.DocStatus == "01" || existing.DocStatus.Equals("Draft", StringComparison.OrdinalIgnoreCase);
         }
 
         #region Private Helper Methods for Entity Mapping

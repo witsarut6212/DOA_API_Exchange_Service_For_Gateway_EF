@@ -50,13 +50,34 @@ namespace DOA_API_Exchange_Service_For_Gateway.Filters
             {
                 var json = JObject.Parse(body);
 
-                // Dynamic Schema Selection
+                // Strict FormType Enforcement
                 string formType = json.SelectToken("DocumentControl.FormType")?.ToString()?.ToLower() ?? "";
-                string schemaFileName = "PhytoRequestSchema.json";
+                string schemaFileName = "";
 
-                if (formType == "pq7" || formType == "pq8" || formType == "pq9")
+                if (string.IsNullOrEmpty(formType))
                 {
-                    schemaFileName = "PqCertificateSchema.json";
+                    var title = config["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
+                    context.Result = new BadRequestObjectResult(new ApiResponse<object>
+                    {
+                        Info = new ApiInfo { Title = title, Status = 400, Detail = "FormType is required in DocumentControl." },
+                        Error = new ApiError { TraceId = context.HttpContext.TraceIdentifier, Instance = request.Path }
+                    });
+                    return;
+                }
+
+                switch (formType)
+                {
+                    case "pq7": schemaFileName = "Pq7Schema.json"; break;
+                    case "pq8": schemaFileName = "Pq8Schema.json"; break;
+                    case "pq9": schemaFileName = "Pq9Schema.json"; break;
+                    default:
+                        var title = config["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
+                        context.Result = new BadRequestObjectResult(new ApiResponse<object>
+                        {
+                            Info = new ApiInfo { Title = title, Status = 400, Detail = "Invalid FormType. Only pq7, pq8, and pq9 are allowed." },
+                            Error = new ApiError { TraceId = context.HttpContext.TraceIdentifier, Instance = request.Path }
+                        });
+                        return;
                 }
 
                 var storageRoot = config["Configuration.StoragePath"] ?? "Storage";

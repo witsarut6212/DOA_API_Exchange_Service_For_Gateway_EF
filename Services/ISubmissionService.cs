@@ -9,5 +9,6 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
         Task<bool> IsDocumentNumberDuplicateAsync(string documentNumber);
         Task<int> SaveCertificatePayloadAsync(string rawDataObject, string source, string referenceNumber);
         Task<int> SavePqCertificatePayloadAsync(string rawDataObject, string source, string referenceNumber);
+        Task<bool> CanEditCertificateAsync(string referenceNumber);
     }
 }
