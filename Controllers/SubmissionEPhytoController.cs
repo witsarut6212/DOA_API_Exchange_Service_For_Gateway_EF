@@ -104,14 +104,33 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
 
             var source = User.FindFirstValue("AppNickName") ?? string.Empty;
 
-            var payloadId = await _submissionService.SaveCertificatePayloadAsync(
-                rawRequest.ToString(Formatting.None),
-                source,
-                referenceNumber);
+            // Determine if it's a PQ Certificate or ePhyto Certificate based on FormType
+            var formType = documentControl["FormType"]?.ToString()?.ToLower();
+            bool isPq = formType == "pq7" || formType == "pq8" || formType == "pq9";
+            
+            int payloadId;
+            string docTypeLabel;
+
+            if (isPq)
+            {
+                payloadId = await _submissionService.SavePqCertificatePayloadAsync(
+                    rawRequest.ToString(Formatting.None),
+                    source,
+                    referenceNumber);
+                docTypeLabel = "PQ certificate";
+            }
+            else
+            {
+                payloadId = await _submissionService.SaveCertificatePayloadAsync(
+                    rawRequest.ToString(Formatting.None),
+                    source,
+                    referenceNumber);
+                docTypeLabel = "ePhyto certificate";
+            }
 
             if (payloadId == 0)
             {
-                return StatusCode(500, _response.CreateError("Failed to save submission payload.", 500));
+                return StatusCode(500, _response.CreateError($"Failed to save {docTypeLabel} submission payload.", 500));
             }
 
             var successData = new
@@ -119,7 +138,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
                 ReferenceNumber = referenceNumber
             };
 
-            return Ok(_response.CreateSuccess(successData, "Successfully received ePhyto certificate submission."));
+            return Ok(_response.CreateSuccess(successData, $"Successfully received {docTypeLabel} submission."));
         }
     }
 }

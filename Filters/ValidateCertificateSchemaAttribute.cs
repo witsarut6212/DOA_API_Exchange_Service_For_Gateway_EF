@@ -50,8 +50,16 @@ namespace DOA_API_Exchange_Service_For_Gateway.Filters
             {
                 var json = JObject.Parse(body);
 
+                // Dynamic Schema Selection
+                string formType = json.SelectToken("DocumentControl.FormType")?.ToString()?.ToLower() ?? "";
+                string schemaFileName = "PhytoRequestSchema.json";
+
+                if (formType == "pq7" || formType == "pq8" || formType == "pq9")
+                {
+                    schemaFileName = "PqCertificateSchema.json";
+                }
+
                 var storageRoot = config["Configuration.StoragePath"] ?? "Storage";
-                var schemaFileName = "PhytoRequestSchema.json";
                 var schemaPath = Path.Combine(env.ContentRootPath, storageRoot, "Schemas", schemaFileName);
 
                 if (!File.Exists(schemaPath))

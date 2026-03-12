@@ -28,7 +28,7 @@
       "properties": {
         "ReferenceNumber": { "type": "string", "minLength": 1 },
         "DocumentFunctionCode": { "type": "string", "minLength": 1 },
-        "FormType": { "type": "string", "minLength": 1 },
+        "FormType": { "type": "string", "enum": ["pq7", "pq8", "pq9"] },
         "ReplacementForm": { "type": "string" },
         "SubmitForm": {
           "type": "object",
@@ -38,7 +38,7 @@
             "Date": { "type": "string", "minLength": 1 }
           }
         },
-        "CertificateStatus": { "type": "string", "minLength": 1 },
+        "CertificateStatus": { "type": "string", "enum": ["Draft", "draft"] },
         "RegistrationID": { "type": "string" },
         "Applicant": {
           "type": "object",
@@ -548,7 +548,8 @@
       }
     },
     "ShippingMarks": {
-      "type": ["array", "null"],
+      "type": "array",
+      "minItems": 1,
       "items": {
         "type": "object",
         "additionalProperties": false,
