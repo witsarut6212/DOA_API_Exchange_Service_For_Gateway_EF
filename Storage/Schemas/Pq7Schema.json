@@ -253,17 +253,14 @@
           "CommonName",
           "ScientificName",
           "ProductCode",
-          "TariffInfo",
-          "ThaiGoodsDescrition",
           "NetWeight",
           "Quantityinfo",
           "PhysicalPackage",
           "AmountInfo",
-          "Packaging",
           "ObjectiveCode",
-          "SendLab",
-          "AdditionalDescription",
+          "Remark",
           "ACFSCollaboration",
+          "AdditionalDescription",
           "OriginCountries"
         ],
         "properties": {
@@ -273,22 +270,21 @@
           "ScientificName": { "type": "string", "minLength": 1 },
           "ProductCode": { "type": "string", "minLength": 1 },
           "TariffInfo": {
-            "type": "object",
+            "type": ["object", "null"],
             "additionalProperties": false,
-            "required": ["Code", "Statistical"],
             "properties": {
-              "Code": { "type": "string", "minLength": 1 },
-              "Statistical": { "type": "string", "minLength": 1 }
+              "Code": { "type": ["string", "null"] },
+              "Statistical": { "type": ["string", "null"] }
             }
           },
-          "ThaiGoodsDescrition": { "type": "string", "minLength": 1 },
+          "ThaiGoodsDescrition": { "type": ["string", "null"] },
           "NetWeight": {
             "type": "object",
             "additionalProperties": false,
             "required": ["Weight", "UnitCode"],
             "properties": {
               "Weight": { "type": "number" },
-              "UnitCode": { "type": "string", "minLength": 1 }
+              "UnitCode": { "type": "string", "enum": ["KGM"], "description": "UNECE Recommendation 20: (ต้องระบุเป็นหน่วยกิโลกรัม KGM เท่านั้น)" }
             }
           },
           "Quantityinfo": {
@@ -297,7 +293,7 @@
             "required": ["Quantity", "TypeCode"],
             "properties": {
               "Quantity": { "type": "number" },
-              "TypeCode": { "type": "string", "minLength": 1 }
+              "TypeCode": { "type": "string", "minLength": 1, "description": "UNECE Recommendation 20: Quantity Unit Code" }
             }
           },
           "PhysicalPackage": {
@@ -305,9 +301,9 @@
             "additionalProperties": false,
             "required": ["LevelCode", "Quantity", "UnitCode"],
             "properties": {
-              "LevelCode": { "type": "integer" },
+              "LevelCode": { "type": "integer", "enum": [1, 2] },
               "Quantity": { "type": "number" },
-              "UnitCode": { "type": "string", "minLength": 1 }
+              "UnitCode": { "type": "string", "minLength": 1, "description": "UNECE Recommendation 21: Package Unit Code" }
             }
           },
           "AmountInfo": {
@@ -316,22 +312,23 @@
             "required": ["Value", "CurrencyCode"],
             "properties": {
               "Value": { "type": "number" },
-              "CurrencyCode": { "type": "string", "minLength": 1 }
+              "CurrencyCode": { "type": "string", "minLength": 1, "description": "UNECE Recommendation 9 : ISO 4217" }
             }
           },
-          "Remark": { "type": ["string", "null"] },
-          "Packaging": { "type": "integer" },
-          "ObjectiveCode": { "type": "integer" },
-          "SendLab": { "type": "integer" },
+          "Remark": { "type": "string", "minLength": 1 },
+          "Packaging": { "type": ["integer", "null"], "enum": [1, 2, 3, 4] },
+          "ObjectiveCode": { "type": "integer", "enum": [1, 2, 3, 4, 5, 6] },
+          "SendLab": { "type": ["integer", "null"], "enum": [0, 1] },
           "AdditionalDescription": {
             "type": "object",
             "additionalProperties": false,
+            "required": ["Product"],
             "properties": {
               "Lab": { "type": ["string", "null"] },
-              "Product": { "type": ["string", "null"] }
+              "Product": { "type": "string", "minLength": 1 }
             }
           },
-          "ACFSCollaboration": { "type": "integer" },
+          "ACFSCollaboration": { "type": "integer", "enum": [0, 1] },
           "OriginCountries": {
             "type": "array",
             "minItems": 1,
@@ -369,14 +366,7 @@
                         "Name": { "type": "string", "minLength": 1 }
                       }
                     },
-                    "ProviderAuthority": {
-                      "type": "object",
-                      "additionalProperties": false,
-                      "required": ["TaxNumber"],
-                      "properties": {
-                        "TaxNumber": { "type": "string", "minLength": 1 }
-                      }
-                    },
+                    "ProviderAuthority": { "type": "string", "minLength": 1 },
                     "Issued": {
                       "type": "object",
                       "additionalProperties": false,
@@ -396,14 +386,12 @@
                     "Attachment": {
                       "type": "object",
                       "additionalProperties": false,
-                      "required": ["Filename", "FileID", "FleUrl"],
+                      "required": ["Id", "Name"],
                       "properties": {
-                        "Filename": { "type": "string", "minLength": 1 },
-                        "FileID": { "type": "string", "minLength": 1 },
-                        "FleUrl": { "type": "string", "minLength": 1 }
+                        "Id": { "type": "string", "minLength": 1 },
+                        "Name": { "type": "string", "minLength": 1 }
                       }
-                    },
-                    "Remark": { "type": ["string", "null"] }
+                    }
                   }
                 }
               }
@@ -502,6 +490,17 @@
                   }
                 }
               }
+            }
+          }
+        },
+        "if": {
+          "properties": { "SendLab": { "const": 1 } }
+        },
+        "then": {
+          "required": ["AdditionalDescription"],
+          "properties": {
+            "AdditionalDescription": {
+              "required": ["Lab", "Product"]
             }
           }
         }
