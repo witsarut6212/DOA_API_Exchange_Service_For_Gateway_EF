@@ -113,7 +113,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
 
             if (isPq)
             {
-                payloadId = await _submissionService.SavePqCertificatePayloadAsync(
+                payloadId = await _submissionService.SaveEPhytoCertificatePayloadAsync(
                     rawRequest.ToString(Formatting.None),
                     source,
                     referenceNumber);

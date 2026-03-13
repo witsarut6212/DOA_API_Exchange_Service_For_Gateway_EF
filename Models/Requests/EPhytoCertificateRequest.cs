@@ -4,18 +4,18 @@ using Newtonsoft.Json;
 
 namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
 {
-    public class PqCertificateRequest
+    public class EPhytoCertificateRequest
     {
-        public PqDocumentControl DocumentControl { get; set; } = null!;
-        public List<PqDetail> Details { get; set; } = new();
+        public EPhytoDocumentControl DocumentControl { get; set; } = null!;
+        public List<EPhytoDetail> Details { get; set; } = new();
         public List<ThirdPartyFumigation>? ThirdPartyFumigations { get; set; }
         public List<TransitCountry>? TransitCountries { get; set; }
         public List<ContainerInfo>? Containers { get; set; }
-        public List<PqShippingMark>? ShippingMarks { get; set; }
-        public List<PqReferenceDocument>? ReferenceDocuments { get; set; }
+        public List<EPhytoShippingMark>? ShippingMarks { get; set; }
+        public List<EPhytoReferenceDocument>? ReferenceDocuments { get; set; }
     }
 
-    public class PqDocumentControl
+    public class EPhytoDocumentControl
     {
         public string ReferenceNumber { get; set; } = null!;
         public string DocumentFunctionCode { get; set; } = null!;
@@ -159,7 +159,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
         public DateTimeWrapper Due { get; set; } = null!;
     }
 
-    public class PqDetail
+    public class EPhytoDetail
     {
         public int ItemNumber { get; set; }
         public string TradeDescrition { get; set; } = null!;
@@ -227,7 +227,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
         public TaxNumberWrapper ProviderAuthority { get; set; } = null!;
         public DateWrapper Issued { get; set; } = null!;
         public DateWrapper Expire { get; set; } = null!;
-        public PqAttachmentInfo Attachment { get; set; } = null!;
+        public EPhytoAttachmentInfo Attachment { get; set; } = null!;
         public string? Remark { get; set; }
     }
 
@@ -242,7 +242,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
         public string TaxNumber { get; set; } = null!;
     }
 
-    public class PqAttachmentInfo
+    public class EPhytoAttachmentInfo
     {
         public string Filename { get; set; } = null!;
         public string FileID { get; set; } = null!;
@@ -303,7 +303,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
         public TypeCodeName DocumentType { get; set; } = null!;
         
         [JsonProperty(".Attachment")]
-        public PqAttachmentInfo? Attachment { get; set; }
+        public EPhytoAttachmentInfo? Attachment { get; set; }
     }
 
     public class ThirdPartyFumigation
@@ -337,12 +337,12 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
         public string SealNumber { get; set; } = null!;
     }
 
-    public class PqShippingMark
+    public class EPhytoShippingMark
     {
         public string Marking { get; set; } = null!;
     }
 
-    public class PqReferenceDocument
+    public class EPhytoReferenceDocument
     {
         public int ItemNumber { get; set; }
         public string DocumentNumber { get; set; } = null!;

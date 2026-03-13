@@ -176,7 +176,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             }
         }
 
-        public async Task<int> SavePqCertificatePayloadAsync(string rawDataObject, string source, string referenceNumber)
+        public async Task<int> SaveEPhytoCertificatePayloadAsync(string rawDataObject, string source, string referenceNumber)
         {
             _context.CurrentUser = source;
 
