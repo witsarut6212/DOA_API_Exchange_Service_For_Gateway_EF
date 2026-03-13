@@ -101,7 +101,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                     _context.TabMessageTxnOutbounds.Add(new TabMessageTxnOutbound
                     {
                         KeyId       = thphyto.Id,
-                        TxnType     = ApiConstants.TxnType.EPhytoSubmission,
+                        TxnType     = systemOrigin == "ASW" ? ApiConstants.TxnType.EPhytoASW : ApiConstants.TxnType.EPhytoIPPC,
                         Description = "",
                         Status      = ApiConstants.QueueStatus.Wait
                         // CreatedAt/By handled automatically by AppDbContext

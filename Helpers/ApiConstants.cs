@@ -28,10 +28,10 @@ namespace DOA_API_Exchange_Service_For_Gateway.Helpers
 
         public static class TxnType
         {
-            public const string EPhytoSubmission = "EPC-0101";
+            public const string EPhytoASW = "EPC-0101";
+            public const string EPhytoIPPC = "EPC-0102";
             public const string EPhytoProgress = "EPC-0201";
-            public const string EPhytoCertificate = "EPC-0301";
-            public const string PqCertificate = "EPC-0202";
+            public const string EPhytoCertificate = "EPC-0202";
         }
     }
 }

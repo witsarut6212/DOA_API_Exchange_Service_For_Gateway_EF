@@ -197,7 +197,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 var outbound = new TabMessageTxnOutbound
                 {
                     KeyId = payload.Id,
-                    TxnType = ApiConstants.TxnType.PqCertificate,
+                    TxnType = ApiConstants.TxnType.EPhytoCertificate,
                     Description = $"Process PQ Certificate Ref: {referenceNumber}",
                     Status = ApiConstants.QueueStatus.Wait
                 };
