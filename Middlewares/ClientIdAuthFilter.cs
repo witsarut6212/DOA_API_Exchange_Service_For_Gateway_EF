@@ -37,7 +37,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Middlewares
             var clientId = clientIdValues.ToString();
 
             // 2. ตรวจสอบข้อมูลแอปผ่าน Cache
-            var application = await ApplicationExternal.GetCachedAsync(_dbContext, _cache, clientId);
+            var application = await MasApplicationExternal.GetCachedAsync(_dbContext, _cache, clientId);
 
             if (application == null)
             {

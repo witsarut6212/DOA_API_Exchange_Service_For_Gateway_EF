@@ -22,8 +22,8 @@ public class ApplicationRegistrationService : IApplicationRegistrationService
     public async Task<(bool Success, string Message, object? Data)> RegisterApplicationAsync(ApplicationRegisterRequest request)
     {
         // 1. Check for Duplicate AppName or AppNickName
-        var existingAppName = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.AnyAsync(_context.ApplicationExternals, a => a.AppName == request.AppName);
-        var existingAppNickName = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.AnyAsync(_context.ApplicationExternals, a => a.AppNickName == request.AppNickName);
+        var existingAppName = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.AnyAsync(_context.MasApplicationExternals, a => a.AppName == request.AppName);
+        var existingAppNickName = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.AnyAsync(_context.MasApplicationExternals, a => a.AppNickName == request.AppNickName);
 
         if (existingAppName || existingAppNickName)
         {
@@ -35,10 +35,10 @@ public class ApplicationRegistrationService : IApplicationRegistrationService
         }
 
         // 2. Create the new Application External Record
-        var newApplication = new DOA_API_Exchange_Service_For_Gateway.Models.Entities.ApplicationExternal
+        var newApplication = new DOA_API_Exchange_Service_For_Gateway.Models.Entities.MasApplicationExternal
         {
             AppRoleId = 0,
-            CliendId = Guid.NewGuid().ToString(),
+            ClientId = Guid.NewGuid().ToString(),
             CallbackUrl = request.CallbackUrl,
             HostUrl = request.HostUrl,
             AppName = request.AppName,
@@ -52,7 +52,7 @@ public class ApplicationRegistrationService : IApplicationRegistrationService
         // 3. Save to Database
         try
         {
-            await _context.ApplicationExternals.AddAsync(newApplication);
+            await _context.MasApplicationExternals.AddAsync(newApplication);
             await _context.SaveChangesAsync();
         }
         catch (Exception ex)
@@ -67,7 +67,7 @@ public class ApplicationRegistrationService : IApplicationRegistrationService
         {
             AppName = newApplication.AppName,
             AppNickName = newApplication.AppNickName,
-            ClientId = newApplication.CliendId
+            ClientId = newApplication.ClientId
         };
 
         return (true, "Application registered successfully.", responseData);

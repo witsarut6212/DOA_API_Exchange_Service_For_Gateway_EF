@@ -4,12 +4,12 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services;
 
 public interface IVerifyStatusService
 {
-    (int StatusCode, string Message) ValidateStatus(ApplicationExternal app);
+    (int StatusCode, string Message) ValidateStatus(MasApplicationExternal app);
 }
 
 public class VerifyStatusService : IVerifyStatusService
 {
-    public (int StatusCode, string Message) ValidateStatus(ApplicationExternal app)
+    public (int StatusCode, string Message) ValidateStatus(MasApplicationExternal app)
     {
         // Check IsActive
         if (app.IsActive != "Y")

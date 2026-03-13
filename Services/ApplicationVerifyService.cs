@@ -29,8 +29,8 @@ public class ApplicationVerifyService : IApplicationVerifyService
     public async Task<(int StatusCode, string Message, object? Data)> VerifyApplicationAsync(ApplicationVerifyRequest request)
     {
         // 1. Check in database
-        var app = await _context.ApplicationExternals
-            .FirstOrDefaultAsync(a => a.CliendId == request.CliendId);
+        var app = await _context.MasApplicationExternals
+            .FirstOrDefaultAsync(a => a.ClientId == request.ClientId);
 
         if (app == null)
         {
@@ -52,11 +52,11 @@ public class ApplicationVerifyService : IApplicationVerifyService
             try
             {
                 app.IsVerified = "Y";
-                app.VerfiedAt = DateTime.Now;
+                app.VerifiedAt = DateTime.Now;
                 app.UpdatedAt = DateTime.Now;
                 app.UpdatedBy = "SYSTEM_VERIFY";
 
-                _context.ApplicationExternals.Update(app);
+                _context.MasApplicationExternals.Update(app);
                 await _context.SaveChangesAsync();
                 
                 await transaction.CommitAsync();
@@ -66,7 +66,7 @@ public class ApplicationVerifyService : IApplicationVerifyService
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                _logger.LogError(ex, "VerifyApplicationAsync: Failed to verify application for CliendId {CliendId}", request.CliendId);
+                _logger.LogError(ex, "VerifyApplicationAsync: Failed to verify application for ClientId {ClientId}", request.ClientId);
                 var innerError = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
                 return (500, $"Internal Error: {innerError}", null);
             }

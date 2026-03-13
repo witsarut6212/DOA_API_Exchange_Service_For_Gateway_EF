@@ -85,7 +85,7 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<TabMessageResponsePayload> TabMessageResponsePayloads { get; set; }
 
-    public virtual DbSet<ApplicationExternal> ApplicationExternals { get; set; }
+    public virtual DbSet<MasApplicationExternal> MasApplicationExternals { get; set; }
 
     public virtual DbSet<TabMessageResponseSubmission> TabMessageResponseSubmissions { get; set; }
 
@@ -1017,11 +1017,11 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("updated_by");
         });
 
-        modelBuilder.Entity<ApplicationExternal>(entity =>
+        modelBuilder.Entity<MasApplicationExternal>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.ToTable("application_externals");
+            entity.ToTable("mas_application_externals");
 
             entity.Property(e => e.Id).HasColumnName("Id");
             entity.Property(e => e.AppRoleId).HasColumnName("AppRoleId");
@@ -1029,11 +1029,11 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.AppNickName).HasMaxLength(20).HasColumnName("AppNickName");
             entity.Property(e => e.HostUrl).HasMaxLength(200).HasColumnName("HostUrl");
             entity.Property(e => e.CallbackUrl).HasMaxLength(100).HasColumnName("CallbackUrl");
-            entity.Property(e => e.CliendId).HasMaxLength(50).HasColumnName("CliendId");
+            entity.Property(e => e.ClientId).HasMaxLength(50).HasColumnName("CliendId");
             entity.Property(e => e.SecretKey).HasMaxLength(200).HasColumnName("SecretKey");
             entity.Property(e => e.IsActive).HasMaxLength(1).HasColumnName("IsActive");
             entity.Property(e => e.IsVerified).HasMaxLength(1).HasColumnName("IsVerified");
-            entity.Property(e => e.VerfiedAt).HasColumnType("datetime").HasColumnName("VerfiedAt");
+            entity.Property(e => e.VerifiedAt).HasColumnType("datetime").HasColumnName("VerfiedAt");
             entity.Property(e => e.SystemTime).HasColumnType("datetime").HasColumnName("SystemTime");
             
             entity.Property(e => e.CreatedAt).HasColumnType("datetime").HasColumnName("created_at");

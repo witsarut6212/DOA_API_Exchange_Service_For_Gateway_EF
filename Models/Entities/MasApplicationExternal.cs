@@ -7,7 +7,7 @@ using DOA_API_Exchange_Service_For_Gateway.Data;
 
 namespace DOA_API_Exchange_Service_For_Gateway.Models.Entities;
 
-public partial class ApplicationExternal
+public partial class MasApplicationExternal
 {
     public int Id { get; set; }
 
@@ -21,7 +21,7 @@ public partial class ApplicationExternal
 
     public string? CallbackUrl { get; set; }
 
-    public string CliendId { get; set; } = null!; // System generate UUID v4
+    public string ClientId { get; set; } = null!; // System generate UUID v4
 
     public string? SecretKey { get; set; }
 
@@ -29,11 +29,11 @@ public partial class ApplicationExternal
 
     public string IsVerified { get; set; } = "N";
 
-    public DateTime? VerfiedAt { get; set; }
+    public DateTime? VerifiedAt { get; set; }
 
-    public DateTime SystemTime { get; set; } // Not Null ตามรูป
+    public DateTime SystemTime { get; set; }
 
-    public DateTime? CreatedAt { get; set; } // ในรูป allow null (created_at)
+    public DateTime? CreatedAt { get; set; }
 
     public string? CreatedBy { get; set; }
 
@@ -44,16 +44,16 @@ public partial class ApplicationExternal
     // --- Cache Management ---
     private const string AppCachePrefix = "App_";
 
-    public static async Task<ApplicationExternal?> GetCachedAsync(AppDbContext dbContext, IMemoryCache cache, string clientId)
+    public static async Task<MasApplicationExternal?> GetCachedAsync(AppDbContext dbContext, IMemoryCache cache, string clientId)
     {
         var cacheKey = $"{AppCachePrefix}{clientId}";
 
-        if (!cache.TryGetValue(cacheKey, out ApplicationExternal? application))
+        if (!cache.TryGetValue(cacheKey, out MasApplicationExternal? application))
         {
             // Cache Miss: Query from Database
-            application = await dbContext.ApplicationExternals
+            application = await dbContext.MasApplicationExternals
                 .AsNoTracking()
-                .FirstOrDefaultAsync(a => a.CliendId == clientId);
+                .FirstOrDefaultAsync(a => a.ClientId == clientId);
 
             if (application != null)
             {

@@ -130,7 +130,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             }
 
             // 3. Find application by client_id (Calling static method from Entity class)
-            var application = await ApplicationExternal.GetCachedAsync(_dbContext, _cache, clientId);
+            var application = await MasApplicationExternal.GetCachedAsync(_dbContext, _cache, clientId);
 
             if (application == null)
             {
