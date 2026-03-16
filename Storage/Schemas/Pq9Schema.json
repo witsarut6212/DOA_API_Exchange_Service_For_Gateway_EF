@@ -580,34 +580,31 @@
                 "SubjectCode": { "type": "string", "minLength": 1, "maxLength": 5 },
                 "Description": { "type": "string", "minLength": 1, "maxLength": 512 },
                 "AdditionalReferenceDocuments": {
-                  "type": ["array", "null"],
-                  "items": {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "required": ["DocumentType", "Attachment"],
-                    "properties": {
-                      "DocumentType": {
-                        "type": "object",
-                        "additionalProperties": false,
-                        "required": ["Code", "Name"],
-                        "properties": {
-                          "Code": { "type": ["string", "null"], "maxLength": 3, "description": "EDIFACT codes (1001). 'ZZZ' = ผู้ใช้งานระบุชี่อเอกสารเอง" },
-                          "Name": { "type": "string", "minLength": 1, "maxLength": 70 }
-                        }
-                      },
-                      "Attachment": {
-                        "type": "object",
-                        "additionalProperties": false,
-                        "required": ["Filename", "FileID", "FileUrl"],
-                        "properties": {
-                          "Filename": { "type": "string", "minLength": 1, "maxLength": 100 },
-                          "FileID": { 
-                            "type": "string", 
-                            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
-                            "description": "UUID format (e.g. f47ac10b-58cc-4372-a567-0e02b2c3d479)"
-                          },
-                          "FileUrl": { "type": "string", "minLength": 1, "maxLength": 256 }
-                        }
+                  "type": ["object", "null"],
+                  "additionalProperties": false,
+                  "required": ["DocumentType", "Attachment"],
+                  "properties": {
+                    "DocumentType": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": ["Code", "Name"],
+                      "properties": {
+                        "Code": { "type": ["string", "null"], "maxLength": 3, "description": "EDIFACT codes (1001). 'ZZZ' = ผู้ใช้งานระบุชี่อเอกสารเอง" },
+                        "Name": { "type": "string", "minLength": 1, "maxLength": 70 }
+                      }
+                    },
+                    "Attachment": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": ["Filename", "FileId", "FileUrl"],
+                      "properties": {
+                        "Filename": { "type": "string", "minLength": 1, "maxLength": 100 },
+                        "FileId": { 
+                          "type": "string", 
+                          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+                          "description": "UUID format (e.g. f47ac10b-58cc-4372-a567-0e02b2c3d479)"
+                        },
+                        "FileUrl": { "type": "string", "minLength": 1, "maxLength": 256 }
                       }
                     }
                   }
