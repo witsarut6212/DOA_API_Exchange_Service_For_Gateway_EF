@@ -111,30 +111,13 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
 
             var source = User.FindFirstValue("AppNickName") ?? string.Empty;
 
-            // Determine if it's a PQ Certificate or ePhyto Certificate based on FormType
-            var formType = docControl.FormType?.ToLower();
-            bool isPq = formType == "pq7" || formType == "pq8" || formType == "pq9";
+            // Step 1: Save Payload and Enqueue for background processing
+            var payloadId = await _submissionService.SaveCertificatePayloadAsync(
+                rawRequest.ToString(Formatting.None),
+                source,
+                request);
             
-            int payloadId;
-            string docTypeLabel;
-
-            // Step 1: Save Payload and Outbound Txn
-            if (isPq)
-            {
-                payloadId = await _submissionService.SaveEPhytoCertificatePayloadAsync(
-                    rawRequest.ToString(Formatting.None),
-                    source,
-                    referenceNumber);
-                docTypeLabel = "PQ certificate";
-            }
-            else
-            {
-                payloadId = await _submissionService.SaveCertificatePayloadAsync(
-                    rawRequest.ToString(Formatting.None),
-                    source,
-                    referenceNumber);
-                docTypeLabel = "ePhyto certificate";
-            }
+            string docTypeLabel = docControl.FormType?.ToUpper() ?? "Certificate";
 
             if (payloadId == 0)
             {

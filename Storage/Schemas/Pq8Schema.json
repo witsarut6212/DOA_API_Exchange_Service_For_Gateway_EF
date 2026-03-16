@@ -50,272 +50,249 @@
         "CertificateStatus": { "type": "string", "enum": ["Draft", "draft"], "maxLength": 10 },
         "RegistrationID": { "type": "string", "minLength": 1, "maxLength": 35 },
         "Applicant": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": ["Id", "IdType", "Name"],
-            "properties": {
-              "Id": { "type": "string", "minLength": 1, "maxLength": 17 },
-              "IdType": { "type": "string", "enum": ["0", "1", "3"], "maxLength": 1 },
-              "Name": { "type": "string", "minLength": 1, "maxLength": 120 },
-              "StreetAndNumber": { "type": ["string", "null"], "maxLength": 256 },
-              "District": { "type": ["string", "null"], "maxLength": 35 },
-              "SubProvice": { "type": ["string", "null"], "maxLength": 35 },
-              "City": { "type": ["string", "null"], "maxLength": 35 },
-              "Postcode": { "type": ["string", "null"], "maxLength": 9 },
-              "PhoneNumber": { "type": ["string", "null"], "maxLength": 35 },
-              "FaxNumber": { "type": ["string", "null"], "maxLength": 35 },
-              "Email": { "type": ["string", "null"], "maxLength": 35 },
-              "AttorneyIDCard": { "type": ["string", "null"], "maxLength": 17 },
-              "AttorneyName": { "type": ["string", "null"], "maxLength": 120 }
-            }
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["Id", "IdType", "Name"],
+          "properties": {
+            "Id": { "type": "string", "minLength": 1, "maxLength": 17 },
+            "IdType": { "type": "string", "enum": ["0", "1", "3"], "maxLength": 1 },
+            "Name": { "type": "string", "minLength": 1, "maxLength": 120 },
+            "StreetAndNumber": { "type": ["string", "null"], "maxLength": 256 },
+            "District": { "type": ["string", "null"], "maxLength": 35 },
+            "SubProvice": { "type": ["string", "null"], "maxLength": 35 },
+            "City": { "type": ["string", "null"], "maxLength": 35 },
+            "Postcode": { "type": ["string", "null"], "maxLength": 9 },
+            "PhoneNumber": { "type": ["string", "null"], "maxLength": 35 },
+            "FaxNumber": { "type": ["string", "null"], "maxLength": 35 },
+            "Email": { "type": ["string", "null"], "maxLength": 35 },
+            "AttorneyIDCard": { "type": ["string", "null"], "maxLength": 17 },
+            "AttorneyName": { "type": ["string", "null"], "maxLength": 120 }
           }
         },
         "ConsignorExporter": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": ["TaxNumber", "CompanyName", "CountryCode"],
-            "properties": {
-              "TaxNumber": { "type": "string", "minLength": 1, "maxLength": 17 },
-              "CompanyName": { "type": "string", "minLength": 1, "maxLength": 120 },
-              "AttorneyIDCard": { "type": ["string", "null"], "maxLength": 17 },
-              "StreetAndNumber": { "type": ["string", "null"], "maxLength": 256 },
-              "SubDistrict": { "type": ["string", "null"], "maxLength": 35 },
-              "District": { "type": ["string", "null"], "maxLength": 35 },
-              "City": { "type": ["string", "null"], "maxLength": 35 },
-              "Postcode": { "type": ["string", "null"], "maxLength": 9 },
-              "CountryCode": { "type": "string", "minLength": 2, "maxLength": 2, "pattern": "^[a-zA-Z]{2}$" },
-              "PhoneNumber": { "type": ["string", "null"], "maxLength": 35 },
-              "FaxNumber": { "type": ["string", "null"], "maxLength": 35 },
-              "Email": { "type": ["string", "null"], "maxLength": 35 }
-            }
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["TaxNumber", "CompanyName", "CountryCode"],
+          "properties": {
+            "TaxNumber": { "type": "string", "minLength": 1, "maxLength": 17 },
+            "CompanyName": { "type": "string", "minLength": 1, "maxLength": 120 },
+            "AttorneyIDCard": { "type": ["string", "null"], "maxLength": 17 },
+            "StreetAndNumber": { "type": ["string", "null"], "maxLength": 256 },
+            "SubDistrict": { "type": ["string", "null"], "maxLength": 35 },
+            "District": { "type": ["string", "null"], "maxLength": 35 },
+            "City": { "type": ["string", "null"], "maxLength": 35 },
+            "Postcode": { "type": ["string", "null"], "maxLength": 9 },
+            "CountryCode": { "type": "string", "minLength": 2, "maxLength": 2, "pattern": "^[a-zA-Z]{2}$" },
+            "PhoneNumber": { "type": ["string", "null"], "maxLength": 35 },
+            "FaxNumber": { "type": ["string", "null"], "maxLength": 35 },
+            "Email": { "type": ["string", "null"], "maxLength": 35 }
           }
         },
         "OnBeHalfCareOf": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": ["Code", "CompanyName"],
-            "properties": {
-              "Code": { "type": ["string", "null"], "enum": ["1", "2", null], "maxLength": 1 },
-              "CompanyName": { "type": "string", "minLength": 1, "maxLength": 120 },
-              "AddrressLine1": { "type": ["string", "null"], "maxLength": 70 },
-              "AddrressLine2": { "type": ["string", "null"], "maxLength": 70 },
-              "City": { "type": ["string", "null"], "maxLength": 35 },
-              "StateProvince": { "type": ["string", "null"], "maxLength": 35 },
-              "Postcode": { "type": ["string", "null"], "maxLength": 9 },
-              "CountryCode": { "type": ["string", "null"], "pattern": "^[a-zA-Z]{2}$", "minLength": 2, "maxLength": 2 },
-              "PhoneNumber": { "type": ["string", "null"], "maxLength": 35 },
-              "FaxNumber": { "type": ["string", "null"], "maxLength": 35 },
-              "Email": { "type": ["string", "null"], "maxLength": 35 }
-            }
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["Code", "CompanyName"],
+          "properties": {
+            "Code": { "type": ["string", "null"], "enum": ["1", "2", null], "maxLength": 1 },
+            "CompanyName": { "type": "string", "minLength": 1, "maxLength": 120 },
+            "AddrressLine1": { "type": ["string", "null"], "maxLength": 70 },
+            "AddrressLine2": { "type": ["string", "null"], "maxLength": 70 },
+            "City": { "type": ["string", "null"], "maxLength": 35 },
+            "StateProvince": { "type": ["string", "null"], "maxLength": 35 },
+            "Postcode": { "type": ["string", "null"], "maxLength": 9 },
+            "CountryCode": { "type": ["string", "null"], "pattern": "^[a-zA-Z]{2}$", "minLength": 2, "maxLength": 2 },
+            "PhoneNumber": { "type": ["string", "null"], "maxLength": 35 },
+            "FaxNumber": { "type": ["string", "null"], "maxLength": 35 },
+            "Email": { "type": ["string", "null"], "maxLength": 35 }
           }
         },
         "ConsigneeImporter": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": ["TaxNumber", "CompanyName", "CountryCode"],
-            "properties": {
-              "TaxNumber": { "type": "string", "minLength": 1, "maxLength": 17 },
-              "CompanyName": { "type": "string", "minLength": 1, "maxLength": 120 },
-              "AddrressLine1": { "type": ["string", "null"], "maxLength": 70 },
-              "AddrressLine2": { "type": ["string", "null"], "maxLength": 70 },
-              "City": { "type": ["string", "null"], "maxLength": 35 },
-              "StateProvince": { "type": ["string", "null"], "maxLength": 35 },
-              "Postcode": { "type": ["string", "null"], "maxLength": 9 },
-              "CountryCode": { "type": "string", "pattern": "^[a-zA-Z]{2}$", "minLength": 2, "maxLength": 2 },
-              "PhoneNumber": { "type": ["string", "null"], "maxLength": 35 },
-              "FaxNumber": { "type": ["string", "null"], "maxLength": 35 },
-              "Email": { "type": ["string", "null"], "maxLength": 35 }
-            }
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["TaxNumber", "CompanyName", "CountryCode"],
+          "properties": {
+            "TaxNumber": { "type": "string", "minLength": 1, "maxLength": 17 },
+            "CompanyName": { "type": "string", "minLength": 1, "maxLength": 120 },
+            "AddrressLine1": { "type": ["string", "null"], "maxLength": 70 },
+            "AddrressLine2": { "type": ["string", "null"], "maxLength": 70 },
+            "City": { "type": ["string", "null"], "maxLength": 35 },
+            "StateProvince": { "type": ["string", "null"], "maxLength": 35 },
+            "Postcode": { "type": ["string", "null"], "maxLength": 9 },
+            "CountryCode": { "type": "string", "pattern": "^[a-zA-Z]{2}$", "minLength": 2, "maxLength": 2 },
+            "PhoneNumber": { "type": ["string", "null"], "maxLength": 35 },
+            "FaxNumber": { "type": ["string", "null"], "maxLength": 35 },
+            "Email": { "type": ["string", "null"], "maxLength": 35 }
           }
         },
         "ShipmentInfo": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": [
-              "Transportation",
-              "DestinationCountry",
-              "DischargePort",
-              "LoadingPort",
-              "DepartureOnBoard",
-              "TotalAmount",
-              "TotalPackage",
-              "GrossWeight",
-              "NetWeight",
-              "PlaceOriginCountry",
-              "TransitCountries"
-            ],
-            "properties": {
-              "Transportation": {
-                "type": "array",
-                "minItems": 1,
-                "items": {
-                  "type": "object",
-                  "additionalProperties": false,
-                  "required": ["ModeCode", "VesselName"],
-                  "properties": {
-                    "ModeCode": { "type": "string", "maxLength": 1, "enum": ["1", "2", "3", "4", "5", "6", "7", "8", "9"], "description": "UNECE Recommendation 19: Mode of Transport" },
-                    "VesselName": { "type": "string", "minLength": 1, "maxLength": 35 },
-                    "BillNumber": { "type": ["string", "null"], "maxLength": 35 }
-                  }
-                }
-              },
-              "DestinationCountry": { "type": "string", "pattern": "^[a-zA-Z]{2}$", "minLength": 2, "maxLength": 2, "description": "UNECE Recommendation 3 : ISO 3166" },
-              "DischargePort": {
-                "type": "array",
-                "minItems": 1,
-                "items": {
-                  "type": "object",
-                  "additionalProperties": false,
-                  "required": ["Code", "Name"],
-                  "properties": {
-                    "Code": { "type": "string", "pattern": "^[a-zA-Z0-9]{1,5}$", "maxLength": 5, "description": "UN/CEFACT Recommendation 16 (UN/LOCODE)" },
-                    "Name": { "type": "string", "minLength": 1, "maxLength": 35 }
-                  }
-                }
-              },
-              "LoadingPort": {
-                "type": "array",
-                "minItems": 1,
-                "items": {
-                  "type": "object",
-                  "additionalProperties": false,
-                  "required": ["Code", "Name"],
-                  "properties": {
-                    "Code": { "type": "string", "pattern": "^[a-zA-Z0-9]{1,5}$", "maxLength": 5, "description": "UN/CEFACT Recommendation 16 (UN/LOCODE)" },
-                    "Name": { "type": "string", "minLength": 1, "maxLength": 35 }
-                  }
-                }
-              },
-              "DepartureOnBoard": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "Transportation",
+            "DestinationCountry",
+            "DischargePort",
+            "LoadingPort",
+            "DepartureOnBoard",
+            "TotalAmount",
+            "TotalPackage",
+            "GrossWeight",
+            "NetWeight",
+            "PlaceOriginCountry",
+            "TransitCountries"
+          ],
+          "properties": {
+            "Transportation": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
                 "type": "object",
                 "additionalProperties": false,
-                "required": ["Date"],
+                "required": ["ModeCode", "VesselName"],
                 "properties": {
-                  "Date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$", "description": "Departure Date / On Board (ISO 8601/W3C) (YYYY-MM-DD)" }
+                  "ModeCode": { "type": "string", "maxLength": 1, "enum": ["1", "2", "3", "4", "5", "6", "7", "8", "9"], "description": "UNECE Recommendation 19: Mode of Transport" },
+                  "VesselName": { "type": "string", "minLength": 1, "maxLength": 35 },
+                  "BillNumber": { "type": ["string", "null"], "maxLength": 35 }
                 }
-              },
-              "TotalAmount": {
-                "type": "array",
-                "minItems": 1,
-                "items": {
-                  "type": "object",
-                  "additionalProperties": false,
-                  "required": ["Amount", "CurrencyCode"],
-                  "properties": {
-                    "Amount": { "type": "number", "description": "n..16,2" },
-                    "CurrencyCode": { "type": "string", "enum": ["THB"], "minLength": 3, "maxLength": 3, "description": "UNECE Recommendation 9 : ISO 4217 (กรมวิชาการเกษตรใช้มูลค่าเงินเป็นบาท)" }
-                  }
+              }
+            },
+            "DestinationCountry": { "type": "string", "pattern": "^[a-zA-Z]{2}$", "minLength": 2, "maxLength": 2, "description": "UNECE Recommendation 3 : ISO 3166" },
+            "DischargePort": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["Code", "Name"],
+                "properties": {
+                  "Code": { "type": "string", "pattern": "^[a-zA-Z0-9]{1,5}$", "maxLength": 5, "description": "UN/CEFACT Recommendation 16 (UN/LOCODE)" },
+                  "Name": { "type": "string", "minLength": 1, "maxLength": 35 }
                 }
-              },
-              "TotalPackage": {
-                "type": "array",
-                "minItems": 1,
-                "items": {
-                  "type": "object",
-                  "additionalProperties": false,
-                  "required": ["Quantity", "TypeCode"],
-                  "properties": {
-                    "Quantity": { "type": "integer", "maximum": 9999999999, "description": "n..10" },
-                    "TypeCode": { "type": "string", "minLength": 2, "maxLength": 2, "description": "UNECE Recommendation 21: Package Unit Code" }
-                  }
+              }
+            },
+            "LoadingPort": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["Code", "Name"],
+                "properties": {
+                  "Code": { "type": "string", "pattern": "^[a-zA-Z0-9]{1,5}$", "maxLength": 5, "description": "UN/CEFACT Recommendation 16 (UN/LOCODE)" },
+                  "Name": { "type": "string", "minLength": 1, "maxLength": 35 }
                 }
-              },
-              "GrossWeight": {
-                "type": "array",
-                "minItems": 1,
-                "items": {
-                  "type": "object",
-                  "additionalProperties": false,
-                  "required": ["Weight", "UnitCode"],
-                  "properties": {
-                    "Weight": { "type": "number", "description": "n..20,6" },
-                    "UnitCode": { "type": "string", "enum": ["KGM"], "minLength": 1, "maxLength": 3, "description": "UNECE Recommendation 20: (ต้องระบุเป็นหน่วยกิโลกรัม KGM เท่านั้น)" }
-                  }
+              }
+            },
+            "DepartureOnBoard": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["Date"],
+              "properties": {
+                "Date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$", "description": "Departure Date / On Board (ISO 8601/W3C) (YYYY-MM-DD)" }
+              }
+            },
+            "TotalAmount": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["Amount", "CurrencyCode"],
+                "properties": {
+                  "Amount": { "type": "number", "description": "n..16,2" },
+                  "CurrencyCode": { "type": "string", "enum": ["THB"], "minLength": 3, "maxLength": 3, "description": "UNECE Recommendation 9 : ISO 4217 (กรมวิชาการเกษตรใช้มูลค่าเงินเป็นบาท)" }
                 }
-              },
-              "NetWeight": {
-                "type": "array",
-                "minItems": 1,
-                "items": {
-                  "type": "object",
-                  "additionalProperties": false,
-                  "required": ["Weight", "UnitCode"],
-                  "properties": {
-                    "Weight": { "type": "number", "description": "n..20,6" },
-                    "UnitCode": { "type": "string", "enum": ["KGM"], "minLength": 1, "maxLength": 3, "description": "UNECE Recommendation 20: (ต้องระบุเป็นหน่วยกิโลกรัม KGM เท่านั้น)" }
-                  }
+              }
+            },
+            "TotalPackage": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["Quantity", "TypeCode"],
+                "properties": {
+                  "Quantity": { "type": "integer", "maximum": 9999999999, "description": "n..10" },
+                  "TypeCode": { "type": "string", "minLength": 2, "maxLength": 2, "description": "UNECE Recommendation 21: Package Unit Code" }
                 }
-              },
-              "PlaceOriginCountry": { "type": "string", "pattern": "^[a-zA-Z]{2}$", "minLength": 2, "maxLength": 2, "description": "UNECE Recommendation 3 : ISO 3166" },
-              "TransitCountries": {
-                "type": ["array", "null"],
-                "items": {
-                  "type": "object",
-                  "additionalProperties": false,
-                  "required": ["CountryCode"],
-                  "properties": {
-                    "CountryCode": { 
-                      "type": "string", 
-                      "pattern": "^[a-zA-Z]{2}$", 
-                      "minLength": 2, 
-                      "maxLength": 2, 
-                      "description": "UNECE Recommendation 3 : ISO 3166 (a2)" 
-                    },
-                    "City": { "type": ["string", "null"], "maxLength": 35 },
-                    "PortCode": { 
-                      "type": ["string", "null"], 
-                      "maxLength": 5, 
-                      "description": "UN/LOCODE - Code for Trade and Transport Locations (an5)" 
-                    },
-                    "Remark": { "type": ["string", "null"], "maxLength": 256 }
-                  }
+              }
+            },
+            "GrossWeight": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["Weight", "UnitCode"],
+                "properties": {
+                  "Weight": { "type": "number", "description": "n..20,6" },
+                  "UnitCode": { "type": "string", "enum": ["KGM"], "minLength": 1, "maxLength": 3, "description": "UNECE Recommendation 20: (ต้องระบุเป็นหน่วยกิโลกรัม KGM เท่านั้น)" }
+                }
+              }
+            },
+            "TotalNetWeight": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["Weight", "UnitCode"],
+                "properties": {
+                  "Weight": { "type": "number", "description": "n..20,6" },
+                  "UnitCode": { "type": "string", "enum": ["KGM"], "minLength": 1, "maxLength": 3, "description": "UNECE Recommendation 20: (ต้องระบุเป็นหน่วยกิโลกรัม KGM เท่านั้น)" }
+                }
+              }
+            },
+            "PlaceOriginCountry": { "type": "string", "pattern": "^[a-zA-Z]{2}$", "minLength": 2, "maxLength": 2, "description": "UNECE Recommendation 3 : ISO 3166" },
+            "TransitCountries": {
+              "type": ["array", "null"],
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["CountryCode"],
+                "properties": {
+                  "CountryCode": { 
+                    "type": "string", 
+                    "pattern": "^[a-zA-Z]{2}$", 
+                    "minLength": 2, 
+                    "maxLength": 2, 
+                    "description": "UNECE Recommendation 3 : ISO 3166 (a2)" 
+                  },
+                  "City": { "type": ["string", "null"], "maxLength": 35 },
+                  "PortCode": { 
+                    "type": ["string", "null"], 
+                    "maxLength": 5, 
+                    "description": "UN/LOCODE - Code for Trade and Transport Locations (an5)" 
+                  },
+                  "Remark": { "type": ["string", "null"], "maxLength": 256 }
                 }
               }
             }
           }
         },
         "InspectionInfo": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": ["IssueLocationCode", "OperateType", "Due"],
-            "properties": {
-              "IssueLocationCode": { "type": "string", "minLength": 2, "maxLength": 2, "description": "a2" },
-              "OperateType": { "type": "string", "enum": ["0", "1"], "maxLength": 1, "description": "n1" },
-              "PlaceCode": { "type": ["string", "null"], "minLength": 2, "maxLength": 2, "description": "a2" },
-              "Due": {
-                "type": "object",
-                "additionalProperties": false,
-                "required": ["DateTimeString"],
-                "properties": {
-                  "DateTimeString": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*$", "description": "datetime" }
-                }
-              }
-            },
-            "if": {
-              "properties": { "OperateType": { "const": "1" } }
-            },
-            "then": {
-              "required": ["PlaceCode"],
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["IssueLocationCode", "OperateType", "Due"],
+          "properties": {
+            "IssueLocationCode": { "type": "string", "minLength": 2, "maxLength": 2, "description": "a2" },
+            "OperateType": { "type": "string", "enum": ["0", "1"], "maxLength": 1, "description": "n1" },
+            "PlaceCode": { "type": ["string", "null"], "minLength": 2, "maxLength": 2, "description": "a2" },
+            "Due": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["DateTimeString"],
               "properties": {
-                "PlaceCode": { "type": "string", "minLength": 2, "maxLength": 2 }
+                "DateTimeString": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*$", "description": "datetime" }
               }
+            }
+          },
+          "if": {
+            "properties": { "OperateType": { "const": "1" } }
+          },
+          "then": {
+            "required": ["PlaceCode"],
+            "properties": {
+              "PlaceCode": { "type": "string", "minLength": 2, "maxLength": 2 }
             }
           }
         }

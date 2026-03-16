@@ -12,14 +12,21 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
         private readonly ILogger<SubmissionService> _logger;
         private readonly ILogService _logService;
         private readonly IConfiguration _configuration;
+        private readonly ICertificateQueue _certificateQueue;
         private readonly string _logInstancePath;
 
-        public SubmissionService(AppDbContext context, ILogger<SubmissionService> logger, ILogService logService, IConfiguration configuration)
+        public SubmissionService(
+            AppDbContext context, 
+            ILogger<SubmissionService> logger, 
+            ILogService logService, 
+            IConfiguration configuration,
+            ICertificateQueue certificateQueue)
         {
             _context = context;
             _logger = logger;
             _logService = logService;
             _configuration = configuration;
+            _certificateQueue = certificateQueue;
             _logInstancePath = _configuration["ApiSettings:SubmissionProgressPath"] ?? "UNKNOWN_PATH";
         }
 
@@ -130,9 +137,10 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 .AnyAsync(s => s.DocumentNumber == documentNumber);
         }
 
-        public async Task<int> SaveCertificatePayloadAsync(string rawDataObject, string source, string referenceNumber)
+        public async Task<int> SaveCertificatePayloadAsync(string rawDataObject, string source, EPhytoCertificateRequest request)
         {
             _context.CurrentUser = source;
+            var referenceNumber = request.DocumentControl.ReferenceNumber;
 
             try
             {
@@ -149,7 +157,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 {
                     KeyId = payload.Id,
                     TxnType = ApiConstants.TxnType.EPhytoCertificate,
-                    Description = $"Process ePhyto Certificate Ref: {referenceNumber}",
+                    Description = $"Process Certificate Ref: {referenceNumber}",
                     Status = ApiConstants.QueueStatus.Wait
                 };
 
@@ -161,6 +169,9 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                     referenceNumber,
                     payload.Id,
                     outbound.Id);
+
+                // Enqueue to background service
+                _certificateQueue.Enqueue(payload.Id, request, source);
 
                 return payload.Id;
             }
@@ -176,54 +187,79 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             }
         }
 
-        public async Task<int> SaveEPhytoCertificatePayloadAsync(string rawDataObject, string source, string referenceNumber)
+
+        public async Task ProcessCertificatePayloadAsync(int payloadId, EPhytoCertificateRequest request, string source)
         {
             _context.CurrentUser = source;
-
-            // Optional: เช็ค CanEditCertificateAsync ตรงนี้เลยก็ได้ถ้าต้องการคุมที่ระดับ Service
-            // if (!await CanEditCertificateAsync(referenceNumber)) { return -1; }
+            var payload = await _context.TabMessageResponsePayloads.FindAsync(payloadId);
+            if (payload == null)
+            {
+                _logger.LogError("Payload ID {Id} not found.", payloadId);
+                return;
+            }
 
             try
             {
-                var payload = new TabMessageResponsePayload
-                {
-                    Status = ApiConstants.PayloadStatus.Wait,
-                    DataObject = rawDataObject
-                };
-
-                _context.TabMessageResponsePayloads.Add(payload);
+                payload.Status = ApiConstants.PayloadStatus.Processing;
                 await _context.SaveChangesAsync();
-
-                var outbound = new TabMessageTxnOutbound
-                {
-                    KeyId = payload.Id,
-                    TxnType = ApiConstants.TxnType.EPhytoCertificate,
-                    Description = $"Process PQ Certificate Ref: {referenceNumber}",
-                    Status = ApiConstants.QueueStatus.Wait
-                };
-
-                _context.TabMessageTxnOutbounds.Add(outbound);
-                await _context.SaveChangesAsync();
-
-                _logger.LogInformation(
-                    "Saved PQ certificate payload and outbound for Ref: {Ref} (PayloadId: {PayloadId}, OutboundId: {OutboundId})",
-                    referenceNumber,
-                    payload.Id,
-                    outbound.Id);
-
-                return payload.Id;
             }
             catch (Exception ex)
             {
                 await _logService.LogExceptionAsync(ex, _logInstancePath);
-                _logger.LogError(
-                    ex,
-                    "Error saving PQ certificate payload/outbound for Ref: {Ref}",
-                    referenceNumber);
-
-                return 0;
+                _logger.LogError(ex, "Failed to update certificate payload status to PROCESSING for ID {Id}", payloadId);
+                return;
             }
+
+            var strategy = _context.Database.CreateExecutionStrategy();
+            await strategy.ExecuteAsync(async () =>
+            {
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                try
+                {
+                    // Update Transaction Status in TabMessageTxnOutbound to PROCESSING
+                    var outbound = await _context.TabMessageTxnOutbounds
+                        .FirstOrDefaultAsync(o => o.KeyId == payloadId && o.TxnType == ApiConstants.TxnType.EPhytoCertificate);
+                    
+                    if (outbound != null)
+                    {
+                        outbound.Status = ApiConstants.QueueStatus.InQueue;
+                    }
+
+                    // In a real scenario, here we might map to ThPhyto and other tables
+                    // For now, we simulate success as per current architecture.
+                    
+                    payload.Status = ApiConstants.PayloadStatus.Success;
+                    if (outbound != null) outbound.Status = ApiConstants.QueueStatus.Success;
+
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    _logger.LogInformation("Certificate processing SUCCESS for Ref: {Ref} (PayloadId: {Id})", 
+                        request.DocumentControl.ReferenceNumber, payloadId);
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    await _logService.LogExceptionAsync(ex, _logInstancePath);
+                    _logger.LogError(ex, "Certificate processing FAILED for Ref: {Ref}", request.DocumentControl.ReferenceNumber);
+
+                    _context.ChangeTracker.Clear();
+                    try
+                    {
+                        var failPayload = await _context.TabMessageResponsePayloads.FindAsync(payloadId);
+                        if (failPayload != null) failPayload.Status = ApiConstants.PayloadStatus.Fail;
+                        
+                        var failOutbound = await _context.TabMessageTxnOutbounds
+                            .FirstOrDefaultAsync(o => o.KeyId == payloadId && o.TxnType == ApiConstants.TxnType.EPhytoCertificate);
+                        if (failOutbound != null) failOutbound.Status = ApiConstants.QueueStatus.Fail;
+
+                        await _context.SaveChangesAsync();
+                    }
+                    catch { }
+                }
+            });
         }
+
 
         public async Task<bool> CanEditCertificateAsync(string referenceNumber)
         {

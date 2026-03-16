@@ -7,8 +7,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
         Task<int> SaveResponsePayloadAsync(string rawDataObject, string source, string? docId = null);
         Task ProcessPayloadAsync(int payloadId, EPhytoProgressRequest request, string source);
         Task<bool> IsDocumentNumberDuplicateAsync(string documentNumber);
-        Task<int> SaveCertificatePayloadAsync(string rawDataObject, string source, string referenceNumber);
-        Task<int> SaveEPhytoCertificatePayloadAsync(string rawDataObject, string source, string referenceNumber);
+        Task<int> SaveCertificatePayloadAsync(string rawDataObject, string source, EPhytoCertificateRequest request);
+        Task ProcessCertificatePayloadAsync(int payloadId, EPhytoCertificateRequest request, string source);
         Task<bool> CanEditCertificateAsync(string referenceNumber);
     }
 }
