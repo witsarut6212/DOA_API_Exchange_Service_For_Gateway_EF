@@ -24,7 +24,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
         public DateWrapper SubmitForm { get; set; } = null!;
         public string CertificateStatus { get; set; } = null!;
         public string? ApplicantDate { get; set; }
-        public string SenderRegistrationID { get; set; } = null!;
+        public string RegistrationID { get; set; } = null!;
         public List<Applicant> Applicant { get; set; } = new();
         public List<ConsignorExporter> ConsignorExporter { get; set; } = new();
         public List<OnBeHalfCareOf>? OnBeHalfCareOf { get; set; }
