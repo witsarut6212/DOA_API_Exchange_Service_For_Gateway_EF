@@ -340,35 +340,42 @@
             "items": {
               "type": "object",
               "additionalProperties": false,
-              "required": ["ItemNumber", "CountryCode", "IssueDate", "ItemReferenceDocument"],
+              "required": ["ItemNumber", "CountryCode", "RegistrationNumber", "IssueInfo", "IssueDate", "Remark", "ItemReferenceDocument"],
               "properties": {
                 "ItemNumber": { "type": "integer", "minimum": 1, "maximum": 99 },
                 "CountryCode": { "type": "string", "pattern": "^[a-zA-Z]{2}$", "minLength": 2, "maxLength": 2, "description": "UNECE Recommendation 3 : ISO 3166" },
-                "RegistrationNumber": { "type": ["string", "null"] },
-                "LocationName": { "type": ["string", "null"] },
+                "RegistrationNumber": { "type": "string", "minLength": 1 },
+                "IssueInfo": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["LocationName"],
+                  "properties": {
+                    "LocationName": { "type": "string", "minLength": 1 }
+                  }
+                },
                 "IssueDate": {
                   "type": "object",
                   "additionalProperties": false,
                   "required": ["Date"],
                   "properties": {
-                    "Date": { "type": "string", "minLength": 1 }
+                    "Date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" }
                   }
                 },
-                "Remark": { "type": ["string", "null"] },
+                "Remark": { "type": "string", "minLength": 1 },
                 "ItemReferenceDocument": {
                   "type": "object",
                   "additionalProperties": false,
                   "required": ["ItemNumber", "DocumentNumber", "DocumentType", "ProviderAuthority", "Issued", "Expire", "Attachment"],
                   "properties": {
-                    "ItemNumber": { "type": "integer" },
+                    "ItemNumber": { "type": "integer", "minimum": 1, "maximum": 99 },
                     "DocumentNumber": { "type": "string", "minLength": 1 },
                     "DocumentType": {
                       "type": "object",
                       "additionalProperties": false,
                       "required": ["Code", "Name"],
                       "properties": {
-                        "Code": { "type": "string", "minLength": 1 },
-                        "Name": { "type": "string", "minLength": 1 }
+                        "Code": { "type": "string", "minLength": 1, "maxLength": 3, "description": "EDIFACT codes (1001). Use 'ZZZ' for custom document types." },
+                        "Name": { "type": "string", "minLength": 1, "maxLength": 70 }
                       }
                     },
                     "ProviderAuthority": {
@@ -376,7 +383,7 @@
                       "additionalProperties": false,
                       "required": ["TaxNumber"],
                       "properties": {
-                        "TaxNumber": { "type": "string", "minLength": 1 }
+                        "TaxNumber": { "type": "string", "minLength": 1, "maxLength": 17 }
                       }
                     },
                     "Issued": {
@@ -384,7 +391,7 @@
                       "additionalProperties": false,
                       "required": ["Date"],
                       "properties": {
-                        "Date": { "type": "string", "minLength": 1 }
+                        "Date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" }
                       }
                     },
                     "Expire": {
@@ -392,17 +399,17 @@
                       "additionalProperties": false,
                       "required": ["Date"],
                       "properties": {
-                        "Date": { "type": "string", "minLength": 1 }
+                        "Date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" }
                       }
                     },
                     "Attachment": {
                       "type": "object",
                       "additionalProperties": false,
-                      "required": ["Filename", "FileID", "FleUrl"],
+                      "required": ["Filename", "FileID", "FileUrl"],
                       "properties": {
                         "Filename": { "type": "string", "minLength": 1 },
                         "FileID": { "type": "string", "minLength": 1 },
-                        "FleUrl": { "type": "string", "minLength": 1 }
+                        "FileUrl": { "type": "string", "minLength": 1 }
                       }
                     },
                     "Remark": { "type": ["string", "null"] }
@@ -416,52 +423,54 @@
             "items": {
               "type": "object",
               "additionalProperties": false,
-              "required": ["ItemNumber", "Method", "CompletionPeriod"],
+              "required": ["ItemNumber"],
               "properties": {
-                "ItemNumber": { "type": "integer" },
+                "ItemNumber": { "type": "integer", "minimum": 1, "maximum": 99 },
                 "Method": {
-                  "type": "object",
+                  "type": ["object", "null"],
                   "additionalProperties": false,
-                  "required": ["TypeCode", "Description"],
                   "properties": {
-                    "TypeCode": { "type": "string", "minLength": 1 },
-                    "Description": { "type": "string", "minLength": 1 }
+                    "TypeCode": { "type": ["string", "null"], "maxLength": 3 },
+                    "Description": { "type": ["string", "null"], "maxLength": 70 }
                   }
                 },
                 "CompletionPeriod": {
-                  "type": "object",
+                  "type": ["object", "null"],
                   "additionalProperties": false,
-                  "required": ["StartDateTime"],
                   "properties": {
-                    "StartDateTime": { "type": "string", "minLength": 1 }
+                    "StartDateTime": { 
+                      "type": ["string", "null"], 
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$",
+                      "description": "ISO 8601 format (YYYY-MM-DDTHH:mm:ss.sTZD)"
+                    }
                   }
                 },
-                "Chemical": { "type": ["string", "null"] },
+                "Chemical": { "type": ["string", "null"], "maxLength": 70 },
                 "DurationMeasure": {
                   "type": ["object", "null"],
                   "additionalProperties": false,
                   "properties": {
-                    "Duration": { "type": "number" },
-                    "UnitCode": { "type": "string" }
+                    "Duration": { "type": ["string", "null"], "maxLength": 70 },
+                    "UnitCode": { "type": ["string", "null"], "maxLength": 3 }
                   }
                 },
                 "Temperature": {
                   "type": ["object", "null"],
                   "additionalProperties": false,
                   "properties": {
-                    "ValueMeasure": { "type": "string" },
-                    "UnitCode": { "type": "string" }
+                    "ValueMeasure": { "type": ["string", "null"], "maxLength": 5 },
+                    "UnitCode": { "type": ["string", "null"], "maxLength": 3 }
                   }
                 },
                 "Concentration": {
                   "type": ["object", "null"],
                   "additionalProperties": false,
                   "properties": {
-                    "ValueMeasure": { "type": "string" },
-                    "UnitCode": { "type": "string" }
+                    "ValueMeasure": { "type": ["string", "null"], "maxLength": 70 },
+                    "UnitCode": { "type": ["string", "null"] }
                   }
                 },
-                "Remark": { "type": ["string", "null"] }
+                "Remark": { "type": ["string", "null"], "maxLength": 512, "description": "(กรณี Australia ระบุProvider Register Number)" }
               }
             }
           },
@@ -472,32 +481,33 @@
               "additionalProperties": false,
               "required": ["ItemNumber", "SubjectCode", "Description"],
               "properties": {
-                "ItemNumber": { "type": "integer" },
-                "SubjectCode": { "type": "string", "minLength": 1 },
-                "Description": { "type": "string", "minLength": 1 },
+                "ItemNumber": { "type": "integer", "minimum": 1, "maximum": 999 },
+                "SubjectCode": { "type": "string", "minLength": 1, "maxLength": 5 },
+                "Description": { "type": "string", "minLength": 1, "maxLength": 512 },
                 "AdditionalReferenceDocuments": {
                   "type": ["array", "null"],
                   "items": {
                     "type": "object",
                     "additionalProperties": false,
-                    "required": ["DocumentType"],
+                    "required": ["DocumentType", "Attachment"],
                     "properties": {
                       "DocumentType": {
                         "type": "object",
                         "additionalProperties": false,
                         "required": ["Code", "Name"],
                         "properties": {
-                          "Code": { "type": "string", "minLength": 1 },
-                          "Name": { "type": "string", "minLength": 1 }
+                          "Code": { "type": ["string", "null"], "maxLength": 3, "description": "EDIFACT codes (1001). 'ZZZ' = ผู้ใช้งานระบุชี่อเอกสารเอง" },
+                          "Name": { "type": "string", "minLength": 1, "maxLength": 70 }
                         }
                       },
-                      ".Attachment": {
-                        "type": ["object", "null"],
+                      "Attachment": {
+                        "type": "object",
                         "additionalProperties": false,
+                        "required": ["Filename", "FileID", "FileUrl"],
                         "properties": {
-                          "Filename": { "type": "string" },
-                          "FileID": { "type": "string" },
-                          "FleUrl": { "type": "string" }
+                          "Filename": { "type": "string", "minLength": 1, "maxLength": 100 },
+                          "FileID": { "type": "string", "minLength": 1 },
+                          "FileUrl": { "type": "string", "minLength": 1 }
                         }
                       }
                     }
