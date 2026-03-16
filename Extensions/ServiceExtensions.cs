@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using DOA_API_Exchange_Service_For_Gateway.Data;
 using DOA_API_Exchange_Service_For_Gateway.Models;
@@ -122,6 +123,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Extensions
                 .AddNewtonsoftJson(options =>
                 {
                     options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+                    options.SerializerSettings.DateParseHandling = DateParseHandling.None;
                 })
                 .ConfigureApiBehaviorOptions(options =>
                 {
