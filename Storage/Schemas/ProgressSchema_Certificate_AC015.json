@@ -36,7 +36,7 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "ItemNumber": { "type": [ "integer", "null" ] },
+          "itemNumber": { "type": [ "integer", "null" ] },
           "reasonCode": { "type": "string" },
           "reasonDescription": { "type": "string" }
         }

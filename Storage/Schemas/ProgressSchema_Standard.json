@@ -39,9 +39,9 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [ "ItemNumber", "reasonCode", "reasonDescription" ],
+        "required": [ "itemNumber", "reasonCode", "reasonDescription" ],
         "properties": {
-          "ItemNumber": { "type": [ "integer", "null" ] },
+          "itemNumber": { "type": [ "integer", "null" ] },
           "reasonCode": { "type": "string", "minLength": 1 },
           "reasonDescription": { "type": "string", "minLength": 1 }
         }
