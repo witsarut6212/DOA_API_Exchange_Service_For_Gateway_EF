@@ -57,10 +57,20 @@ namespace DOA_API_Exchange_Service_For_Gateway.Filters
                 if (string.IsNullOrEmpty(formType))
                 {
                     var title = config["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
-                    context.Result = new BadRequestObjectResult(new ApiResponse<object>
+                    context.Result = new UnprocessableEntityObjectResult(new ApiResponse<object>
                     {
-                        Info = new ApiInfo { Title = title, Status = 400, Detail = "FormType is required in DocumentControl." },
-                        Error = new ApiError { TraceId = context.HttpContext.TraceIdentifier, Instance = request.Path }
+                        Info = new ApiInfo 
+                        { 
+                            Title = title, 
+                            Status = 422, 
+                            Detail = "One or more field validation failed.",
+                            Timestamp = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ssK")
+                        },
+                        Error = new ApiError { TraceId = context.HttpContext.TraceIdentifier, Instance = request.Path },
+                        Validations = new List<ApiValidation>
+                        {
+                            new ApiValidation { Field = "DocumentControl.FormType", Description = "FormType is required in DocumentControl." }
+                        }
                     });
                     return;
                 }
@@ -72,10 +82,20 @@ namespace DOA_API_Exchange_Service_For_Gateway.Filters
                     case "pq9": schemaFileName = "Pq9Schema.json"; break;
                     default:
                         var title = config["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
-                        context.Result = new BadRequestObjectResult(new ApiResponse<object>
+                        context.Result = new UnprocessableEntityObjectResult(new ApiResponse<object>
                         {
-                            Info = new ApiInfo { Title = title, Status = 400, Detail = "Invalid FormType. Only pq7, pq8, and pq9 are allowed." },
-                            Error = new ApiError { TraceId = context.HttpContext.TraceIdentifier, Instance = request.Path }
+                            Info = new ApiInfo 
+                            { 
+                                Title = title, 
+                                Status = 422, 
+                                Detail = "One or more field validation failed.",
+                                Timestamp = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ssK")
+                            },
+                            Error = new ApiError { TraceId = context.HttpContext.TraceIdentifier, Instance = request.Path },
+                            Validations = new List<ApiValidation>
+                            {
+                                new ApiValidation { Field = "DocumentControl.FormType", Description = "Invalid FormType. Only pq7, pq8, and pq9 are allowed." }
+                            }
                         });
                         return;
                 }
