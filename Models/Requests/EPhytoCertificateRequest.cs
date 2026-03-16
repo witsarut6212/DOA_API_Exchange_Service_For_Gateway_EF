@@ -25,12 +25,12 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
         public string CertificateStatus { get; set; } = null!;
         public string? ApplicantDate { get; set; }
         public string SenderRegistrationID { get; set; } = null!;
-        public Applicant Applicant { get; set; } = null!;
-        public ConsignorExporter ConsignorExporter { get; set; } = null!;
-        public OnBeHalfCareOf? OnBeHalfCareOf { get; set; }
-        public ConsigneeImporter ConsigneeImporter { get; set; } = null!;
-        public ShipmentInfo ShipmentInfo { get; set; } = null!;
-        public InspectionInfo InspectionInfo { get; set; } = null!;
+        public List<Applicant> Applicant { get; set; } = new();
+        public List<ConsignorExporter> ConsignorExporter { get; set; } = new();
+        public List<OnBeHalfCareOf>? OnBeHalfCareOf { get; set; }
+        public List<ConsigneeImporter> ConsigneeImporter { get; set; } = new();
+        public List<ShipmentInfo> ShipmentInfo { get; set; } = new();
+        public List<InspectionInfo> InspectionInfo { get; set; } = new();
     }
 
     public class DateWrapper
@@ -108,15 +108,15 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
 
     public class ShipmentInfo
     {
-        public Transportation Transportation { get; set; } = null!;
+        public List<Transportation> Transportation { get; set; } = new();
         public string DestinationCountry { get; set; } = null!;
-        public PortInfo DischargePort { get; set; } = null!;
-        public PortInfo LoadingPort { get; set; } = null!;
+        public List<PortInfo> DischargePort { get; set; } = new();
+        public List<PortInfo> LoadingPort { get; set; } = new();
         public DateWrapper DepartureOnBoard { get; set; } = null!;
-        public AmountWrapper TotalAmount { get; set; } = null!;
-        public QuantityWrapper TotalPackage { get; set; } = null!;
-        public WeightWrapper GrossWeight { get; set; } = null!;
-        public WeightWrapper NetWeight { get; set; } = null!;
+        public List<AmountWrapper> TotalAmount { get; set; } = new();
+        public List<QuantityWrapper> TotalPackage { get; set; } = new();
+        public List<WeightWrapper> GrossWeight { get; set; } = new();
+        public List<WeightWrapper> NetWeight { get; set; } = new();
         public string PlaceOriginCountry { get; set; } = null!;
     }
 
@@ -156,27 +156,33 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
         public string IssueLocationCode { get; set; } = null!;
         public string OperateType { get; set; } = null!;
         public string PlaceCode { get; set; } = null!;
-        public DateTimeWrapper Due { get; set; } = null!;
+        public List<DateTimeWrapper> Due { get; set; } = new(); // ตาม Schema ใหม่
     }
 
     public class EPhytoDetail
     {
         public int ItemNumber { get; set; }
-        public string TradeDescrition { get; set; } = null!;
+
+        [JsonProperty("TradeDescription")]
+        public string TradeDescription { get; set; } = null!;
+
         public string CommonName { get; set; } = null!;
         public string ScientificName { get; set; } = null!;
         public string ProductCode { get; set; } = null!;
-        public TariffInfo TariffInfo { get; set; } = null!;
-        public string ThaiGoodsDescrition { get; set; } = null!;
-        public WeightWrapper NetWeight { get; set; } = null!;
-        public QuantityWrapper Quantityinfo { get; set; } = null!;
-        public PhysicalPackage PhysicalPackage { get; set; } = null!;
+        public List<TariffInfo> TariffInfo { get; set; } = new();
+
+        [JsonProperty("ThaiGoodsDescription")]
+        public string ThaiGoodsDescription { get; set; } = null!;
+
+        public List<WeightWrapper> NetWeight { get; set; } = new();
+        public List<QuantityWrapper> Quantityinfo { get; set; } = new();
+        public List<PhysicalPackage> PhysicalPackage { get; set; } = new();
         public AmountValueWrapper AmountInfo { get; set; } = null!;
         public string? Remark { get; set; }
         public int Packaging { get; set; }
         public int ObjectiveCode { get; set; }
         public int SendLab { get; set; }
-        public AdditionalDescription AdditionalDescription { get; set; } = null!;
+        public List<AdditionalDescription> AdditionalDescription { get; set; } = new();
         public int ACFSCollaboration { get; set; }
         public List<OriginCountryItem> OriginCountries { get; set; } = new();
         public List<TreatmentItem>? Treatments { get; set; }
@@ -224,10 +230,10 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
         public int ItemNumber { get; set; }
         public string DocumentNumber { get; set; } = null!;
         public TypeCodeName DocumentType { get; set; } = null!;
-        public TaxNumberWrapper ProviderAuthority { get; set; } = null!;
+        public List<TaxNumberWrapper> ProviderAuthority { get; set; } = new();
         public DateWrapper Issued { get; set; } = null!;
         public DateWrapper Expire { get; set; } = null!;
-        public EPhytoAttachmentInfo Attachment { get; set; } = null!;
+        public List<EPhytoAttachmentInfo> Attachment { get; set; } = new();
         public string? Remark { get; set; }
     }
 
@@ -246,7 +252,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
     {
         public string Filename { get; set; } = null!;
         public string FileID { get; set; } = null!;
-        public string FleUrl { get; set; } = null!;
+        public string FileUrl { get; set; } = null!;
     }
 
     public class TreatmentItem
@@ -303,7 +309,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
         public TypeCodeName DocumentType { get; set; } = null!;
         
         [JsonProperty(".Attachment")]
-        public EPhytoAttachmentInfo? Attachment { get; set; }
+        public List<EPhytoAttachmentInfo>? Attachment { get; set; }
     }
 
     public class ThirdPartyFumigation
@@ -347,21 +353,21 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
         public int ItemNumber { get; set; }
         public string DocumentNumber { get; set; } = null!;
         
-        [JsonProperty("CocumentType")] // Mapping typo from JSON
+        [JsonProperty("DocumentType")] 
         public TypeCodeName DocumentType { get; set; } = null!;
         
         public int DetailItemNumber { get; set; }
-        public TaxNumberWrapper ProviderAuthority { get; set; } = null!;
+        public List<TaxNumberWrapper> ProviderAuthority { get; set; } = new();
         public DateWrapper Issued { get; set; } = null!;
         public DateWrapper Expire { get; set; } = null!;
-        public AttachmentInfoWithId Attachment { get; set; } = null!;
+        public List<AttachmentInfoWithId> Attachment { get; set; } = new();
         public string? Remark { get; set; }
     }
 
     public class AttachmentInfoWithId
     {
         public string Filename { get; set; } = null!;
-        public string FileId { get; set; } = null!; // Diff from ItemReferenceDocument (FileId vs FileID)
+        public string FileId { get; set; } = null!; 
         public string FileUrl { get; set; } = null!;
     }
 }

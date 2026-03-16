@@ -74,43 +74,51 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
         [ValidateCertificateSchema]
         public async Task<IActionResult> SubmitCertificate([FromBody] JObject rawRequest)
         {
-            var documentControl = rawRequest["DocumentControl"] as JObject;
-            if (documentControl == null)
+            var request = rawRequest.ToObject<EPhytoCertificateRequest>();
+            
+            if (request == null || request.DocumentControl == null)
             {
                 return BadRequest(_response.CreateError("Invalid request format.", 400));
             }
 
-            var referenceNumber = documentControl["ReferenceNumber"]?.ToString();
+            var docControl = request.DocumentControl;
+            var referenceNumber = docControl.ReferenceNumber;
 
             if (string.IsNullOrWhiteSpace(referenceNumber))
             {
                 return BadRequest(_response.CreateError("ReferenceNumber is required.", 400));
             }
 
-            var certificateStatus = documentControl["CertificateStatus"]?.ToString();
-            if (!string.Equals(certificateStatus, "Draft", StringComparison.OrdinalIgnoreCase))
+            // Step 0: Business Rule Validation
+            if (!string.Equals(docControl.CertificateStatus, "Draft", StringComparison.OrdinalIgnoreCase))
             {
                 var validations = new List<ApiValidation>
                 {
                     new ApiValidation
                     {
                         Field = "DocumentControl.CertificateStatus",
-                        Description = "reject"
+                        Description = "Current implementation only supports 'Draft' status for submission."
                     }
                 };
-
                 return UnprocessableEntity(_response.CreateError("One or more field validation failed.", 422, null, validations));
+            }
+
+            // Optional: Check if referenceNumber already exists and is not editable (as per existing service logic)
+            if (!await _submissionService.CanEditCertificateAsync(referenceNumber))
+            {
+                return Conflict(_response.CreateError($"ReferenceNumber '{referenceNumber}' already exists and cannot be modified in its current state.", 409));
             }
 
             var source = User.FindFirstValue("AppNickName") ?? string.Empty;
 
             // Determine if it's a PQ Certificate or ePhyto Certificate based on FormType
-            var formType = documentControl["FormType"]?.ToString()?.ToLower();
+            var formType = docControl.FormType?.ToLower();
             bool isPq = formType == "pq7" || formType == "pq8" || formType == "pq9";
             
             int payloadId;
             string docTypeLabel;
 
+            // Step 1: Save Payload and Outbound Txn
             if (isPq)
             {
                 payloadId = await _submissionService.SaveEPhytoCertificatePayloadAsync(
