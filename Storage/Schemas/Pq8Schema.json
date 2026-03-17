@@ -418,10 +418,10 @@
                     "Attachment": {
                       "type": "object",
                       "additionalProperties": false,
-                      "required": ["Filename", "FileId", "FileUrl"],
+                      "required": ["Filename", "FileID", "FileUrl"],
                       "properties": {
                         "Filename": { "type": "string", "minLength": 1 },
-                        "FileId": { "type": "string", "minLength": 1 },
+                        "FileID": { "type": "string", "minLength": 1 },
                         "FileUrl": { "type": "string", "minLength": 1 }
                       }
                     },
@@ -514,10 +514,10 @@
                     "Attachment": {
                       "type": "object",
                       "additionalProperties": false,
-                      "required": ["Filename", "FileId", "FileUrl"],
+                      "required": ["Filename", "FileID", "FileUrl"],
                       "properties": {
                         "Filename": { "type": "string", "minLength": 1, "maxLength": 100 },
-                        "FileId": { 
+                        "FileID": { 
                           "type": "string", 
                           "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
                           "description": "UUID format (e.g. f47ac10b-58cc-4372-a567-0e02b2c3d479)"
@@ -681,10 +681,10 @@
           "Attachment": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["Filename", "FileId", "FileUrl"],
+            "required": ["Filename", "FileID", "FileUrl"],
             "properties": {
               "Filename": { "type": "string", "minLength": 1, "maxLength": 100 },
-              "FileId": { 
+              "FileID": { 
                 "type": "string", 
                 "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
                 "description": "UUID format (e.g. f47ac10b-58cc-4372-a567-0e02b2c3d479)"
