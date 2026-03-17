@@ -265,7 +265,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 {
                     await transaction.RollbackAsync();
                     await _logService.LogExceptionAsync(ex, _logCertInstancePath);
-                    _logger.LogError(ex, "[{Source}] Certificate processing FAILED for Ref: {Ref}", source, request.DocumentControl.ReferenceNumber);
+                    string errorDetail = ex.InnerException != null ? ($" | Inner Error: " + ex.InnerException.Message) : "";
+                    _logger.LogError(ex, "[{Source}] Certificate processing FAILED for Ref: {Ref}{ErrorDetail}", source, request.DocumentControl.ReferenceNumber, errorDetail);
 
                     _context.ChangeTracker.Clear();
                     try
@@ -345,8 +346,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             {
                 ResponseType = docControl.CertificateStatus ?? "DRAFT",
                 ReferenceNumber = docControl.ReferenceNumber,
-                DocumentNumber = docControl.ReferenceNumber, // Falling back to RefNumber if no separate DocNumber
-                MessageType = docControl.FormType?.ToUpper() ?? "CERTIFICATE",
+                DocumentNumber = docControl.ReferenceNumber,
+                MessageType = "PHYTOCERT",
                 ResponseCode = "DRAFT",
                 ResponseMessage = $"Submission of {docControl.FormType?.ToUpper() ?? "Certificate"} as DRAFT",
                 ResponseDateTime = DateTime.Now,
@@ -363,7 +364,9 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
         {
             var docControl = request.DocumentControl;
             submission.ResponseType = docControl.CertificateStatus ?? "DRAFT";
-            submission.MessageType = docControl.FormType?.ToUpper() ?? "CERTIFICATE";
+            submission.MessageType = "PHYTOCERT";
+            submission.ResponseCode = "DRAFT";
+            submission.ResponseMessage = $"Submission of {docControl.FormType?.ToUpper() ?? "Certificate"} as DRAFT";
             submission.ResponseDateTime = DateTime.Now;
             submission.RegistrationId = docControl.RegistrationID ?? "";
             submission.ResponsePayloadId = payloadId;
