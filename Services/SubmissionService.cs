@@ -230,22 +230,13 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                     }
 
                     // --- Record into TabMessageResponseSubmissions ---
-                    // We use ReferenceNumber as the key to check for existing submission records
+                    // Always create a new record as per updated spec
                     var referenceNumber = request.DocumentControl.ReferenceNumber;
-                    var submission = await _context.TabMessageResponseSubmissions
-                        .FirstOrDefaultAsync(s => s.ReferenceNumber == referenceNumber);
+                    var submission = CreateCertificateSubmissionRecord(payloadId, request, source);
+                    _context.TabMessageResponseSubmissions.Add(submission);
 
-                    if (submission == null)
-                    {
-                        submission = CreateCertificateSubmissionRecord(payloadId, request, source);
-                        _context.TabMessageResponseSubmissions.Add(submission);
-                        _logger.LogInformation("[{Source}] Creating new certificate submission record for Ref: {Ref}", source, referenceNumber);
-                    }
-                    else
-                    {
-                        UpdateCertificateSubmissionRecord(submission, payloadId, request, source);
-                        _logger.LogInformation("[{Source}] Updating existing certificate submission record for Ref: {Ref} (SubmissionId: {SubId})", source, referenceNumber, submission.Id);
-                    }
+                    _logger.LogInformation("[{Source}] Creating new certificate submission record for Ref: {Ref} (ID: {Id})", source, referenceNumber, submission.Id);
+
 
                     await _context.SaveChangesAsync();
                     
@@ -322,7 +313,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 QueueStatus = ApiConstants.QueueStatus.Wait,
                 SystemTime = DateTime.Now,
                 ResponsePayloadId = payloadId,
-                FlagUpdate = ApiConstants.CommonStatus.No
+                FlagUpdate = "NEW",
+                MarkSend = "N"
                 // CreatedAt/By handled automatically
             };
         }
@@ -346,7 +338,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             {
                 ResponseType = docControl.CertificateStatus ?? "DRAFT",
                 ReferenceNumber = docControl.ReferenceNumber,
-                DocumentNumber = docControl.ReferenceNumber,
+                // Using a unique ID for DocumentNumber to allow history of submissions for the same ReferenceNumber
+                DocumentNumber = Guid.NewGuid().ToString("N").Substring(0, 20).ToUpper(),
                 MessageType = "PHYTOCERT",
                 ResponseCode = "DRAFT",
                 ResponseMessage = $"Submission of {docControl.FormType?.ToUpper() ?? "Certificate"} as DRAFT",
@@ -356,24 +349,12 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 QueueStatus = ApiConstants.QueueStatus.Wait,
                 SystemTime = DateTime.Now,
                 ResponsePayloadId = payloadId,
-                FlagUpdate = ApiConstants.CommonStatus.No
+                FlagUpdate = "NEW",
+                MarkSend = "N"
             };
         }
 
-        private void UpdateCertificateSubmissionRecord(TabMessageResponseSubmission submission, int payloadId, EPhytoCertificateRequest request, string source)
-        {
-            var docControl = request.DocumentControl;
-            submission.ResponseType = docControl.CertificateStatus ?? "DRAFT";
-            submission.MessageType = "PHYTOCERT";
-            submission.ResponseCode = "DRAFT";
-            submission.ResponseMessage = $"Submission of {docControl.FormType?.ToUpper() ?? "Certificate"} as DRAFT";
-            submission.ResponseDateTime = DateTime.Now;
-            submission.RegistrationId = docControl.RegistrationID ?? "";
-            submission.ResponsePayloadId = payloadId;
-            submission.SystemTime = DateTime.Now;
-            submission.UpdatedBy = source;
-            submission.UpdatedAt = DateTime.Now;
-        }
+
 
         #endregion
     }
