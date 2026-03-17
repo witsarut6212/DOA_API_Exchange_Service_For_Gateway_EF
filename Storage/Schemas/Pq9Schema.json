@@ -365,7 +365,7 @@
             "items": {
               "type": "object",
               "additionalProperties": false,
-              "required": ["ItemNumber", "CountryCode", "RegistrationNumber", "LocationName", "Remark"],
+              "required": ["ItemNumber"],
               "properties": {
                 "ItemNumber": { "type": "integer", "minimum": 1, "maximum": 99 },
                 "CountryCode": { "type": "string", "pattern": "^[a-zA-Z]{2}$", "minLength": 2, "maxLength": 2, "description": "UNECE Recommendation 3 : ISO 3166" },
@@ -382,7 +382,7 @@
                 "ItemReferenceDocument": {
                   "type": "object",
                   "additionalProperties": false,
-                  "required": ["ItemNumber", "DocumentNumber", "DocumentType", "Expire", "Attachment"],
+                  "required": ["ItemNumber", "DocumentNumber", "DocumentType", "Attachment"],
                   "properties": {
                     "ItemNumber": { "type": "integer", "minimum": 1, "maximum": 99 },
                     "DocumentNumber": { "type": "string", "minLength": 1 },
@@ -412,7 +412,6 @@
                     "Expire": {
                       "type": "object",
                       "additionalProperties": false,
-                      "required": ["Date"],
                       "properties": {
                         "Date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" }
                       }
@@ -625,7 +624,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["ItemNumber", "DocumentNumber", "DocumentType", "DetailItemNumber", "ProviderAuthority", "Attachment"],
+        "required": ["ItemNumber", "DocumentNumber", "DocumentType", "ProviderAuthority", "Attachment"],
         "properties": {
           "ItemNumber": { "type": "integer", "minimum": 1, "maximum": 99, "description": "n..2" },
           "DocumentNumber": { "type": "string", "minLength": 1, "maxLength": 35, "description": "an..35" },
