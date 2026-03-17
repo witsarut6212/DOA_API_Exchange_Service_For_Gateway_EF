@@ -13,7 +13,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
         private readonly ILogService _logService;
         private readonly IConfiguration _configuration;
         private readonly ICertificateQueue _certificateQueue;
-        private readonly string _logInstancePath;
+        private readonly string _logProgressInstancePath;
+        private readonly string _logCertInstancePath;
 
         public SubmissionService(
             AppDbContext context, 
@@ -27,7 +28,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             _logService = logService;
             _configuration = configuration;
             _certificateQueue = certificateQueue;
-            _logInstancePath = _configuration["ApiSettings:SubmissionProgressPath"] ?? "UNKNOWN_PATH";
+            _logProgressInstancePath = _configuration["ApiSettings:SubmissionProgressPath"] ?? "/submission/ephyto/progress";
+            _logCertInstancePath = _configuration["ApiSettings:SubmissionCertificatePath"] ?? "/submission/ephyto/certificate";
         }
 
         public async Task<int> SaveResponsePayloadAsync(string rawDataObject, string source, string? docId = null)
@@ -52,7 +54,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             }
             catch (Exception ex)
             {
-                await _logService.LogExceptionAsync(ex, _logInstancePath);
+                await _logService.LogExceptionAsync(ex, _logProgressInstancePath);
                 _logger.LogError(ex, "Step 1 Failed: Error saving payload for Ref: {Ref}", 
                     docId);
                 return 0;
@@ -76,7 +78,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             }
             catch (Exception ex)
             {
-                await _logService.LogExceptionAsync(ex, _logInstancePath);
+                await _logService.LogExceptionAsync(ex, _logProgressInstancePath);
                 _logger.LogError(ex, "Failed to update payload status to PROCESSING for ID {Id}", payloadId);
                 return;
             }
@@ -107,7 +109,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 catch (Exception ex)
                 {
                     await transaction.RollbackAsync();
-                    await _logService.LogExceptionAsync(ex, _logInstancePath);
+                    await _logService.LogExceptionAsync(ex, _logProgressInstancePath);
                     _logger.LogError(ex, "Background processing FAILED for Ref: {Ref}", request.DocumentControl.ReferenceNumber);
 
                     _context.ChangeTracker.Clear();
@@ -123,7 +125,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                     }
                     catch (Exception logEx)
                     {
-                        await _logService.LogExceptionAsync(logEx, _logInstancePath);
+                        await _logService.LogExceptionAsync(logEx, _logProgressInstancePath);
                         _logger.LogError(logEx, "Failed to mark payload as FAIL for ID {Id}", payloadId);
                     }
                 }
@@ -165,7 +167,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation(
-                    "Saved certificate payload and outbound for Ref: {Ref} (PayloadId: {PayloadId}, OutboundId: {OutboundId})",
+                    "Step 1 [{Source}]: Saved certificate payload and outbound for Ref: {Ref} (PayloadID: {PayloadId}, OutboundID: {OutboundId})",
+                    source,
                     referenceNumber,
                     payload.Id,
                     outbound.Id);
@@ -177,10 +180,11 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             }
             catch (Exception ex)
             {
-                await _logService.LogExceptionAsync(ex, _logInstancePath);
+                await _logService.LogExceptionAsync(ex, _logCertInstancePath);
                 _logger.LogError(
                     ex,
-                    "Error saving certificate payload/outbound for Ref: {Ref}",
+                    "Step 1 [{Source}] Failed: Error saving certificate payload/outbound for Ref: {Ref}",
+                    source,
                     referenceNumber);
 
                 return 0;
@@ -205,8 +209,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             }
             catch (Exception ex)
             {
-                await _logService.LogExceptionAsync(ex, _logInstancePath);
-                _logger.LogError(ex, "Failed to update certificate payload status to PROCESSING for ID {Id}", payloadId);
+                await _logService.LogExceptionAsync(ex, _logCertInstancePath);
+                _logger.LogError(ex, "[{Source}] Failed to update certificate payload status to PROCESSING for ID {Id}", source, payloadId);
                 return;
             }
 
@@ -225,8 +229,28 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                         outbound.Status = ApiConstants.QueueStatus.InQueue;
                     }
 
-                    // In a real scenario, here we might map to ThPhyto and other tables
-                    // For now, we simulate success as per current architecture.
+                    // --- Record into TabMessageResponseSubmissions ---
+                    // We use ReferenceNumber as the key to check for existing submission records
+                    var referenceNumber = request.DocumentControl.ReferenceNumber;
+                    var submission = await _context.TabMessageResponseSubmissions
+                        .FirstOrDefaultAsync(s => s.ReferenceNumber == referenceNumber);
+
+                    if (submission == null)
+                    {
+                        submission = CreateCertificateSubmissionRecord(payloadId, request, source);
+                        _context.TabMessageResponseSubmissions.Add(submission);
+                        _logger.LogInformation("[{Source}] Creating new certificate submission record for Ref: {Ref}", source, referenceNumber);
+                    }
+                    else
+                    {
+                        UpdateCertificateSubmissionRecord(submission, payloadId, request, source);
+                        _logger.LogInformation("[{Source}] Updating existing certificate submission record for Ref: {Ref} (SubmissionId: {SubId})", source, referenceNumber, submission.Id);
+                    }
+
+                    await _context.SaveChangesAsync();
+                    
+                    // In a real scenario, here we might map to ThPhyto and other tables (Complex mapping)
+                    // For now, we fulfill the requirement of tracking the submission status.
                     
                     payload.Status = ApiConstants.PayloadStatus.Success;
                     if (outbound != null) outbound.Status = ApiConstants.QueueStatus.Success;
@@ -234,14 +258,14 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
 
-                    _logger.LogInformation("Certificate processing SUCCESS for Ref: {Ref} (PayloadId: {Id})", 
-                        request.DocumentControl.ReferenceNumber, payloadId);
+                    _logger.LogInformation("[{Source}] Certificate processing SUCCESS for Ref: {Ref} (PayloadId: {Id})", 
+                        source, request.DocumentControl.ReferenceNumber, payloadId);
                 }
                 catch (Exception ex)
                 {
                     await transaction.RollbackAsync();
-                    await _logService.LogExceptionAsync(ex, _logInstancePath);
-                    _logger.LogError(ex, "Certificate processing FAILED for Ref: {Ref}", request.DocumentControl.ReferenceNumber);
+                    await _logService.LogExceptionAsync(ex, _logCertInstancePath);
+                    _logger.LogError(ex, "[{Source}] Certificate processing FAILED for Ref: {Ref}", source, request.DocumentControl.ReferenceNumber);
 
                     _context.ChangeTracker.Clear();
                     try
@@ -312,6 +336,40 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 Status = ApiConstants.QueueStatus.Wait
                 // CreatedAt/By handled automatically
             };
+        }
+
+        private TabMessageResponseSubmission CreateCertificateSubmissionRecord(int payloadId, EPhytoCertificateRequest request, string source)
+        {
+            var docControl = request.DocumentControl;
+            return new TabMessageResponseSubmission
+            {
+                ResponseType = docControl.CertificateStatus ?? "DRAFT",
+                ReferenceNumber = docControl.ReferenceNumber,
+                DocumentNumber = docControl.ReferenceNumber, // Falling back to RefNumber if no separate DocNumber
+                MessageType = docControl.FormType?.ToUpper() ?? "CERTIFICATE",
+                ResponseCode = "DRAFT",
+                ResponseMessage = $"Submission of {docControl.FormType?.ToUpper() ?? "Certificate"} as DRAFT",
+                ResponseDateTime = DateTime.Now,
+                RegistrationId = docControl.RegistrationID ?? "",
+                ResponseToId = docControl.ReferenceNumber,
+                QueueStatus = ApiConstants.QueueStatus.Wait,
+                SystemTime = DateTime.Now,
+                ResponsePayloadId = payloadId,
+                FlagUpdate = ApiConstants.CommonStatus.No
+            };
+        }
+
+        private void UpdateCertificateSubmissionRecord(TabMessageResponseSubmission submission, int payloadId, EPhytoCertificateRequest request, string source)
+        {
+            var docControl = request.DocumentControl;
+            submission.ResponseType = docControl.CertificateStatus ?? "DRAFT";
+            submission.MessageType = docControl.FormType?.ToUpper() ?? "CERTIFICATE";
+            submission.ResponseDateTime = DateTime.Now;
+            submission.RegistrationId = docControl.RegistrationID ?? "";
+            submission.ResponsePayloadId = payloadId;
+            submission.SystemTime = DateTime.Now;
+            submission.UpdatedBy = source;
+            submission.UpdatedAt = DateTime.Now;
         }
 
         #endregion

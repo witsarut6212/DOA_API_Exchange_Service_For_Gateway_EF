@@ -251,7 +251,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
     public class EPhytoAttachmentInfo
     {
         public string Filename { get; set; } = null!;
-        public string FileId { get; set; } = null!;
+        public string FileID { get; set; } = null!;
         public string FileUrl { get; set; } = null!;
     }
 
@@ -308,7 +308,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
     {
         public TypeCodeName DocumentType { get; set; } = null!;
         
-        [JsonProperty(".Attachment")]
+        [JsonProperty("Attachment")]
         public EPhytoAttachmentInfo? Attachment { get; set; }
     }
 
@@ -367,7 +367,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
     public class AttachmentInfoWithId
     {
         public string Filename { get; set; } = null!;
-        public string FileId { get; set; } = null!; 
+        public string FileID { get; set; } = null!; 
         public string FileUrl { get; set; } = null!;
     }
 }
