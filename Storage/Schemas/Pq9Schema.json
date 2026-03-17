@@ -30,7 +30,7 @@
       "properties": {
         "ReferenceNumber": { "type": "string", "minLength": 13, "maxLength": 13 },
         "DocumentFunctionCode": { "type": "string", "enum": ["9", "4", "5"], "maxLength": 1 },
-        "FormType": { "type": "string", "enum": ["pq9"], "minLength": 3, "maxLength": 3 },
+        "FormType": { "type": "string", "enum": ["PQ9"], "minLength": 3, "maxLength": 3 },
         "ReplacementForm": { "type": "string", "enum": ["7", "8", "9", "97", "98"], "maxLength": 3, "pattern": "^[0-9]*$" },
         "ApplicantDate": { 
           "type": "string", 
@@ -48,7 +48,7 @@
             }
           }
         },
-        "CertificateStatus": { "type": "string", "enum": ["Draft", "draft"], "maxLength": 10 },
+        "CertificateStatus": { "type": "string", "enum": ["DRAFT"], "maxLength": 10 },
         "RegistrationID": { "type": "string", "minLength": 1, "maxLength": 35 },
         "Applicant": {
           "type": "object",
