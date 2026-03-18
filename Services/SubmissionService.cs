@@ -15,19 +15,22 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
         private readonly ICertificateQueue _certificateQueue;
         private readonly string _logProgressInstancePath;
         private readonly string _logCertInstancePath;
+        private readonly ICommonService _commonService;
 
         public SubmissionService(
             AppDbContext context, 
             ILogger<SubmissionService> logger, 
             ILogService logService, 
             IConfiguration configuration,
-            ICertificateQueue certificateQueue)
+            ICertificateQueue certificateQueue,
+            ICommonService commonService)
         {
             _context = context;
             _logger = logger;
             _logService = logService;
             _configuration = configuration;
             _certificateQueue = certificateQueue;
+            _commonService = commonService;
             _logProgressInstancePath = _configuration["ApiSettings:SubmissionProgressPath"] ?? "/submission/ephyto/progress";
             _logCertInstancePath = _configuration["ApiSettings:SubmissionCertificatePath"] ?? "/submission/ephyto/certificate";
         }
@@ -89,7 +92,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 using var transaction = await _context.Database.BeginTransactionAsync();
                 try
                 {
-                    var submission = CreateSubmissionRecord(payloadId, request, source);
+                    var submission = await CreateSubmissionRecordAsync(payloadId, request, source);
                     _context.TabMessageResponseSubmissions.Add(submission);
                     _logger.LogInformation("Creating new submission for Doc: {Doc}", request.DocumentControl.DocumentNumber);
 
@@ -297,28 +300,39 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
 
         #region Private Helper Methods for Entity Mapping
 
-        private TabMessageResponseSubmission CreateSubmissionRecord(int payloadId, EPhytoProgressRequest request, string source)
+        private async Task<TabMessageResponseSubmission> CreateSubmissionRecordAsync(int payloadId, EPhytoProgressRequest request, string source)
         {
             var docControl = request.DocumentControl;
+            string effectiveRegId = await _commonService.GetEffectiveRegistrationIdAsync(docControl.RegistrationId);
+
             return new TabMessageResponseSubmission
             {
                 ResponseType = docControl.ResponseInfo.Status,
                 ReferenceNumber = docControl.ReferenceNumber,
-                // If DocumentNumber is not provided, generate a unique one as we do for certificates
                 DocumentNumber = docControl.DocumentNumber ?? Guid.NewGuid().ToString("N").Substring(0, 20).ToUpper(),
-                MessageType = docControl.MessageType,
+                MessageType = docControl.MessageType ?? "PHYTOCERT",
                 ResponseCode = docControl.ResponseInfo.Code,
-                ResponseMessage = docControl.Remark,
+                ResponseMessage = docControl.Remark ?? "e-Phyto Progress Update",
                 ResponseDateTime = docControl.ResponseInfo.DateTime,
-                RegistrationId = docControl.RegistrationId,
+                RegistrationId = effectiveRegId,
                 ResponseToId = docControl.ReferenceNumber,
                 QueueStatus = ApiConstants.QueueStatus.Wait,
                 SystemTime = DateTime.Now,
                 ResponsePayloadId = payloadId,
                 FlagUpdate = "NEW",
                 MarkSend = "N"
-                // CreatedAt/By handled automatically
             };
+        }
+
+        private TabMessageResponseSubmission CreateSubmissionRecord(int payloadId, EPhytoProgressRequest request, string source)
+        {
+            // Marked as Obsolete, call async version if possible
+            return CreateSubmissionRecordAsync(payloadId, request, source).GetAwaiter().GetResult();
+        }
+
+        private async Task<string> GetEffectiveRegistrationIdAsync(string? requestRegId)
+        {
+            return await _commonService.GetEffectiveRegistrationIdAsync(requestRegId);
         }
 
         private TabMessageTxnOutbound CreateOutboundRecord(int submissionId, string referenceNumber, string source)

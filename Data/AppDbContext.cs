@@ -140,6 +140,7 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<TabMessageThphytoXml> TabMessageThphytoXmls { get; set; }
 
     public virtual DbSet<TabMessageTxnOutbound> TabMessageTxnOutbounds { get; set; }
+    public virtual DbSet<Author> Authors { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -1042,6 +1043,15 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.UpdatedBy).HasMaxLength(100).HasColumnName("updated_by");
         });
 
+
+        modelBuilder.Entity<Author>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+            entity.ToTable("authors");
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.NswridDev).HasMaxLength(35).HasColumnName("nswrid_dev");
+            entity.Property(e => e.NswridPro).HasMaxLength(35).HasColumnName("nswrid_pro");
+        });
 
         OnModelCreatingPartial(modelBuilder);
     }

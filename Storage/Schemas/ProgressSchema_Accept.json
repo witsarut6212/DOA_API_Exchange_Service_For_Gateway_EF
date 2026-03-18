@@ -17,7 +17,7 @@
         "messageType",
         "remark",
         "registrationId",
-        "itemNumber",
+        "ItemNumber",
         "reasonCode",
         "reasonDescription"
       ],
