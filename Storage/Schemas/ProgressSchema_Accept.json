@@ -15,11 +15,7 @@
         "referenceNumber",
         "responseInfo",
         "messageType",
-        "remark",
-        "registrationId",
-        "ItemNumber",
-        "reasonCode",
-        "reasonDescription"
+        "remark"
       ],
       "properties": {
         "referenceNumber": { "type": "string", "maxLength": 35, "minLength": 1 },
@@ -35,11 +31,7 @@
           }
         },
         "messageType": { "type": "string", "maxLength": 35 },
-        "remark": { "type": "string", "maxLength": 200 },
-        "registrationId": { "type": "string", "maxLength": 35 },
-        "ItemNumber": { "type": "integer", "minimum": 0, "maximum": 99 },
-        "reasonCode": { "type": "string", "maxLength": 10 },
-        "reasonDescription": { "type": "string", "maxLength": 256 }
+        "remark": { "type": "string", "maxLength": 200 }
       }
     },
     "details": {
@@ -49,10 +41,10 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [ "ItemNumber", "reasonCode", "reasonDescription" ],
+        "required": [ "itemNumber", "reasonCode", "reasonDescription" ],
         "properties": {
-          "ItemNumber": { "type": "integer", "minimum": 0, "maximum": 99 },
-          "reasonCode": { "type": "string", "maxLength": 10 },
+          "itemNumber": { "type": "integer", "minimum": 0, "maximum": 99 },
+          "reasonCode": { "type": "string", "maxLength": 15 },
           "reasonDescription": { "type": "string", "maxLength": 256 }
         }
       }

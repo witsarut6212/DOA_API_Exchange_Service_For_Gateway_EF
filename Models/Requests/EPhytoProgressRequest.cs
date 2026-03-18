@@ -57,7 +57,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
         [JsonProperty("registrationId")]
         public string? RegistrationId { get; set; }
 
-        [JsonProperty("ItemNumber")]
+        [JsonProperty("itemNumber")]
         public int? ItemNumber { get; set; }
 
         [JsonProperty("reasonCode")]
@@ -84,7 +84,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
 
     public class ProgressDetail
     {
-        [JsonProperty("ItemNumber")]
+        [JsonProperty("itemNumber")]
         public int? ItemNumber { get; set; }
 
         [JsonProperty("reasonCode")]
@@ -96,7 +96,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
 
     public class PaymentInfo
     {
-        [JsonProperty("ItemNumber")]
+        [JsonProperty("itemNumber")]
         public int? ItemNumber { get; set; }
 
         [JsonProperty("referenceNumber1")]
@@ -123,7 +123,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
 
     public class AdditionalDocument
     {
-        [JsonProperty("ItemNumber")]
+        [JsonProperty("itemNumber")]
         public int? ItemNumber { get; set; }
 
         [JsonProperty("documentInfo")]
@@ -141,7 +141,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
 
     public class AdditionalDocumentDetail
     {
-        [JsonProperty("ItemNumber")]
+        [JsonProperty("itemNumber")]
         public int? ItemNumber { get; set; }
     }
 
@@ -153,21 +153,14 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
         [JsonProperty("name")]
         public string? Name { get; set; }
 
-        [JsonProperty("licenseNumber")]
-        public string? LicenseNumber { get; set; }
-
         [JsonProperty("issueDate")]
-        public DateEntry? IssueDate { get; set; }
+        public string? IssueDate { get; set; }
 
         [JsonProperty("expireDate")]
-        public DateEntry? ExpireDate { get; set; }
+        public string? ExpireDate { get; set; }
     }
 
-    public class DateEntry
-    {
-        [JsonProperty("date")]
-        public string? Date { get; set; }
-    }
+
 
     public class ProviderAuthority
     {

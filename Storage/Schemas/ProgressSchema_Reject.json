@@ -49,10 +49,10 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [ "ItemNumber", "reasonCode", "reasonDescription" ],
+        "required": [ "itemNumber", "reasonCode", "reasonDescription" ],
         "properties": {
-          "ItemNumber": { "type": "integer", "minimum": 0, "maximum": 99 },
-          "reasonCode": { "type": "string", "maxLength": 10 },
+          "itemNumber": { "type": "integer", "minimum": 0, "maximum": 99 },
+          "reasonCode": { "type": "string", "maxLength": 15 },
           "reasonDescription": { "type": "string", "maxLength": 256 }
         }
       }
