@@ -12,43 +12,65 @@
     "documentControl": {
       "type": "object",
       "additionalProperties": false,
-      "required": [ "referenceNumber", "documentNumber", "responseInfo" ],
+      "required": [
+        "referenceNumber",
+        "responseInfo",
+        "messageType",
+        "remark",
+        "registrationId",
+        "itemNumber",
+        "reasonCode",
+        "reasonDescription"
+      ],
       "properties": {
-        "referenceNumber": { "type": "string", "minLength": 1 },
-        "documentNumber": { "type": "string", "minLength": 1 },
+        "referenceNumber": { "type": "string", "maxLength": 35, "minLength": 1 },
+        "documentNumber": { "type": "string", "maxLength": 35 },
         "responseInfo": {
           "type": "object",
           "additionalProperties": false,
           "required": [ "dateTime", "status", "code" ],
           "properties": {
             "dateTime": { "type": "string", "format": "date-time" },
-            "status": { "type": "string", "enum": [ "ACCEPT" ] },
-            "code": { "type": "string", "enum": [ "AC009" ] }
+            "status": { "type": "string", "enum": [ "ACCEPT" ], "maxLength": 6 },
+            "code": { "type": "string", "enum": [ "AC009" ], "maxLength": 5 }
           }
         },
-        "messageType": { "type": "string" },
-        "remark": { "type": "string" }
+        "messageType": { "type": "string", "maxLength": 35 },
+        "remark": { "type": "string", "maxLength": 200 },
+        "registrationId": { "type": "string", "maxLength": 35 },
+        "itemNumber": { "type": "integer", "minimum": 0, "maximum": 99 },
+        "reasonCode": { "type": "string", "maxLength": 10 },
+        "reasonDescription": { "type": "string", "maxLength": 256 }
       }
     },
     "details": {
       "type": "array",
+      "minItems": 1,
+      "maxItems": 99,
       "items": {
         "type": "object",
         "additionalProperties": false,
+        "required": [ "itemNumber", "reasonCode", "reasonDescription" ],
         "properties": {
-          "itemNumber": { "type": [ "integer", "null" ] },
-          "reasonCode": { "type": "string" },
-          "reasonDescription": { "type": "string" }
+          "itemNumber": { "type": "integer", "minimum": 0, "maximum": 99 },
+          "reasonCode": { "type": "string", "maxLength": 10 },
+          "reasonDescription": { "type": "string", "maxLength": 256 }
         }
       }
     },
     "payment": {
       "type": "object",
       "additionalProperties": false,
-      "required": [ "url", "message" ],
+      "required": [ "itemNumber" ],
       "properties": {
-        "url": { "type": "string", "format": "uri" },
-        "message": { "type": "string" }
+        "itemNumber": { "type": "integer", "minimum": 0, "maximum": 99 },
+        "referenceNumber1": { "type": "string", "maxLength": 35 },
+        "referenceNumber2": { "type": "string", "maxLength": 35 },
+        "amount": { "type": "number" },
+        "bankCode": { "type": "string", "maxLength": 3 },
+        "compCode": { "type": "string", "maxLength": 35 },
+        "message": { "type": "string", "maxLength": 200 },
+        "url": { "type": "string", "format": "uri", "maxLength": 256 }
       }
     }
   }

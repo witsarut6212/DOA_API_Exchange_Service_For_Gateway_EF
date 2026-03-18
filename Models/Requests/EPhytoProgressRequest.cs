@@ -41,9 +41,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
         [JsonProperty("referenceNumber")]
         public string ReferenceNumber { get; set; } = null!;
 
-        [Required]
         [JsonProperty("documentNumber")]
-        public string DocumentNumber { get; set; } = null!;
+        public string? DocumentNumber { get; set; }
 
         [Required]
         [JsonProperty("responseInfo")]
@@ -54,6 +53,18 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
 
         [JsonProperty("remark")]
         public string? Remark { get; set; }
+
+        [JsonProperty("registrationId")]
+        public string? RegistrationId { get; set; }
+
+        [JsonProperty("itemNumber")]
+        public int? ItemNumber { get; set; }
+
+        [JsonProperty("reasonCode")]
+        public string? ReasonCode { get; set; }
+
+        [JsonProperty("reasonDescription")]
+        public string? ReasonDescription { get; set; }
     }
 
     public class ResponseInfo
@@ -73,7 +84,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
 
     public class ProgressDetail
     {
-        [JsonProperty("ItemNumber")]
+        [JsonProperty("itemNumber")]
         public int? ItemNumber { get; set; }
 
         [JsonProperty("reasonCode")]
@@ -85,11 +96,29 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
 
     public class PaymentInfo
     {
-        [JsonProperty("url")]
-        public string? Url { get; set; }
+        [JsonProperty("itemNumber")]
+        public int? ItemNumber { get; set; }
+
+        [JsonProperty("referenceNumber1")]
+        public string? ReferenceNumber1 { get; set; }
+
+        [JsonProperty("referenceNumber2")]
+        public string? ReferenceNumber2 { get; set; }
+
+        [JsonProperty("amount")]
+        public decimal? Amount { get; set; }
+
+        [JsonProperty("bankCode")]
+        public string? BankCode { get; set; }
+
+        [JsonProperty("compCode")]
+        public string? CompCode { get; set; }
 
         [JsonProperty("message")]
         public string? Message { get; set; }
+
+        [JsonProperty("url")]
+        public string? Url { get; set; }
     }
 
     public class AdditionalDocument
@@ -100,11 +129,20 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
         [JsonProperty("documentInfo")]
         public DocumentInfo? DocumentInfo { get; set; }
 
+        [JsonProperty("detail")]
+        public AdditionalDocumentDetail? Detail { get; set; }
+
         [JsonProperty("providerAuthority")]
         public ProviderAuthority? ProviderAuthority { get; set; }
 
         [JsonProperty("attachment")]
         public AttachmentInfo? Attachment { get; set; }
+    }
+
+    public class AdditionalDocumentDetail
+    {
+        [JsonProperty("itemNumber")]
+        public int? ItemNumber { get; set; }
     }
 
     public class DocumentInfo
@@ -115,11 +153,20 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
         [JsonProperty("name")]
         public string? Name { get; set; }
 
+        [JsonProperty("licenseNumber")]
+        public string? LicenseNumber { get; set; }
+
         [JsonProperty("issueDate")]
-        public string? IssueDate { get; set; }
+        public DateEntry? IssueDate { get; set; }
 
         [JsonProperty("expireDate")]
-        public string? ExpireDate { get; set; }
+        public DateEntry? ExpireDate { get; set; }
+    }
+
+    public class DateEntry
+    {
+        [JsonProperty("date")]
+        public string? Date { get; set; }
     }
 
     public class ProviderAuthority
@@ -135,6 +182,12 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
 
         [JsonProperty("fileType")]
         public string? FileType { get; set; }
+
+        [JsonProperty("fileID")]
+        public string? FileID { get; set; }
+
+        [JsonProperty("fileURL")]
+        public string? FileURL { get; set; }
 
         [JsonProperty("fileBase64")]
         public string? FileBase64 { get; set; }

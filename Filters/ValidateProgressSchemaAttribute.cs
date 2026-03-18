@@ -42,10 +42,13 @@ namespace DOA_API_Exchange_Service_For_Gateway.Filters
                 var json = JObject.Parse(body);
                 
                 string code = json.SelectToken("documentControl.responseInfo.code")?.ToString() ?? "";
+                string status = json.SelectToken("documentControl.responseInfo.status")?.ToString()?.ToUpper() ?? "";
                 string schemaFileName = "ProgressSchema_Standard.json"; 
                 
                 if (code == "AC009") schemaFileName = "ProgressSchema_Payment_AC009.json";
                 else if (code == "AC015") schemaFileName = "ProgressSchema_Certificate_AC015.json";
+                else if (status == "ACCEPT") schemaFileName = "ProgressSchema_Accept_Standard.json";
+                else if (status == "REJECT") schemaFileName = "ProgressSchema_Reject.json";
 
                 string schemaPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Storage", "Schemas", schemaFileName);
                 if (!File.Exists(schemaPath))

@@ -12,61 +12,101 @@
     "documentControl": {
       "type": "object",
       "additionalProperties": false,
-      "required": [ "referenceNumber", "documentNumber", "responseInfo" ],
+      "required": [
+        "referenceNumber",
+        "responseInfo",
+        "messageType",
+        "remark",
+        "registrationId",
+        "itemNumber",
+        "reasonCode",
+        "reasonDescription"
+      ],
       "properties": {
-        "referenceNumber": { "type": "string", "minLength": 1 },
-        "documentNumber": { "type": "string", "minLength": 1 },
+        "referenceNumber": { "type": "string", "maxLength": 35, "minLength": 1 },
+        "documentNumber": { "type": "string", "maxLength": 35 },
         "responseInfo": {
           "type": "object",
           "additionalProperties": false,
           "required": [ "dateTime", "status", "code" ],
           "properties": {
             "dateTime": { "type": "string", "format": "date-time" },
-            "status": { "type": "string", "enum": [ "ACCEPT" ] },
-            "code": { "type": "string", "enum": [ "AC015" ] }
+            "status": { "type": "string", "enum": [ "ACCEPT" ], "maxLength": 6 },
+            "code": { "type": "string", "enum": [ "AC015" ], "maxLength": 5 }
           }
         },
-        "messageType": { "type": "string" },
-        "remark": { "type": "string" }
+        "messageType": { "type": "string", "maxLength": 35 },
+        "remark": { "type": "string", "maxLength": 200 },
+        "registrationId": { "type": "string", "maxLength": 35 },
+        "itemNumber": { "type": "integer", "minimum": 0, "maximum": 99 },
+        "reasonCode": { "type": "string", "maxLength": 10 },
+        "reasonDescription": { "type": "string", "maxLength": 256 }
       }
     },
     "details": {
       "type": "array",
+      "minItems": 1,
+      "maxItems": 99,
       "items": {
         "type": "object",
         "additionalProperties": false,
+        "required": [ "itemNumber", "reasonCode", "reasonDescription" ],
         "properties": {
-          "itemNumber": { "type": [ "integer", "null" ] },
-          "reasonCode": { "type": "string" },
-          "reasonDescription": { "type": "string" }
+          "itemNumber": { "type": "integer", "minimum": 0, "maximum": 99 },
+          "reasonCode": { "type": "string", "maxLength": 10 },
+          "reasonDescription": { "type": "string", "maxLength": 256 }
         }
       }
     },
     "additionalDocuments": {
       "type": "array",
       "minItems": 1,
+      "maxItems": 99,
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [ "itemNumber", "documentInfo", "attachment" ],
+        "required": [ "itemNumber", "documentInfo", "providerAuthority", "attachment" ],
         "properties": {
-          "itemNumber": { "type": [ "integer", "null" ] },
+          "itemNumber": { "type": "integer", "minimum": 0, "maximum": 99 },
           "documentInfo": {
             "type": "object",
             "additionalProperties": false,
-            "required": [ "typeCode", "name" ],
+            "required": [ "typeCode", "name", "licenseNumber", "issueDate", "expireDate" ],
             "properties": {
-              "typeCode": { "type": "string" },
-              "name": { "type": "string" },
-              "issueDate": { "type": "string" },
-              "expireDate": { "type": "string" }
+              "typeCode": { "type": "string", "maxLength": 3 },
+              "name": { "type": "string", "maxLength": 70 },
+              "licenseNumber": { "type": "string", "maxLength": 35 },
+              "issueDate": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [ "date" ],
+                "properties": {
+                  "date": { "type": "string", "format": "date" }
+                }
+              },
+              "expireDate": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [ "date" ],
+                "properties": {
+                  "date": { "type": "string", "format": "date" }
+                }
+              }
+            }
+          },
+          "detail": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "itemNumber": { "type": "integer", "minimum": 0, "maximum": 9999 }
             }
           },
           "providerAuthority": {
             "type": "object",
             "additionalProperties": false,
+            "required": [ "taxNumber" ],
             "properties": {
-              "taxNumber": { "type": "string" }
+              "taxNumber": { "type": "string", "maxLength": 17 }
             }
           },
           "attachment": {
@@ -74,10 +114,12 @@
             "additionalProperties": false,
             "required": [ "filename", "fileType", "fileBase64" ],
             "properties": {
-              "filename": { "type": "string" },
-              "fileType": { "type": "string" },
+              "filename": { "type": "string", "maxLength": 100 },
+              "fileType": { "type": "string", "maxLength": 15 },
+              "fileID": { "type": "string", "maxLength": 40 },
+              "fileURL": { "type": "string", "maxLength": 255 },
               "fileBase64": { "type": "string", "minLength": 1 },
-              "remark": { "type": "string" }
+              "remark": { "type": "string", "maxLength": 255 }
             }
           }
         }

@@ -299,17 +299,19 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
 
         private TabMessageResponseSubmission CreateSubmissionRecord(int payloadId, EPhytoProgressRequest request, string source)
         {
+            var docControl = request.DocumentControl;
             return new TabMessageResponseSubmission
             {
-                ResponseType = request.DocumentControl.ResponseInfo.Status,
-                ReferenceNumber = request.DocumentControl.ReferenceNumber,
-                DocumentNumber = request.DocumentControl.DocumentNumber,
-                MessageType = request.DocumentControl.MessageType ?? "",
-                ResponseCode = request.DocumentControl.ResponseInfo.Code,
-                ResponseMessage = request.DocumentControl.Remark ?? "",
-                ResponseDateTime = request.DocumentControl.ResponseInfo.DateTime,
-                RegistrationId = "",
-                ResponseToId = request.DocumentControl.ReferenceNumber,
+                ResponseType = docControl.ResponseInfo.Status,
+                ReferenceNumber = docControl.ReferenceNumber,
+                // If DocumentNumber is not provided, generate a unique one as we do for certificates
+                DocumentNumber = docControl.DocumentNumber ?? Guid.NewGuid().ToString("N").Substring(0, 20).ToUpper(),
+                MessageType = docControl.MessageType,
+                ResponseCode = docControl.ResponseInfo.Code,
+                ResponseMessage = docControl.Remark,
+                ResponseDateTime = docControl.ResponseInfo.DateTime,
+                RegistrationId = docControl.RegistrationId,
+                ResponseToId = docControl.ReferenceNumber,
                 QueueStatus = ApiConstants.QueueStatus.Wait,
                 SystemTime = DateTime.Now,
                 ResponsePayloadId = payloadId,
