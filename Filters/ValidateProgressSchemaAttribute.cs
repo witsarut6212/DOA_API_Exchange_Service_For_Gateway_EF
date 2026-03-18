@@ -43,12 +43,29 @@ namespace DOA_API_Exchange_Service_For_Gateway.Filters
                 
                 string code = json.SelectToken("documentControl.responseInfo.code")?.ToString() ?? "";
                 string status = json.SelectToken("documentControl.responseInfo.status")?.ToString()?.ToUpper() ?? "";
-                string schemaFileName = "ProgressSchema_Standard.json"; 
+                string schemaFileName = ""; 
                 
                 if (code == "AC009") schemaFileName = "ProgressSchema_Payment_AC009.json";
                 else if (code == "AC015") schemaFileName = "ProgressSchema_Certificate_AC015.json";
-                else if (status == "ACCEPT") schemaFileName = "ProgressSchema_Accept_Standard.json";
+                else if (status == "ACCEPT") schemaFileName = "ProgressSchema_Accept.json";
                 else if (status == "REJECT") schemaFileName = "ProgressSchema_Reject.json";
+
+                if (string.IsNullOrEmpty(schemaFileName))
+                {
+                    var title = config["ResponseTitle:Title"] ?? "API Exchange Service For Gateway";
+                    context.Result = new UnprocessableEntityObjectResult(new ApiResponse<object>
+                    {
+                        Info = new ApiInfo 
+                        { 
+                            Title = title, 
+                            Status = 422, 
+                            Detail = "Response status is mandatory and must be ACCEPT or REJECT.",
+                            Timestamp = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ssK")
+                        },
+                        Error = new ApiError { TraceId = context.HttpContext.TraceIdentifier, Instance = request.Path }
+                    });
+                    return;
+                }
 
                 string schemaPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Storage", "Schemas", schemaFileName);
                 if (!File.Exists(schemaPath))

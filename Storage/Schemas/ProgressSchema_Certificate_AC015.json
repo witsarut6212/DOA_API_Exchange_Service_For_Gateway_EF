@@ -18,7 +18,7 @@
         "messageType",
         "remark",
         "registrationId",
-        "itemNumber",
+        "ItemNumber",
         "reasonCode",
         "reasonDescription"
       ],
@@ -38,7 +38,7 @@
         "messageType": { "type": "string", "maxLength": 35 },
         "remark": { "type": "string", "maxLength": 200 },
         "registrationId": { "type": "string", "maxLength": 35 },
-        "itemNumber": { "type": "integer", "minimum": 0, "maximum": 99 },
+        "ItemNumber": { "type": "integer", "minimum": 0, "maximum": 99 },
         "reasonCode": { "type": "string", "maxLength": 10 },
         "reasonDescription": { "type": "string", "maxLength": 256 }
       }
@@ -50,9 +50,9 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [ "itemNumber", "reasonCode", "reasonDescription" ],
+        "required": [ "ItemNumber", "reasonCode", "reasonDescription" ],
         "properties": {
-          "itemNumber": { "type": "integer", "minimum": 0, "maximum": 99 },
+          "ItemNumber": { "type": "integer", "minimum": 0, "maximum": 99 },
           "reasonCode": { "type": "string", "maxLength": 10 },
           "reasonDescription": { "type": "string", "maxLength": 256 }
         }
@@ -65,9 +65,9 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [ "itemNumber", "documentInfo", "providerAuthority", "attachment" ],
+        "required": [ "ItemNumber", "documentInfo", "providerAuthority", "attachment" ],
         "properties": {
-          "itemNumber": { "type": "integer", "minimum": 0, "maximum": 99 },
+          "ItemNumber": { "type": "integer", "minimum": 0, "maximum": 99 },
           "documentInfo": {
             "type": "object",
             "additionalProperties": false,
@@ -98,7 +98,7 @@
             "type": "object",
             "additionalProperties": false,
             "properties": {
-              "itemNumber": { "type": "integer", "minimum": 0, "maximum": 9999 }
+              "ItemNumber": { "type": "integer", "minimum": 0, "maximum": 9999 }
             }
           },
           "providerAuthority": {

@@ -57,7 +57,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
         [JsonProperty("registrationId")]
         public string? RegistrationId { get; set; }
 
-        [JsonProperty("itemNumber")]
+        [JsonProperty("ItemNumber")]
         public int? ItemNumber { get; set; }
 
         [JsonProperty("reasonCode")]
@@ -84,7 +84,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
 
     public class ProgressDetail
     {
-        [JsonProperty("itemNumber")]
+        [JsonProperty("ItemNumber")]
         public int? ItemNumber { get; set; }
 
         [JsonProperty("reasonCode")]
@@ -96,7 +96,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
 
     public class PaymentInfo
     {
-        [JsonProperty("itemNumber")]
+        [JsonProperty("ItemNumber")]
         public int? ItemNumber { get; set; }
 
         [JsonProperty("referenceNumber1")]
@@ -123,7 +123,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
 
     public class AdditionalDocument
     {
-        [JsonProperty("itemNumber")]
+        [JsonProperty("ItemNumber")]
         public int? ItemNumber { get; set; }
 
         [JsonProperty("documentInfo")]
@@ -141,7 +141,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
 
     public class AdditionalDocumentDetail
     {
-        [JsonProperty("itemNumber")]
+        [JsonProperty("ItemNumber")]
         public int? ItemNumber { get; set; }
     }
 

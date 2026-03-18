@@ -18,7 +18,7 @@
         "messageType",
         "remark",
         "registrationId",
-        "itemNumber",
+        "ItemNumber",
         "reasonCode",
         "reasonDescription"
       ],
@@ -50,9 +50,9 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [ "itemNumber", "reasonCode", "reasonDescription" ],
+        "required": [ "ItemNumber", "reasonCode", "reasonDescription" ],
         "properties": {
-          "itemNumber": { "type": "integer", "minimum": 0, "maximum": 99 },
+          "ItemNumber": { "type": "integer", "minimum": 0, "maximum": 99 },
           "reasonCode": { "type": "string", "maxLength": 10 },
           "reasonDescription": { "type": "string", "maxLength": 256 }
         }
@@ -61,9 +61,9 @@
     "payment": {
       "type": "object",
       "additionalProperties": false,
-      "required": [ "itemNumber" ],
+      "required": [ "ItemNumber" ],
       "properties": {
-        "itemNumber": { "type": "integer", "minimum": 0, "maximum": 99 },
+        "ItemNumber": { "type": "integer", "minimum": 0, "maximum": 99 },
         "referenceNumber1": { "type": "string", "maxLength": 35 },
         "referenceNumber2": { "type": "string", "maxLength": 35 },
         "amount": { "type": "number" },
