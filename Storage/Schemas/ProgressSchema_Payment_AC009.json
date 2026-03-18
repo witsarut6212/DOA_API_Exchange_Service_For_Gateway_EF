@@ -53,9 +53,8 @@
     "payment": {
       "type": "object",
       "additionalProperties": false,
-      "required": [ "itemNumber" ],
+      "required": [],
       "properties": {
-        "itemNumber": { "type": "integer", "minimum": 0, "maximum": 99 },
         "referenceNumber1": { "type": "string", "maxLength": 35 },
         "referenceNumber2": { "type": "string", "maxLength": 35 },
         "amount": { "type": "number" },
