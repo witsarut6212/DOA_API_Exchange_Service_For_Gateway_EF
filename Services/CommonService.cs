@@ -5,7 +5,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
 {
     public interface ICommonService
     {
-        Task<string> GetEffectiveRegistrationIdAsync(string? requestRegId);
+        Task<string?> GetEffectiveRegistrationIdAsync(string? requestRegId);
     }
 
     public class CommonService : ICommonService
@@ -21,7 +21,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             _logger = logger;
         }
 
-        public async Task<string> GetEffectiveRegistrationIdAsync(string? requestRegId)
+        public async Task<string?> GetEffectiveRegistrationIdAsync(string? requestRegId)
         {
             // Priority 1: Request field (Provided by caller)
             if (!string.IsNullOrEmpty(requestRegId)) 
@@ -52,7 +52,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 _logger.LogWarning("RegistrationID: No record found in AUTHORS table.");
             }
 
-            return "";
+            return null;
         }
     }
 }

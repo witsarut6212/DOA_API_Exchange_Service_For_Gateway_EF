@@ -21,7 +21,7 @@ public partial class TabMessageResponseSubmission
 
     public DateTime ResponseDateTime { get; set; }
 
-    public string RegistrationId { get; set; } = null!;
+    public string? RegistrationId { get; set; }
 
     public string ResponseToId { get; set; } = null!;
 
