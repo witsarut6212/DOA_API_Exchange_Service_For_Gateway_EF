@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "ASW e-Phyto Normal Case Schema (New Version)",
+  "title": "ASW e-Phyto Normal Case Schema (Finalized Spec)",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -9,10 +9,18 @@
     "doc_id",
     "doc_type",
     "doc_status",
+    "issuer_name",
+    "ref_issue_datetime",
+    "auth_location_name",
+    "auth_provider_name",
+    "auth_person",
+    "auth_position_name",
     "exporter_name",
     "consignee_name",
     "export_country_code",
-    "import_country_code"
+    "export_country_name",
+    "import_country_code",
+    "import_country_name"
   ],
   "properties": {
     "detail": {
@@ -21,37 +29,45 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
+        "required": [
+          "item_no",
+          "descriptions",
+          "net_weight",
+          "net_weight_unit",
+          "origin_countries"
+        ],
         "properties": {
-          "item_no": { "type": ["integer", "number"] },
+          "item_no": { "type": ["integer", "number"], "minimum": 1 },
           "descriptions": {
             "type": "array",
+            "minItems": 1,
             "items": {
               "type": "object",
-              "properties": { "name": { "type": "string" } },
+              "properties": { "name": { "type": "string", "maxLength": 512 } },
               "required": ["name"]
             }
           },
-          "product_name": { "type": ["string", "null"] },
-          "product_scient_name": { "type": ["string", "null"] },
-          "product_batch_id": { "type": ["string", "null"] },
-          "product_intended_use": { "type": ["string", "null"] },
+          "product_name": { "type": ["string", "null"], "maxLength": 512 },
+          "product_scient_name": { "type": ["string", "null"], "maxLength": 512 },
+          "product_batch_id": { "type": ["string", "null"], "maxLength": 35 },
+          "product_intended_use": { "type": ["string", "null"], "maxLength": 35 },
           "net_weight": { "type": ["number", "integer"] },
-          "net_weight_unit": { "type": ["string", "null"] },
-          "gross_weight": { "type": ["number", "integer"] },
-          "gross_weight_unit": { "type": ["string", "null"] },
-          "package_level": { "type": ["string", "null"] },
-          "package_type": { "type": ["string", "null"] },
-          "package_amount": { "type": ["integer", "number"] },
-          "shipping_marks": { "type": ["string", "null"] },
-          "producer_location_code": { "type": ["string", "null"] },
-          "producer_location_name": { "type": ["string", "null"] },
+          "net_weight_unit": { "type": ["string", "null"], "maxLength": 3 },
+          "gross_weight": { "type": ["number", "integer", "null"] },
+          "gross_weight_unit": { "type": ["string", "null"], "maxLength": 3 },
+          "package_level": { "type": ["string", "null"], "maxLength": 3 },
+          "package_type": { "type": ["string", "null"], "maxLength": 3 },
+          "package_amount": { "type": ["integer", "number", "null"] },
+          "shipping_marks": { "type": ["string", "null"], "maxLength": 512 },
+          "producer_location_code": { "type": ["string", "null"], "maxLength": 35 },
+          "producer_location_name": { "type": ["string", "null"], "maxLength": 256 },
           "additionals": {
-            "type": "array",
+            "type": ["array", "null"],
             "items": {
               "type": "object",
               "properties": {
-                "note_subject": { "type": "string" },
-                "note_content": { "type": "string" }
+                "note_subject": { "type": "string", "maxLength": 35 },
+                "note_content": { "type": "string", "maxLength": 512 }
               }
             }
           },
@@ -59,39 +75,41 @@
           "transport_equipments": { "type": ["array", "null"] },
           "origin_countries": {
             "type": "array",
+            "minItems": 1,
             "items": {
               "type": "object",
+              "required": ["origin_country_code"],
               "properties": {
-                "origin_country_code": { "type": ["string", "null"] },
-                "origin_country_name": { "type": ["string", "null"] },
-                "origin_province_code": { "type": ["string", "null"] },
-                "origin_province_name": { "type": ["string", "null"] },
+                "origin_country_code": { "type": ["string", "null"], "maxLength": 2 },
+                "origin_country_name": { "type": ["string", "null"], "maxLength": 35 },
+                "origin_province_code": { "type": ["string", "null"], "maxLength": 35 },
+                "origin_province_name": { "type": ["string", "null"], "maxLength": 35 },
                 "origin_hierarchi_level": { "type": ["string", "null"] },
-                "producer_code": { "type": ["string", "null"] },
-                "producer_name": { "type": ["string", "null"] },
+                "producer_code": { "type": ["string", "null"], "maxLength": 35 },
+                "producer_name": { "type": ["string", "null"], "maxLength": 100 },
                 "producer_role": { "type": ["string", "null"] }
               }
             }
           },
           "processes": {
-            "type": "array",
+            "type": ["array", "null"],
             "items": {
               "type": "object",
               "properties": {
-                "process_type": { "type": ["string", "null"] },
+                "process_type": { "type": ["string", "null"], "maxLength": 3 },
                 "process_start_date": { "type": ["string", "null"] },
                 "process_end_date": { "type": ["string", "null"] },
                 "process_duration": { "type": ["number", "integer", "null"] },
-                "process_duration_unit": { "type": ["string", "null"] },
+                "process_duration_unit": { "type": ["string", "null"], "maxLength": 3 },
                 "characteristics": {
-                  "type": "array",
+                  "type": ["array", "null"],
                   "items": {
                     "type": "object",
                     "properties": {
-                      "process_character_code": { "type": ["string", "null"] },
-                      "process_character_desc": { "type": ["string", "null"] },
-                      "process_value": { "type": ["string", "number", "null"] },
-                      "process_value_unit": { "type": ["string", "null"] }
+                      "process_character_code": { "type": ["string", "null"], "maxLength": 35 },
+                      "process_character_desc": { "type": ["string", "null"], "maxLength": 512 },
+                      "process_value": { "type": ["string", "number", "null"], "maxLength": 35 },
+                      "process_value_unit": { "type": ["string", "null"], "maxLength": 35 }
                     }
                   }
                 }
@@ -101,63 +119,67 @@
         }
       }
     },
-    "doc_name": { "type": ["string", "null"] },
-    "doc_id": { "type": ["string", "null"], "maxLength": 60 },
-    "doc_description": { "type": ["string", "null"] },
-    "doc_type": { "type": ["string", "null"] },
-    "doc_status": { "type": ["string", "null"] },
-    "issuer_id": { "type": ["string", "null"] },
-    "issuer_name": { "type": ["string", "null"] },
-    "ref_issue_datetime": { "type": ["string", "null"] },
-    "ref_type": { "type": ["string", "null"] },
-    "ref_relation": { "type": ["string", "null"] },
-    "ref_id": { "type": ["string", "null"] },
-    "ref_info": { "type": ["string", "null"] },
-    "auth_location_id": { "type": ["string", "null"] },
-    "auth_location_name": { "type": ["string", "null"] },
-    "auth_provider_id": { "type": ["string", "null"] },
-    "auth_provider_name": { "type": ["string", "null"] },
-    "auth_person": { "type": ["string", "null"] },
-    "auth_position_name": { "type": ["string", "null"] },
-    "auth_position_abb": { "type": ["string", "null"] },
-    "exporter_name": { "type": ["string", "null"] },
-    "exporter_line1": { "type": ["string", "null"] },
-    "exporter_line2": { "type": ["string", "null"] },
-    "exporter_line3": { "type": ["string", "null"] },
-    "exporter_line4": { "type": ["string", "null"] },
-    "exporter_line5": { "type": ["string", "null"] },
-    "exporter_city_name": { "type": ["string", "null"] },
-    "exporter_post_code": { "type": ["string", "null"] },
-    "exporter_country_code": { "type": ["string", "null"] },
-    "exporter_country_name": { "type": ["string", "null"] },
+    "doc_name": { "type": "string", "maxLength": 35 },
+    "doc_id": { "type": "string", "maxLength": 60 },
+    "doc_description": { "type": ["string", "null"], "maxLength": 512 },
+    "doc_type": { "type": "string", "enum": ["851", "657"] },
+    "doc_status": { "type": "string", "enum": ["70", "39", "41", "122", "17", "26"] },
+    "issuer_id": { "type": ["string", "null"], "maxLength": 35 },
+    "issuer_name": { "type": "string", "maxLength": 35 },
+    "ref_issue_datetime": { "type": "string", "maxLength": 25 },
+    "ref_type": { "type": ["string", "null"], "enum": ["851", "657", null] },
+    "ref_relation": { "type": ["string", "null"], "maxLength": 3 },
+    "ref_id": { "type": ["string", "null"], "maxLength": 60 },
+    "ref_info": { "type": ["string", "null"], "maxLength": 512 },
+    "auth_location_id": { "type": ["string", "null"], "maxLength": 5 },
+    "auth_location_name": { "type": "string", "maxLength": 256 },
+    "auth_provider_id": { "type": ["string", "null"], "maxLength": 35 },
+    "auth_provider_name": { "type": "string", "maxLength": 35 },
+    "auth_person": { "type": "string", "maxLength": 35 },
+    "auth_position_name": { "type": "string", "maxLength": 35 },
+    "auth_position_abb": { "type": ["string", "null"], "maxLength": 35 },
+    "exporter_name": { "type": "string", "maxLength": 100 },
+    "exporter_line1": { "type": ["string", "null"], "maxLength": 200 },
+    "exporter_line2": { "type": ["string", "null"], "maxLength": 200 },
+    "exporter_line3": { "type": ["string", "null"], "maxLength": 200 },
+    "exporter_line4": { "type": ["string", "null"], "maxLength": 200 },
+    "exporter_line5": { "type": ["string", "null"], "maxLength": 200 },
+    "exporter_city_name": { "type": ["string", "null"], "maxLength": 256 },
+    "exporter_post_code": { "type": ["string", "null"], "maxLength": 17 },
+    "exporter_country_code": { "type": ["string", "null"], "maxLength": 2 },
+    "exporter_country_name": { "type": ["string", "null"], "maxLength": 35 },
     "exporter_address_type": { "type": ["string", "null"] },
-    "consignee_name": { "type": ["string", "null"] },
-    "consignee_line1": { "type": ["string", "null"] },
-    "consignee_line2": { "type": ["string", "null"] },
-    "consignee_line3": { "type": ["string", "null"] },
-    "consignee_line4": { "type": ["string", "null"] },
-    "consignee_line5": { "type": ["string", "null"] },
-    "consignee_city_name": { "type": ["string", "null"] },
-    "consignee_post_code": { "type": ["string", "null"] },
-    "consignee_country_code": { "type": ["string", "null"] },
-    "export_country_code": { "type": ["string", "null"] },
-    "export_country_name": { "type": ["string", "null"] },
-    "reexport_country_code": { "type": ["string", "null"] },
-    "reexport_country_name": { "type": ["string", "null"] },
-    "import_country_code": { "type": ["string", "null"] },
-    "import_country_name": { "type": ["string", "null"] },
-    "unloading_port_code": { "type": ["string", "null"] },
-    "unloading_port_name": { "type": ["string", "null"] },
-    "transport_mode": { "type": ["string", "null"] },
-    "vessel_number": { "type": ["string", "null"] },
-    "vessel_name": { "type": ["string", "null"] },
+    "consignee_name": { "type": "string", "maxLength": 100 },
+    "consignee_line1": { "type": ["string", "null"], "maxLength": 200 },
+    "consignee_line2": { "type": ["string", "null"], "maxLength": 200 },
+    "consignee_line3": { "type": ["string", "null"], "maxLength": 200 },
+    "consignee_line4": { "type": ["string", "null"], "maxLength": 200 },
+    "consignee_line5": { "type": ["string", "null"], "maxLength": 200 },
+    "consignee_city_name": { "type": ["string", "null"], "maxLength": 256 },
+    "consignee_post_code": { "type": ["string", "null"], "maxLength": 17 },
+    "consignee_country_code": { "type": ["string", "null"], "maxLength": 2 },
+    "export_country_code": { "type": "string", "maxLength": 2 },
+    "export_country_name": { "type": "string", "maxLength": 35 },
+    "reexport_country_code": { "type": ["string", "null"], "maxLength": 2 },
+    "reexport_country_name": { "type": ["string", "null"], "maxLength": 35 },
+    "import_country_code": { "type": "string", "maxLength": 2 },
+    "import_country_name": { "type": "string", "maxLength": 35 },
+    "unloading_port_code": { "type": ["string", "null"], "maxLength": 35 },
+    "unloading_port_name": { "type": ["string", "null"], "maxLength": 256 },
+    "transport_mode": { "type": ["string", "null"], "maxLength": 35 },
+    "vessel_number": { "type": ["string", "null"], "maxLength": 35 },
+    "vessel_name": { "type": ["string", "null"], "maxLength": 35 },
     "notes": {
       "type": "array",
       "items": {
         "type": "object",
+        "required": ["note_subject_code", "note_content"],
         "properties": {
-          "note_subject_code": { "type": "string" },
-          "note_content": { "type": "string" }
+          "note_subject_code": { 
+            "type": "string", 
+            "enum": ["SPSFL", "ADEDL", "ADIPEDL", "ADDIEDL", "ADAOEDL", "ADRP", "ADRPN", "ADRPR", "ADRD", "DMCL", "CLOSE"]
+          },
+          "note_content": { "type": "string", "maxLength": 512 }
         }
       }
     },
@@ -165,9 +187,10 @@
       "type": "array",
       "items": {
         "type": "object",
+        "required": ["clause_id", "clause_content"],
         "properties": {
           "clause_id": { "type": "integer" },
-          "clause_content": { "type": "string" }
+          "clause_content": { "type": "string", "maxLength": 670 }
         }
       }
     },
