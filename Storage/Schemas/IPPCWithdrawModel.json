@@ -8,8 +8,8 @@
       "properties": {
         "doc_name": { "type": ["string"] },
         "doc_type": { "type": ["string", "integer"], "enum": ["851", 851] },
-        "doc_id": { "type": ["string", "integer"] },
-        "issue_party_name": { "type": ["string"] },
+        "doc_id": { "type": ["string", "integer"], "maxLength": 60 },
+        "issue_party_name": { "type": ["string"], "maxLength": 256 },
         "status_code": { "type": ["string", "integer"], "enum": ["40", 40] },
         "issue_date": { "type": ["string"] },
         "reference_docs": {
@@ -33,12 +33,14 @@
             "provider_party": {
               "type": "object",
               "properties": {
-                "name": { "type": ["string"] },
-                "specfied_person_name": { "type": ["string"] }
+                "id": { "type": ["string"] },
+                "name": { "type": ["string"], "maxLength": 256 },
+                "specfied_person_name": { "type": ["string"], "maxLength": 256 }
               },
-              "required": ["name", "specfied_person_name"]
+              "required": ["id", "name", "specfied_person_name"]
             },
-            "issue_location": { "type": ["string", "object"] },
+            "actual_datetime": { "type": ["string"] },
+            "issue_location": { "type": ["string", "object"], "maxLength": 256 },
             "include_clauses": {
               "type": "array",
               "items": {
@@ -48,7 +50,7 @@
               }
             }
           },
-          "required": ["provider_party", "issue_location", "include_clauses"]
+          "required": ["actual_datetime", "provider_party", "issue_location", "include_clauses"]
         }
       },
       "required": ["doc_name", "doc_type", "doc_id", "issue_party_name", "status_code", "issue_date", "signatory_authen"]

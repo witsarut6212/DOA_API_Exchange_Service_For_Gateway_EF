@@ -7,13 +7,13 @@
       "type": ["object"],
       "properties": {
         "doc_name": { "type": ["string"] },
-        "doc_id": { "type": ["string", "integer"] },
+        "doc_id": { "type": ["string", "integer"], "maxLength": 60 },
         "doc_description": { "type": ["string"] },
         "doc_type": { "type": ["string", "integer"], "enum": ["851", 851] },
         "status_code": { "type": ["string", "integer"], "enum": ["70", 70] },
         "issue_date": { "type": ["string"] },
         "issue_party_id": { "type": ["string", "integer"] },
-        "issue_party_name": { "type": ["string"] },
+        "issue_party_name": { "type": ["string"], "maxLength": 256 },
         "include_notes": {
           "type": ["array"],
           "minItems": 6,
@@ -76,17 +76,18 @@
             "actual_datetime": { "type": ["string"] },
             "issue_location": {
               "type": ["object", "string"],
-              "properties": { "name": { "type": ["string"] } },
+              "properties": { "name": { "type": ["string"], "maxLength": 256 } },
               "required": ["name"]
             },
             "provider_party": {
               "type": ["object"],
               "properties": {
-                "name": { "type": ["string"] },
+                "id": { "type": ["string"] },
+                "name": { "type": ["string"], "maxLength": 256 },
                 "specfied_person": {
                   "type": ["object"],
                   "properties": {
-                    "name": { "type": ["string"] },
+                    "name": { "type": ["string"], "maxLength": 256 },
                     "attained_qualification": {
                       "type": ["object"],
                       "properties": { "name": { "type": ["string"] } },
