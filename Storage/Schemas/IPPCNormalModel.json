@@ -6,7 +6,7 @@
     "xc_document": {
       "type": "object",
       "properties": {
-        "doc_name": { "type": ["string"] },
+        "doc_name": { "type": ["string"], "maxLength": 256 },
         "doc_type": { "type": ["string", "integer"], "enum": ["851", 851] },
         "doc_id": { "type": ["string", "integer"], "maxLength": 60 },
         "issue_party_name": { "type": ["string"], "maxLength": 256 },
@@ -18,11 +18,11 @@
             "type": "object",
             "properties": {
               "issue_date": { "type": ["string"] },
-              "relation_type_code": { "type": ["string"] },
-              "doc_id": { "type": ["string", "integer"] },
+              "relation_type_code": { "type": ["string"], "enum": ["AWR", "ZZZ"] },
+              "doc_id": { "type": ["string", "integer"], "maxLength": 60 },
               "PdfObject": { "type": ["string"] },
               "filename": { "type": ["string"] },
-              "informaton": { "type": ["string"] }
+              "informaton": { "type": ["string"], "maxLength": 512 }
             },
             "required": ["relation_type_code", "doc_id", "PdfObject", "filename", "informaton"]
           }
@@ -37,7 +37,7 @@
                 "name": { "type": ["string"], "maxLength": 256 },
                 "specfied_person_name": { "type": ["string"], "maxLength": 256 }
               },
-              "required": ["id", "name", "specfied_person_name"]
+              "required": ["name", "specfied_person_name"]
             },
             "actual_datetime": { "type": ["string"] },
             "issue_location": { "type": ["string", "object"], "maxLength": 256 },
@@ -50,7 +50,7 @@
               }
             }
           },
-          "required": ["actual_datetime", "provider_party", "issue_location", "include_clauses"]
+          "required": ["provider_party", "issue_location", "include_clauses"]
         }
       },
       "required": ["doc_name", "doc_type", "doc_id", "issue_party_name", "status_code", "issue_date", "signatory_authen"]
@@ -60,18 +60,18 @@
       "properties": {
         "export_country": {
           "type": "object",
-          "properties": { "id": { "type": ["string"] }, "name": { "type": ["string"] } },
+          "properties": { "id": { "type": ["string"] }, "name": { "type": ["string"], "maxLength": 256 } },
           "required": ["id", "name"]
         },
         "import_country": {
           "type": "object",
-          "properties": { "id": { "type": ["string"] }, "name": { "type": ["string"] } },
+          "properties": { "id": { "type": ["string"] }, "name": { "type": ["string"], "maxLength": 256 } },
           "required": ["id", "name"]
         },
         "consignor_party": {
           "type": "object",
           "properties": {
-            "name": { "type": ["string"] },
+            "name": { "type": ["string"], "maxLength": 256 },
             "adress_line1": { "type": ["string"] }
           },
           "required": ["name", "adress_line1"]
@@ -79,7 +79,7 @@
         "consignee_party": {
           "type": "object",
           "properties": {
-            "name": { "type": ["string"] },
+            "name": { "type": ["string"], "maxLength": 256 },
             "adress_line1": { "type": ["string"] }
           },
           "required": ["name", "adress_line1"]
@@ -87,7 +87,7 @@
         "unloading_baseport": {
           "type": "object",
           "properties": {
-            "name": { "type": ["string"] }
+            "name": { "type": ["string"], "maxLength": 256 }
           },
           "required": ["name"]
         },
@@ -123,7 +123,7 @@
             "minItems": 1,
             "items": {
               "type": "object",
-              "properties": { "name": { "type": ["string"] } },
+              "properties": { "name": { "type": ["string"], "maxLength": 512 } },
               "required": ["name"]
             }
           },
@@ -132,7 +132,7 @@
             "minItems": 1,
             "items": {
               "type": "object",
-              "properties": { "id": { "type": ["string"] }, "name": { "type": ["string"] } },
+              "properties": { "id": { "type": ["string"] }, "name": { "type": ["string"], "maxLength": 256 } },
               "required": ["id", "name"]
             }
           },
@@ -141,7 +141,7 @@
             "minItems": 1,
             "items": {
               "type": "object",
-              "properties": { "name": { "type": ["string"] } },
+              "properties": { "name": { "type": ["string"], "maxLength": 256 } },
               "required": ["name"]
             }
           }
@@ -155,8 +155,8 @@
         "type": "object",
         "properties": {
           "sequenceNo": { "type": ["integer", "string"] },
-          "Name": { "type": "string" },
-          "documentNo": { "type": "string" },
+          "Name": { "type": "string", "maxLength": 256 },
+          "documentNo": { "type": "string", "maxLength": 60 },
           "PdfObject": { "type": "string" }
         },
         "required": ["sequenceNo", "Name", "documentNo", "PdfObject"]
