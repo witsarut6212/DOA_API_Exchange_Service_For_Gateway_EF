@@ -41,7 +41,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
         [HttpPost("asw/normal")]
         public async Task<IActionResult> AswEPhytoNormal([FromBody] JObject rawRequest)
         {
-            var validationResult = await ValidateRequest(rawRequest, "ASW-ePhytoNormalModel.json");
+            var validationResult = await ValidateRequest(rawRequest, "ASWNormalModel.json");
             if (validationResult != null) return validationResult;
 
             var request = rawRequest.ToObject<EPhytoRequest>();
