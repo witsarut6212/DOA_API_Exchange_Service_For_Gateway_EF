@@ -50,7 +50,7 @@
               }
             }
           },
-          "required": ["provider_party", "issue_location", "include_clauses"]
+          "required": ["actual_datetime", "provider_party", "issue_location", "include_clauses"]
         }
       },
       "required": ["doc_name", "doc_type", "doc_id", "issue_party_name", "status_code", "issue_date", "signatory_authen"]
