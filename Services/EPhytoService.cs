@@ -56,7 +56,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             }
         }
 
-        public async Task ProcessEPhytoPayloadAsync(int payloadId, EPhytoRequest request, string source, string systemOrigin)
+        public async Task ProcessEPhytoPayloadAsync(int payloadId, object request, string source, string systemOrigin)
         {
             _context.CurrentUser = source;
             var instancePath = _configuration["ApiSettings:RoutePrefix"] ?? "UNKNOWN";
@@ -71,7 +71,6 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             try
             {
                 payload.Status = ApiConstants.PayloadStatus.Processing;
-                // UpdatedAt/By handled automatically by AppDbContext
                 await _context.SaveChangesAsync();
             }
             catch (Exception ex)
@@ -88,23 +87,43 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 try
                 {
                     string messageId = Guid.NewGuid().ToString();
+                    TabMessageThphyto thphyto;
+                    string? docIdForLog = null;
 
-                    var thphyto = MapToThPhyto(request, messageId, source, systemOrigin);
-                    _context.TabMessageThphytos.Add(thphyto);
-                    await _context.SaveChangesAsync();
+                    if (systemOrigin == "ASW" && request is AswNormalRequest aswReq)
+                    {
+                        docIdForLog = aswReq.DocId;
+                        thphyto = MapToThPhytoFromAsw(aswReq, messageId, source);
+                        _context.TabMessageThphytos.Add(thphyto);
+                        await _context.SaveChangesAsync();
 
-                    MapIncludedNotes(request.XcDocument.IncludeNotes, messageId);
-                    MapReferenceDocs(request, messageId);
-                    MapTransportInfo(request.Consignment, messageId);
-                    MapItems(request.Items, messageId);
+                        MapIncludedNotesFromAsw(aswReq.Notes, messageId);
+                        MapItemsFromAsw(aswReq.Detail, messageId);
+                        // Add more ASW mapping if needed
+                    }
+                    else if (request is IppcRequest ippcReq)
+                    {
+                        docIdForLog = ippcReq.XcDocument?.DocId;
+                        thphyto = MapToThPhytoFromIppc(ippcReq, messageId, source, systemOrigin);
+                        _context.TabMessageThphytos.Add(thphyto);
+                        await _context.SaveChangesAsync();
+
+                        MapIncludedNotesFromIppc(ippcReq.XcDocument?.IncludeNotes, messageId);
+                        MapReferenceDocsFromIppc(ippcReq, messageId);
+                        MapTransportInfoFromIppc(ippcReq.Consignment, messageId);
+                        MapItemsFromIppc(ippcReq.Items, messageId);
+                    }
+                    else
+                    {
+                        throw new Exception($"Unknown request type or origin mismatch: {systemOrigin}");
+                    }
 
                     _context.TabMessageTxnOutbounds.Add(new TabMessageTxnOutbound
                     {
-                        KeyId       = thphyto.Id,
-                        TxnType     = systemOrigin == "ASW" ? ApiConstants.TxnType.EPhytoASW : ApiConstants.TxnType.EPhytoIPPC,
+                        KeyId = thphyto.Id,
+                        TxnType = systemOrigin == "ASW" ? ApiConstants.TxnType.EPhytoASW : ApiConstants.TxnType.EPhytoIPPC,
                         Description = "",
-                        Status      = ApiConstants.QueueStatus.Wait
-                        // CreatedAt/By handled automatically by AppDbContext
+                        Status = ApiConstants.QueueStatus.Wait
                     });
 
                     payload.Status = ApiConstants.PayloadStatus.Success;
@@ -113,13 +132,13 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                     await transaction.CommitAsync();
 
                     _logger.LogInformation("[{Source}] Background processing SUCCESS for DocId: {DocId} (MessageId: {MessageId}, ThphytoId: {ThId})",
-                        source, request.XcDocument?.DocId, messageId, thphyto.Id);
+                        source, docIdForLog, messageId, thphyto.Id);
                 }
                 catch (Exception ex)
                 {
                     await transaction.RollbackAsync();
                     await _logService.LogExceptionAsync(ex, instancePath);
-                    _logger.LogError(ex, "[{Source}] Background processing FAILED for DocId: {DocId}", source, request.XcDocument?.DocId);
+                    _logger.LogError(ex, "[{Source}] Background processing FAILED", source);
 
                     _context.ChangeTracker.Clear();
                     try
@@ -140,9 +159,9 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             });
         }
 
-        #region Mapping Helpers (Private Methods)
+        #region Mapping Helpers (IPPC)
 
-        private TabMessageThphyto MapToThPhyto(EPhytoRequest request, string messageId, string source, string systemOrigin)
+        private TabMessageThphyto MapToThPhytoFromIppc(IppcRequest request, string messageId, string source, string systemOrigin)
         {
             var doc = request.XcDocument;
             var consignment = request.Consignment;
@@ -150,14 +169,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             string? authLocationName = null;
             if (doc.SignatoryAuthen?.IssueLocation != null)
             {
-                if (doc.SignatoryAuthen.IssueLocation is string locStr)
-                {
-                    authLocationName = locStr;
-                }
-                else if (doc.SignatoryAuthen.IssueLocation is Newtonsoft.Json.Linq.JObject locObj)
-                {
-                    authLocationName = locObj["name"]?.ToString();
-                }
+                if (doc.SignatoryAuthen.IssueLocation is string locStr) authLocationName = locStr;
+                else if (doc.SignatoryAuthen.IssueLocation is Newtonsoft.Json.Linq.JObject locObj) authLocationName = locObj["name"]?.ToString();
             }
 
             return new TabMessageThphyto
@@ -190,27 +203,17 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             };
         }
 
-        private void MapIncludedNotes(List<IncludeNote>? notes, string messageId)
+        private void MapIncludedNotesFromIppc(List<IncludeNote>? notes, string messageId)
         {
             if (notes == null) return;
-
             foreach (var hn in notes)
             {
-                string contentStr = hn.Contents != null 
-                    ? string.Join(", ", hn.Contents.Select(c => c.Content)) 
-                    : "";
-                
-                _context.TabMessageThphytoIncludedNotes.Add(new TabMessageThphytoIncludedNote 
-                { 
-                    MessageId = messageId, 
-                    Subject = hn.Subject ?? "N/A", 
-                    Content = contentStr
-                    // CreatedAt handled automatically
-                });
+                string contentStr = hn.Contents != null ? string.Join(", ", hn.Contents.Select(c => c.Content)) : "";
+                _context.TabMessageThphytoIncludedNotes.Add(new TabMessageThphytoIncludedNote { MessageId = messageId, Subject = hn.Subject ?? "N/A", Content = contentStr });
             }
         }
 
-        private void MapReferenceDocs(EPhytoRequest request, string messageId)
+        private void MapReferenceDocsFromIppc(IppcRequest request, string messageId)
         {
             var allRefs = new List<ReferenceDocRequest>();
             if (request.XcDocument.ReferenceDocs != null) allRefs.AddRange(request.XcDocument.ReferenceDocs);
@@ -218,132 +221,112 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
 
             foreach (var r in allRefs)
             {
-                _context.TabMessageThphytoReferenceDocs.Add(new TabMessageThphytoReferenceDoc
-                {
-                    MessageId = messageId,
-                    DocId = request.XcDocument.DocId,
-                    RefDocId = r.DocId ?? r.DocumentNo ?? "",
-                    Filename = r.Filename ?? r.Name,
-                    PdfObject = r.PdfObject
-                    // CreatedAt handled automatically
-                });
+                _context.TabMessageThphytoReferenceDocs.Add(new TabMessageThphytoReferenceDoc { MessageId = messageId, DocId = request.XcDocument.DocId, RefDocId = r.DocId ?? r.DocumentNo ?? "", Filename = r.Filename ?? r.Name, PdfObject = r.PdfObject });
             }
         }
 
-        private void MapTransportInfo(Consignment consignment, string messageId)
+        private void MapTransportInfoFromIppc(Consignment consignment, string messageId)
         {
             if (consignment.UtilizeTransport != null)
-            {
-                foreach (var ut in consignment.UtilizeTransport)
-                {
-                    _context.TabMessageThphytoUtilizeTransports.Add(new TabMessageThphytoUtilizeTransport
-                    {
-                        MessageId = messageId,
-                        SealNumber = ut.SealNumber
-                        // CreatedAt handled automatically
-                    });
-                }
-            }
+                foreach (var ut in consignment.UtilizeTransport) _context.TabMessageThphytoUtilizeTransports.Add(new TabMessageThphytoUtilizeTransport { MessageId = messageId, SealNumber = ut.SealNumber });
 
             if (consignment.MainCarriages != null)
-            {
-                foreach (var mc in consignment.MainCarriages)
-                {
-                    _context.TabMessageThphytoMainCarriages.Add(new TabMessageThphytoMainCarriage
-                    {
-                        MessageId = messageId,
-                        TransportModeCode = mc.ModeCode,
-                        TransportMeanName = mc.TransportMeanName
-                        // CreatedAt handled automatically
-                    });
-                }
-            }
+                foreach (var mc in consignment.MainCarriages) _context.TabMessageThphytoMainCarriages.Add(new TabMessageThphytoMainCarriage { MessageId = messageId, TransportModeCode = mc.ModeCode, TransportMeanName = mc.TransportMeanName });
         }
 
-        private void MapItems(List<EPhytoItem> items, string messageId)
+        private void MapItemsFromIppc(List<EPhytoItem> items, string messageId)
         {
             foreach (var item in items)
             {
                 string itemId = Guid.NewGuid().ToString();
-                _context.TabMessageThphytoItems.Add(new TabMessageThphytoItem
-                {
-                    MessageId = messageId,
-                    ItemId = itemId,
-                    SequenceNo = int.TryParse(item.SequenceNo, out var seq) ? seq : 0,
-                    ProductScientName = item.ScientName
-                    // CreatedAt handled automatically
-                });
+                _context.TabMessageThphytoItems.Add(new TabMessageThphytoItem { MessageId = messageId, ItemId = itemId, SequenceNo = int.TryParse(item.SequenceNo, out var seq) ? seq : 0, ProductScientName = item.ScientName });
+                
+                if (item.Descriptions != null)
+                    foreach (var d in item.Descriptions) _context.TabMessageThphytoItemDescriptions.Add(new TabMessageThphytoItemDescription { MessageId = messageId, ItemId = itemId, ProductDescription = d.Name ?? "" });
 
-                MapItemDetails(item, messageId, itemId);
-            }
-        }
+                if (item.CommonNames != null)
+                    foreach (var c in item.CommonNames) _context.TabMessageThphytoItemCommonNames.Add(new TabMessageThphytoItemCommonName { MessageId = messageId, ItemId = itemId, ProudctCommonName = c.Name ?? "" });
 
-        private void MapItemDetails(EPhytoItem item, string messageId, string itemId)
-        {
-            if (item.Descriptions != null)
-            {
-                foreach (var d in item.Descriptions)
+                if (item.AdditionalNotes != null)
                 {
-                    _context.TabMessageThphytoItemDescriptions.Add(new TabMessageThphytoItemDescription
+                    foreach (var n in item.AdditionalNotes)
                     {
-                        MessageId = messageId,
-                        ItemId = itemId,
-                        ProductDescription = d.Name ?? ""
-                        // CreatedAt handled automatically
-                    });
-                }
-            }
-
-            if (item.CommonNames != null)
-            {
-                foreach (var c in item.CommonNames)
-                {
-                    _context.TabMessageThphytoItemCommonNames.Add(new TabMessageThphytoItemCommonName
-                    {
-                        MessageId = messageId,
-                        ItemId = itemId,
-                        ProudctCommonName = c.Name ?? ""
-                        // CreatedAt handled automatically
-                    });
-                }
-            }
-
-            MapItemAdditionalNotes(item.AdditionalNotes, messageId, itemId);
-        }
-
-        private void MapItemAdditionalNotes(List<IncludeNote>? notes, string messageId, string itemId)
-        {
-            if (notes == null) return;
-
-            foreach (var n in notes)
-            {
-                string additionalNoteId = Guid.NewGuid().ToString();
-                _context.TabMessageThphytoItemAdditionalNotes.Add(new TabMessageThphytoItemAdditionalNote
-                {
-                    MessageId = messageId,
-                    ItemId = itemId,
-                    AdditionalNoteId = additionalNoteId,
-                    Subject = n.Subject ?? "N/A"
-                    // CreatedAt handled automatically
-                });
-
-                if (n.Contents != null)
-                {
-                    foreach (var c in n.Contents)
-                    {
-                        _context.TabMessageThphytoItemAdditionalNoteContents.Add(new TabMessageThphytoItemAdditionalNoteContent
-                        {
-                            MessageId = messageId,
-                            ItemId = itemId,
-                            AdditionalNoteId = additionalNoteId,
-                            NoteContent = c.Content ?? ""
-                            // CreatedAt handled automatically
-                        });
+                        string additionalNoteId = Guid.NewGuid().ToString();
+                        _context.TabMessageThphytoItemAdditionalNotes.Add(new TabMessageThphytoItemAdditionalNote { MessageId = messageId, ItemId = itemId, AdditionalNoteId = additionalNoteId, Subject = n.Subject ?? "N/A" });
+                        if (n.Contents != null)
+                            foreach (var c in n.Contents) _context.TabMessageThphytoItemAdditionalNoteContents.Add(new TabMessageThphytoItemAdditionalNoteContent { MessageId = messageId, ItemId = itemId, AdditionalNoteId = additionalNoteId, NoteContent = c.Content ?? "" });
                     }
                 }
             }
         }
 
+        #endregion
+
+        #region Mapping Helpers (ASW)
+
+        private TabMessageThphyto MapToThPhytoFromAsw(AswNormalRequest request, string messageId, string source)
+        {
+            return new TabMessageThphyto
+            {
+                MessageId = messageId,
+                MessageStatus = "NEW",
+                PhytoTo = "ASW",
+                DocName = request.DocName,
+                DocId = request.DocId ?? "N/A",
+                DocType = request.DocType ?? "",
+                DocStatus = request.DocStatus ?? "",
+                IssueDateTime = DateTime.TryParse(request.RefIssueDatetime, out var dt) ? dt : DateTime.Now,
+                IssuerName = request.IssuerName ?? "N/A",
+                RequestDateTime = DateTime.Now,
+                ConsignorName = request.ExporterName ?? "N/A",
+                ConsignorAddrLine1 = request.ExporterLine1,
+                ConsigneeName = request.ConsigneeName ?? "N/A",
+                ConsigneeAddrLine1 = request.ConsigneeLine1,
+                ExportCountryId = request.ExportCountryCode ?? "",
+                ImportCountryId = request.ImportCountryCode ?? "",
+                UnloadingBasePortName = request.UnloadingPortName,
+                AuthLocationName = request.AuthLocationName,
+                AuthProviderName = request.AuthProviderName,
+                AuthActualDateTime = null, // Will map from notes if needed
+                ResponseStatus = "0101",
+                TimeStamp = DateTime.Now,
+                LastUpdate = DateTime.Now,
+                QueueStatus = ApiConstants.QueueStatus.InQueue,
+                UserId = "ASW"
+            };
+        }
+
+        private void MapIncludedNotesFromAsw(List<AswNote> notes, string messageId)
+        {
+            if (notes == null) return;
+            foreach (var n in notes)
+            {
+                _context.TabMessageThphytoIncludedNotes.Add(new TabMessageThphytoIncludedNote { MessageId = messageId, Subject = n.NoteSubjectCode ?? "N/A", Content = n.NoteContent ?? "" });
+            }
+        }
+
+        private void MapItemsFromAsw(List<AswDetail> items, string messageId)
+        {
+            foreach (var item in items)
+            {
+                string itemId = Guid.NewGuid().ToString();
+                _context.TabMessageThphytoItems.Add(new TabMessageThphytoItem { MessageId = messageId, ItemId = itemId, SequenceNo = item.ItemNo, ProductScientName = item.ProductScientName });
+
+                if (item.Descriptions != null)
+                    foreach (var d in item.Descriptions) _context.TabMessageThphytoItemDescriptions.Add(new TabMessageThphytoItemDescription { MessageId = messageId, ItemId = itemId, ProductDescription = d.Name ?? "" });
+
+                // Additionals for ASW
+                if (item.Additionals != null)
+                {
+                    foreach (var n in item.Additionals)
+                    {
+                        string additionalNoteId = Guid.NewGuid().ToString();
+                        _context.TabMessageThphytoItemAdditionalNotes.Add(new TabMessageThphytoItemAdditionalNote { MessageId = messageId, ItemId = itemId, AdditionalNoteId = additionalNoteId, Subject = n.NoteSubject ?? "N/A" });
+                        _context.TabMessageThphytoItemAdditionalNoteContents.Add(new TabMessageThphytoItemAdditionalNoteContent { MessageId = messageId, ItemId = itemId, AdditionalNoteId = additionalNoteId, NoteContent = n.NoteContent ?? "" });
+                    }
+                }
+            }
+        }
         #endregion
     }
 }

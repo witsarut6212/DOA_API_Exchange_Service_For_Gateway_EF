@@ -44,17 +44,17 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
             var validationResult = await ValidateRequest(rawRequest, "ASWNormalModel.json");
             if (validationResult != null) return validationResult;
 
-            var request = rawRequest.ToObject<EPhytoRequest>();
-            if (request == null || request.XcDocument == null)
+            var request = rawRequest.ToObject<AswNormalRequest>();
+            if (request == null || string.IsNullOrEmpty(request.DocId))
             {
                 return BadRequest(_response.CreateError("Invalid request format after schema validation.", 400));
             }
 
             // Check Duplicate
-            if (await _ePhytoService.IsDocumentExists(request.XcDocument.DocType, request.XcDocument.StatusCode, request.XcDocument.DocId))
+            if (await _ePhytoService.IsDocumentExists(request.DocType ?? "851", request.DocStatus ?? "70", request.DocId))
             {
-                var data = new Dictionary<string, string> { { "doc_id", request.XcDocument.DocId } };
-                return Conflict(_response.CreateError($"Document {request.XcDocument.DocId} is already exists.", 409, data));
+                var data = new Dictionary<string, string> { { "doc_id", request.DocId } };
+                return Conflict(_response.CreateError($"Document {request.DocId} is already exists.", 409, data));
             }
 
             // Extract AppNickName from JWT
@@ -62,16 +62,17 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
  
             // Step 1: Save Payload
             var systemOrigin = "ASW";
-            var payloadId = await _ePhytoService.SaveEPhytoPayloadAsync(rawRequest.ToString(Formatting.None), source, systemOrigin, request.XcDocument!.DocId);
+            var payloadId = await _ePhytoService.SaveEPhytoPayloadAsync(rawRequest.ToString(Formatting.None), source, systemOrigin, request.DocId);
             if (payloadId == 0)
             {
                 return StatusCode(500, _response.CreateError("Failed to save submission payload.", 500));
             }
 
             // Step 2: Enqueue → Background Service จะ process ต่อ
+            // Note: We might need to adjust the Enqueue method to accept AswNormalRequest later or map it to EPhytoRequest
             _submissionQueue.Enqueue(payloadId, request, source, systemOrigin);
 
-            var successData = new Dictionary<string, string> { { "doc_id", request.XcDocument!.DocId } };
+            var successData = new Dictionary<string, string> { { "doc_id", request.DocId } };
             return Ok(_response.CreateSuccess(successData, "ได้รับข้อมูลเรียบร้อยแล้ว ระบบกำลังประมวลผล"));
         }
 
@@ -81,7 +82,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
             var validationResult = await ValidateRequest(rawRequest, "IPPCNormalModel.json");
             if (validationResult != null) return validationResult;
 
-            var request = rawRequest.ToObject<EPhytoRequest>();
+            var request = rawRequest.ToObject<IppcRequest>();
             if (request == null || request.XcDocument == null)
             {
                 return BadRequest(_response.CreateError("Invalid request format after schema validation.", 400));
@@ -125,7 +126,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
             var validationResult = await ValidateRequest(rawRequest, "IPPCReexportModel.json");
             if (validationResult != null) return validationResult;
 
-            var request = rawRequest.ToObject<EPhytoRequest>();
+            var request = rawRequest.ToObject<IppcRequest>();
             if (request == null || request.XcDocument == null)
             {
                 return BadRequest(_response.CreateError("Invalid request format after schema validation.", 400));
@@ -168,7 +169,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
             var validationResult = await ValidateRequest(rawRequest, "IPPCWithdrawModel.json");
             if (validationResult != null) return validationResult;
 
-            var request = rawRequest.ToObject<EPhytoRequest>();
+            var request = rawRequest.ToObject<IppcRequest>();
             if (request == null || request.XcDocument == null)
             {
                 return BadRequest(_response.CreateError("Invalid request format after schema validation.", 400));
