@@ -39,8 +39,8 @@
               },
               "required": ["name", "specfied_person_name"]
             },
-            "actual_datetime": { "type": ["string"] },
-            "issue_location": { "type": ["string", "object"], "maxLength": 256 },
+            "actual_datetime": { "type": ["string", "null"], "maxLength": 0 },
+            "issue_location": { "type": ["string", "object", "null"], "maxLength": 256 },
             "include_clauses": {
               "type": "array",
               "items": {
@@ -50,7 +50,7 @@
               }
             }
           },
-          "required": ["actual_datetime", "provider_party", "issue_location", "include_clauses"]
+          "required": ["provider_party", "issue_location", "include_clauses"]
         }
       },
       "required": ["doc_name", "doc_type", "doc_id", "issue_party_name", "status_code", "issue_date", "signatory_authen"]
