@@ -16,6 +16,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
         private readonly string _logProgressInstancePath;
         private readonly string _logCertInstancePath;
         private readonly ICommonService _commonService;
+        private readonly IPreSaveLogger _preSaveLogger;
 
         public SubmissionService(
             AppDbContext context, 
@@ -23,7 +24,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             ILogService logService, 
             IConfiguration configuration,
             ICertificateQueue certificateQueue,
-            ICommonService commonService)
+            ICommonService commonService,
+            IPreSaveLogger preSaveLogger)
         {
             _context = context;
             _logger = logger;
@@ -31,6 +33,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             _configuration = configuration;
             _certificateQueue = certificateQueue;
             _commonService = commonService;
+            _preSaveLogger = preSaveLogger;
             _logProgressInstancePath = _configuration["ApiSettings:SubmissionProgressPath"] ?? "/submission/ephyto/progress";
             _logCertInstancePath = _configuration["ApiSettings:SubmissionCertificatePath"] ?? "/submission/ephyto/certificate";
         }
@@ -93,6 +96,9 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 try
                 {
                     var submission = await CreateSubmissionRecordAsync(payloadId, request, source);
+                    
+                    await _preSaveLogger.LogAsync(request.DocumentControl.DocumentNumber, "Submission_Progress", Guid.NewGuid().ToString(), new { Header = submission, Request = request });
+
                     _context.TabMessageResponseSubmissions.Add(submission);
                     _logger.LogInformation("Creating new submission for Doc: {Doc}", request.DocumentControl.DocumentNumber);
 
@@ -236,6 +242,9 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                     // Always create a new record as per updated spec
                     var referenceNumber = request.DocumentControl.ReferenceNumber;
                     var submission = CreateCertificateSubmissionRecord(payloadId, request, source);
+
+                    await _preSaveLogger.LogAsync(referenceNumber, "Submission_Certificate", Guid.NewGuid().ToString(), new { Header = submission, Request = request });
+
                     _context.TabMessageResponseSubmissions.Add(submission);
 
                     _logger.LogInformation("[{Source}] Creating new certificate submission record for Ref: {Ref} (ID: {Id})", source, referenceNumber, submission.Id);

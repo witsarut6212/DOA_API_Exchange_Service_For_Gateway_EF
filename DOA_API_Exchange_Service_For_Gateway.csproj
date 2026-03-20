@@ -28,6 +28,7 @@
     <Folder Include="Data\" />
     <Folder Include="Models\Entities\" />
     <Folder Include="Storage\Log\2026\" />
+    <Folder Include="Storage\PreSave\" />
   </ItemGroup>
 
 </Project>

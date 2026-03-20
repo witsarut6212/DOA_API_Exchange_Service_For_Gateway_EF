@@ -109,9 +109,13 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                     else if (request is IppcRequest ippcReq)
                     {
                         docIdForLog = ippcReq.XcDocument?.DocId;
-                        var apiName = systemOrigin == "IPPC_REEXPORT" ? "IPPC_Reexport" 
-                                    : systemOrigin == "IPPC_WITHDRAW" ? "IPPC_Withdraw" 
-                                    : "IPPC_Normal";
+                        var apiName = "IPPC_Normal";
+                        if (ippcReq.XcDocument != null)
+                        {
+                            if (ippcReq.XcDocument.DocType == "657") apiName = "IPPC_Reexport";
+                            else if (ippcReq.XcDocument.DocType == "851" && ippcReq.XcDocument.StatusCode == "40") apiName = "IPPC_Withdraw";
+                        }
+                        
                         thphyto = MapToThPhytoFromIppc(ippcReq, messageId, source, systemOrigin);
 
                         await _preSaveLogger.LogAsync(docIdForLog, apiName, messageId, new { Header = thphyto, Request = ippcReq });
@@ -178,10 +182,15 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             var consignment = request.Consignment;
 
             string? authLocationName = null;
+            string? authLocationId = null;
             if (doc.SignatoryAuthen?.IssueLocation != null)
             {
                 if (doc.SignatoryAuthen.IssueLocation is string locStr) authLocationName = locStr;
-                else if (doc.SignatoryAuthen.IssueLocation is Newtonsoft.Json.Linq.JObject locObj) authLocationName = locObj["name"]?.ToString();
+                else if (doc.SignatoryAuthen.IssueLocation is Newtonsoft.Json.Linq.JObject locObj)
+                {
+                    authLocationName = locObj["name"]?.ToString();
+                    authLocationId = locObj["id"]?.ToString();
+                }
             }
 
             return new TabMessageThphyto
@@ -194,12 +203,15 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 DocType = doc.DocType,
                 DocStatus = doc.StatusCode,
                 IssueDateTime = DateTime.TryParse(doc.IssueDate, out var dt) ? dt : DateTime.Now,
+                IssuerId = doc.IssuePartyId,
                 IssuerName = doc.IssuePartyName ?? "N/A",
                 RequestDateTime = DateTime.Now,
+                ConsignorId = consignment.ConsignorParty?.Id,
                 ConsignorName = consignment.ConsignorParty?.Name ?? "N/A",
                 ConsignorAddrLine1 = consignment.ConsignorParty?.AddressLine1,
                 ConsignorCityName = consignment.ConsignorParty?.CityName,
                 ConsignorPostcode = consignment.ConsignorParty?.Postcode,
+                ConsigneeId = consignment.ConsigneeParty?.Id,
                 ConsigneeName = consignment.ConsigneeParty?.Name ?? "N/A",
                 ConsigneeAddrLine1 = consignment.ConsigneeParty?.AddressLine1,
                 ConsigneeCityName = consignment.ConsigneeParty?.CityName,
@@ -210,10 +222,14 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 ImportCountryName = consignment.ImportCountry?.Name,
                 UnloadingBasePortId = consignment.UnloadingBasePort?.Id,
                 UnloadingBasePortName = consignment.UnloadingBasePort?.Name,
+                AuthLocationId = authLocationId,
                 AuthLocationName = authLocationName,
                 AuthActualDateTime = doc.SignatoryAuthen?.ActualDatetime,
+                AuthProviderId = doc.SignatoryAuthen?.ProviderParty?.Id,
                 AuthProviderName = doc.SignatoryAuthen?.ProviderParty?.Name,
                 AuthSpecifyPersonName = doc.SignatoryAuthen?.ProviderParty?.SpecifiedPerson?.Name,
+                AuthAttainedQualificationName = doc.SignatoryAuthen?.ProviderParty?.SpecifiedPerson?.AttainedQualification?.Name,
+                AuthAbbrevName = doc.SignatoryAuthen?.ProviderParty?.SpecifiedPerson?.AttainedQualification?.AbbrevName,
                 ResponseStatus = "0101",
                 TimeStamp = DateTime.Now,
                 LastUpdate = DateTime.Now,
@@ -295,6 +311,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 DocType = request.DocType ?? "",
                 DocStatus = request.DocStatus ?? "",
                 IssueDateTime = DateTime.TryParse(request.RefIssueDatetime, out var dt) ? dt : DateTime.Now,
+                IssuerId = request.IssuerId,
                 IssuerName = request.IssuerName ?? "N/A",
                 RequestDateTime = DateTime.Now,
                 ConsignorName = request.ExporterName ?? "N/A",
@@ -307,8 +324,13 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 ImportCountryName = request.ImportCountryName,
                 UnloadingBasePortId = request.UnloadingPortCode,
                 UnloadingBasePortName = request.UnloadingPortName,
+                AuthLocationId = request.AuthLocationId,
                 AuthLocationName = request.AuthLocationName,
+                AuthProviderId = request.AuthProviderId,
                 AuthProviderName = request.AuthProviderName,
+                AuthSpecifyPersonName = request.AuthPerson,
+                AuthAttainedQualificationName = request.AuthPositionName,
+                AuthAbbrevName = request.AuthPositionAbb,
                 AuthActualDateTime = null, // Will map from notes if needed
                 ResponseStatus = "0101",
                 TimeStamp = DateTime.Now,
