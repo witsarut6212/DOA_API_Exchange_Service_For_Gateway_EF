@@ -51,7 +51,7 @@
           "product_name": { "type": ["string", "null"], "maxLength": 512 },
           "product_scient_name": { "type": ["string", "null"], "maxLength": 512 },
           "product_batch_id": { "type": ["string", "null"], "maxLength": 35 },
-          "product_intended_use": { "type": ["string", "null"], "maxLength": 35 },
+          "product_intended_use": { "type": ["string", "null"], "maxLength": 256 },
           "net_weight": { "type": ["number", "integer"] },
           "net_weight_unit": { "type": ["string", "null"], "maxLength": 3 },
           "gross_weight": { "type": ["number", "integer", "null"] },
@@ -96,9 +96,10 @@
             "type": ["array", "null"],
             "items": {
               "type": "object",
+              "required": ["process_type"],
               "properties": {
-                "process_type": { "type": ["string", "null"], "maxLength": 3 },
-                "process_start_date": { "type": ["string", "null"] },
+                "process_type": { "type": "string", "maxLength": 3 },
+                "process_start_date": { "type": ["string", "null"], "maxLength": 10 },
                 "process_end_date": { "type": ["string", "null"] },
                 "process_duration": { "type": ["number", "integer", "null"] },
                 "process_duration_unit": { "type": ["string", "null"], "maxLength": 3 },
