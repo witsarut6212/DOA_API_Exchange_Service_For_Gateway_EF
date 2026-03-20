@@ -155,6 +155,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Extensions
             services.AddScoped<DOA_API_Exchange_Service_For_Gateway.Middlewares.ClientIdAuthFilter>();
             services.AddScoped<DOA_API_Exchange_Service_For_Gateway.Helpers.IResponseHelper, DOA_API_Exchange_Service_For_Gateway.Helpers.ResponseHelper>();
             services.AddSingleton<DOA_API_Exchange_Service_For_Gateway.Services.ILogService, DOA_API_Exchange_Service_For_Gateway.Services.LogService>();
+            services.AddSingleton<DOA_API_Exchange_Service_For_Gateway.Services.IPreSaveLogger, DOA_API_Exchange_Service_For_Gateway.Services.PreSaveLogger>();
 
 
             services.AddSingleton<DOA_API_Exchange_Service_For_Gateway.Services.IProgressQueue, DOA_API_Exchange_Service_For_Gateway.Services.ProgressQueue>();

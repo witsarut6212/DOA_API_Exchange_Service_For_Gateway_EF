@@ -99,8 +99,8 @@
               "required": ["process_type"],
               "properties": {
                 "process_type": { "type": "string", "maxLength": 3 },
-                "process_start_date": { "type": ["string", "null"], "maxLength": 10 },
-                "process_end_date": { "type": ["string", "null"] },
+                "process_start_date": { "type": ["string", "null"], "format": "date-time" },
+                "process_end_date": { "type": ["string", "null"], "format": "date-time" },
                 "process_duration": { "type": ["number", "integer", "null"] },
                 "process_duration_unit": { "type": ["string", "null"], "maxLength": 3 },
                 "characteristics": {
@@ -182,7 +182,7 @@
             "maxLength": 7,
             "enum": ["SPSFL", "ADEDL", "ADIPEDL", "ADDIEDL", "ADAOEDL", "ADRP", "ADRPN", "ADRPR", "ADRD", "DMCL", "CLOSE"]
           },
-          "note_content": { "type": "string", "maxLength": 2 }
+          "note_content": { "type": "string", "maxLength": 8000 }
         }
       }
     },

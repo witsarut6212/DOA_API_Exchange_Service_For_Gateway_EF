@@ -11,13 +11,15 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
         private readonly AppDbContext _context;
         private readonly ILogger<EPhytoService> _logger;
         private readonly ILogService _logService;
+        private readonly IPreSaveLogger _preSaveLogger;
         private readonly IConfiguration _configuration;
 
-        public EPhytoService(AppDbContext context, ILogger<EPhytoService> logger, ILogService logService, IConfiguration configuration)
+        public EPhytoService(AppDbContext context, ILogger<EPhytoService> logger, ILogService logService, IPreSaveLogger preSaveLogger, IConfiguration configuration)
         {
             _context = context;
             _logger = logger;
             _logService = logService;
+            _preSaveLogger = preSaveLogger;
             _configuration = configuration;
         }
 
@@ -94,6 +96,9 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                     {
                         docIdForLog = aswReq.DocId;
                         thphyto = MapToThPhytoFromAsw(aswReq, messageId, source);
+
+                        await _preSaveLogger.LogAsync(docIdForLog, "ASW_Normal", messageId, new { Header = thphyto, Request = aswReq });
+
                         _context.TabMessageThphytos.Add(thphyto);
                         await _context.SaveChangesAsync();
 
@@ -104,7 +109,13 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                     else if (request is IppcRequest ippcReq)
                     {
                         docIdForLog = ippcReq.XcDocument?.DocId;
+                        var apiName = systemOrigin == "IPPC_REEXPORT" ? "IPPC_Reexport" 
+                                    : systemOrigin == "IPPC_WITHDRAW" ? "IPPC_Withdraw" 
+                                    : "IPPC_Normal";
                         thphyto = MapToThPhytoFromIppc(ippcReq, messageId, source, systemOrigin);
+
+                        await _preSaveLogger.LogAsync(docIdForLog, apiName, messageId, new { Header = thphyto, Request = ippcReq });
+
                         _context.TabMessageThphytos.Add(thphyto);
                         await _context.SaveChangesAsync();
 
@@ -194,7 +205,10 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 ConsigneeCityName = consignment.ConsigneeParty?.CityName,
                 ConsigneePostcode = consignment.ConsigneeParty?.Postcode,
                 ExportCountryId = consignment.ExportCountry?.Id ?? "",
+                ExportCountryName = consignment.ExportCountry?.Name,
                 ImportCountryId = consignment.ImportCountry?.Id ?? "",
+                ImportCountryName = consignment.ImportCountry?.Name,
+                UnloadingBasePortId = consignment.UnloadingBasePort?.Id,
                 UnloadingBasePortName = consignment.UnloadingBasePort?.Name,
                 AuthLocationName = authLocationName,
                 AuthActualDateTime = doc.SignatoryAuthen?.ActualDatetime,

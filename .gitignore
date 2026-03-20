@@ -9,3 +9,4 @@ appsettings.Development.json
 out/
 .DS_Store
 Storage/Log/
+Storage/PreSave/
