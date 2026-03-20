@@ -20,7 +20,8 @@
     "export_country_code",
     "export_country_name",
     "import_country_code",
-    "import_country_name"
+    "import_country_name",
+    "transport_mode"
   ],
   "properties": {
     "detail": {
@@ -177,9 +178,10 @@
         "properties": {
           "note_subject_code": { 
             "type": "string", 
+            "maxLength": 7,
             "enum": ["SPSFL", "ADEDL", "ADIPEDL", "ADDIEDL", "ADAOEDL", "ADRP", "ADRPN", "ADRPR", "ADRD", "DMCL", "CLOSE"]
           },
-          "note_content": { "type": "string", "maxLength": 512 }
+          "note_content": { "type": "string", "maxLength": 2 }
         }
       }
     },
