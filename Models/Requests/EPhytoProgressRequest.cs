@@ -153,6 +153,9 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
         [JsonProperty("name")]
         public string? Name { get; set; }
 
+        [JsonProperty("licenseNumber")]
+        public string? LicenseNumber { get; set; }
+
         [JsonProperty("issueDate")]
         public string? IssueDate { get; set; }
 
