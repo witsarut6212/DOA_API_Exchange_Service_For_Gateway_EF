@@ -252,7 +252,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 AuthActualDateTime = doc.SignatoryAuthen?.ActualDatetime,
                 AuthProviderId = doc.SignatoryAuthen?.ProviderParty?.Id,
                 AuthProviderName = doc.SignatoryAuthen?.ProviderParty?.Name,
-                AuthSpecifyPersonName = doc.SignatoryAuthen?.ProviderParty?.SpecifiedPerson?.Name,
+                AuthSpecifyPersonName = doc.SignatoryAuthen?.ProviderParty?.SpecfiedPersonName ?? doc.SignatoryAuthen?.ProviderParty?.SpecifiedPerson?.Name,
                 AuthAttainedQualificationName = doc.SignatoryAuthen?.ProviderParty?.SpecifiedPerson?.AttainedQualification?.Name,
                 AuthAbbrevName = doc.SignatoryAuthen?.ProviderParty?.SpecifiedPerson?.AttainedQualification?.AbbrevName,
                 ResponseStatus = "0101",
