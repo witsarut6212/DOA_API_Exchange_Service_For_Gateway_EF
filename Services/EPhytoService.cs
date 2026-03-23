@@ -150,7 +150,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
 
                         MapIncludedNotesFromIppc(ippcReq.XcDocument?.IncludeNotes, messageId);
                         MapReferenceDocsFromIppc(ippcReq, messageId);
-                        MapTransportFromIppc(ippcReq.Consignment, messageId);
+                        MapTransportInfoFromIppc(ippcReq.Consignment, messageId);
                         MapUtilizeTransportFromIppc(ippcReq.Consignment?.UtilizeTransport, messageId);
                         MapItemsFromIppc(ippcReq.Items, messageId);
                     }
@@ -301,9 +301,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
 
         private void MapTransportInfoFromIppc(Consignment consignment, string messageId)
         {
-            if (consignment.UtilizeTransport != null)
-                foreach (var ut in consignment.UtilizeTransport) _context.TabMessageThphytoUtilizeTransports.Add(new TabMessageThphytoUtilizeTransport { MessageId = messageId, SealNumber = ut.SealNumber });
-
+            // Redundant UtilizeTransport mapping removed. Handled by MapUtilizeTransportFromIppc.
             if (consignment.MainCarriages != null)
                 foreach (var mc in consignment.MainCarriages) _context.TabMessageThphytoMainCarriages.Add(new TabMessageThphytoMainCarriage { MessageId = messageId, TransportModeCode = mc.ModeCode, TransportMeanName = mc.TransportMeanName });
         }
