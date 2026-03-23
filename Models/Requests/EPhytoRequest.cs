@@ -159,7 +159,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
         public List<MainCarriageRequest>? MainCarriages { get; set; }
 
         [JsonProperty("utilize_transport")]
-        public List<UtilizeTransportRequest>? UtilizeTransport { get; set; }
+        public UtilizeTransportRequest? UtilizeTransport { get; set; }
     }
 
     public class Party

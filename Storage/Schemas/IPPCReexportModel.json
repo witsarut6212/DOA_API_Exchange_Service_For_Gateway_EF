@@ -97,6 +97,13 @@
             "properties": { "mode_code": { "type": ["string", "integer"] } },
             "required": ["mode_code"]
           }
+        },
+        "utilize_transport": {
+          "type": ["object", "null"],
+          "properties": {
+            "equipment_id": { "type": ["string", "null"] },
+            "seal_number": { "type": ["string", "null"] }
+          }
         }
       },
       "required": ["export_country", "import_country", "consignor_party", "consignee_party", "unloading_baseport", "main_carriages"]

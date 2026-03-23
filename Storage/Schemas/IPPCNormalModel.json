@@ -101,6 +101,13 @@
             },
             "required": ["mode_code"]
           }
+        },
+        "utilize_transport": {
+          "type": ["object", "null"],
+          "properties": {
+            "equipment_id": { "type": ["string", "null"] },
+            "seal_number": { "type": ["string", "null"] }
+          }
         }
       },
       "required": [
