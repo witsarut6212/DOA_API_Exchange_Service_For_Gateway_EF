@@ -118,8 +118,8 @@
               "required": ["process_type"],
               "properties": {
                 "process_type": { "type": "string", "maxLength": 3 },
-                "process_start_date": { "type": ["string", "null"], "format": "date-time" },
-                "process_end_date": { "type": ["string", "null"], "format": "date-time" },
+                "process_start_date": { "type": ["string", "null"], "maxLength": 10 },
+                "process_end_date": { "type": ["string", "null"], "maxLength": 10 },
                 "process_duration": { "type": ["number", "integer", "null"] },
                 "process_duration_unit": { "type": ["string", "null"], "maxLength": 3 },
                 "characteristics": {

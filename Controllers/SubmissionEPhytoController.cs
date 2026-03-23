@@ -64,7 +64,11 @@ namespace DOA_API_Exchange_Service_For_Gateway.Controllers
             var successData = new 
             { 
                 ReferenceNumber = request.DocumentControl.ReferenceNumber, 
-                Status = request.DocumentControl.ResponseInfo.Status 
+                ResponseInfo = new
+                {
+                    Status = request.DocumentControl.ResponseInfo.Status,
+                    DateTime = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss")
+                }
             };
 
             return Ok(_response.CreateSuccess(successData, "Successfully received ePhyto progress."));
