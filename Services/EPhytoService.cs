@@ -159,6 +159,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                         MapTransportInfoFromIppc(ippcReq.Consignment, messageId);
                         MapUtilizeTransportFromIppc(ippcReq.Consignment?.UtilizeTransport, messageId);
                         MapItemsFromIppc(ippcReq.Items, messageId);
+
+                        await _context.SaveChangesAsync();
                     }
                     else
                     {
@@ -252,6 +254,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 ExportCountryName = consignment.ExportCountry?.Name,
                 ImportCountryId = consignment.ImportCountry?.Id ?? "",
                 ImportCountryName = consignment.ImportCountry?.Name,
+                ReexportCountryId = consignment.ReexportCountry?.Id,
+                ReexportCountryName = consignment.ReexportCountry?.Name,
                 UnloadingBasePortId = consignment.UnloadingBasePort?.Id,
                 UnloadingBasePortName = consignment.UnloadingBasePort?.Name,
                 AuthLocationId = authLocationId,
