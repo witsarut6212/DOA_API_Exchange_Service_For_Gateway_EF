@@ -1,3 +1,9 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
 using DOA_API_Exchange_Service_For_Gateway.Data;
 using DOA_API_Exchange_Service_For_Gateway.Models.Entities;
 using DOA_API_Exchange_Service_For_Gateway.Models.Requests;
@@ -301,23 +307,122 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
 
         private void MapTransportInfoFromIppc(Consignment consignment, string messageId)
         {
-            // Redundant UtilizeTransport mapping removed. Handled by MapUtilizeTransportFromIppc.
             if (consignment.MainCarriages != null)
                 foreach (var mc in consignment.MainCarriages) _context.TabMessageThphytoMainCarriages.Add(new TabMessageThphytoMainCarriage { MessageId = messageId, TransportModeCode = mc.ModeCode, TransportMeanName = mc.TransportMeanName });
         }
 
         private void MapItemsFromIppc(List<EPhytoItem> items, string messageId)
         {
+            if (items == null) return;
             foreach (var item in items)
             {
                 string itemId = Guid.NewGuid().ToString();
-                _context.TabMessageThphytoItems.Add(new TabMessageThphytoItem { MessageId = messageId, ItemId = itemId, SequenceNo = int.TryParse(item.SequenceNo, out var seq) ? seq : 0, ProductScientName = item.ScientName });
                 
+                decimal? netW = decimal.TryParse(item.NetWeight?.Weight, out var nw) ? nw : (decimal?)null;
+                decimal? grossW = decimal.TryParse(item.GrossWeight?.Weight, out var gw) ? gw : (decimal?)null;
+
+                _context.TabMessageThphytoItems.Add(new TabMessageThphytoItem
+                {
+                    MessageId = messageId,
+                    ItemId = itemId,
+                    SequenceNo = int.TryParse(item.SequenceNo, out var sn) ? sn : 0,
+                    ProductScientName = item.ScientName,
+                    NetWeight = netW,
+                    NetWeightUnit = item.NetWeight?.UnitCode,
+                    GrossWeight = grossW,
+                    GrossWeightUnit = item.GrossWeight?.UnitCode
+                });
+
                 if (item.Descriptions != null)
                     foreach (var d in item.Descriptions) _context.TabMessageThphytoItemDescriptions.Add(new TabMessageThphytoItemDescription { MessageId = messageId, ItemId = itemId, ProductDescription = d.Name ?? "" });
 
                 if (item.CommonNames != null)
-                    foreach (var c in item.CommonNames) _context.TabMessageThphytoItemCommonNames.Add(new TabMessageThphytoItemCommonName { MessageId = messageId, ItemId = itemId, ProudctCommonName = c.Name ?? "" });
+                    foreach (var cn in item.CommonNames) _context.TabMessageThphytoItemCommonNames.Add(new TabMessageThphytoItemCommonName { MessageId = messageId, ItemId = itemId, ProudctCommonName = cn.Name ?? "" });
+
+                if (item.IntendUses != null)
+                    foreach (var iu in item.IntendUses) _context.TabMessageThphytoItemIntendeds.Add(new TabMessageThphytoItemIntended { MessageId = messageId, ItemId = itemId, ProductIntendUse = iu.Name ?? "" });
+
+                if (item.OriginCountries != null)
+                {
+                    foreach (var oc in item.OriginCountries)
+                    {
+                        _context.TabMessageThphytoItemOriginCountries.Add(new TabMessageThphytoItemOriginCountry 
+                        { 
+                            MessageId = messageId, 
+                            ItemId = itemId, 
+                            CountryId = oc.Id ?? "", 
+                            CountryName = oc.Name, 
+                            SubDivisionId = oc.SubordinaryCountry?.SubdivisionId, 
+                            SubDivisionName = oc.SubordinaryCountry?.SubdivisionName 
+                        });
+                    }
+                }
+
+                if (item.PhysicalPackages != null)
+                {
+                    foreach (var pp in item.PhysicalPackages)
+                    {
+                        int? qty = int.TryParse(pp.Quantity, out var q) ? q : (int?)null;
+                        string marks = pp.ShippingMarks != null ? string.Join(", ", pp.ShippingMarks.Select(sm => sm.Marking)) : "";
+                        _context.TabMessageThphytoItemPhysicalPackages.Add(new TabMessageThphytoItemPhysicalPackage 
+                        { 
+                            MessageId = messageId, 
+                            ItemId = itemId, 
+                            LevelCode = pp.LevelCode ?? "", 
+                            TypeCode = pp.TypeCode ?? "", 
+                            ShippingMarks = marks, 
+                            Quantity = qty 
+                        });
+                    }
+                }
+
+                if (item.AppliedProcesses != null)
+                {
+                    foreach (var p in item.AppliedProcesses)
+                    {
+                        string processId = Guid.NewGuid().ToString();
+                        double? duration = double.TryParse(p.DurationMeasure, out var d) ? d : (double?)null;
+                        
+                        _context.TabMessageThphytoItemProcesses.Add(new TabMessageThphytoItemProcess 
+                        { 
+                            MessageId = messageId, 
+                            ItemId = itemId, 
+                            ProcessId = processId, 
+                            TypeCode = p.TypeCode ?? "", 
+                            StartDate = p.CompletePeriod?.StartDate, 
+                            EndDate = p.CompletePeriod?.EndDate, 
+                            Duration = duration, 
+                            DurationUnit = p.DurationMeasuerUnit ?? "" 
+                        });
+
+                        if (p.Characteristics != null)
+                        {
+                            foreach (var ch in p.Characteristics)
+                            {
+                                _context.TabMessageThphytoItemProcessCharacteristics.Add(new TabMessageThphytoItemProcessCharacteristic 
+                                { 
+                                    MessageId = messageId, 
+                                    ItemId = itemId, 
+                                    ProcessId = processId, 
+                                    TypeCode = ch.Value<string>("type_code") ?? "", 
+                                    Description1 = ch.Value<string>("description_1") ?? "", 
+                                    Description2 = ch.Value<string>("description_2") ?? "", 
+                                    ValueMeasure = ch.Value<string>("value_measure") ?? "", 
+                                    UnitCode = ch.Value<string>("unit_code") ?? "" 
+                                });
+                            }
+                        }
+                    }
+                }
+
+                if (item.ApplicableClassifications != null)
+                {
+                    foreach (var c in item.ApplicableClassifications)
+                    {
+                        var firstClassName = c.ClassNames?.FirstOrDefault()?.ClassName ?? "";
+                        _context.TabMessageThphytoItemApplicableClassifications.Add(new TabMessageThphytoItemApplicableClassification { MessageId = messageId, ItemId = itemId, SystemName = c.SystemName ?? "", ClassCode = c.ClassCode ?? "", ClassName = firstClassName });
+                    }
+                }
 
                 if (item.AdditionalNotes != null)
                 {
@@ -325,8 +430,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                     {
                         string additionalNoteId = Guid.NewGuid().ToString();
                         _context.TabMessageThphytoItemAdditionalNotes.Add(new TabMessageThphytoItemAdditionalNote { MessageId = messageId, ItemId = itemId, AdditionalNoteId = additionalNoteId, Subject = n.Subject ?? "N/A" });
-                        if (n.Contents != null)
-                            foreach (var c in n.Contents) _context.TabMessageThphytoItemAdditionalNoteContents.Add(new TabMessageThphytoItemAdditionalNoteContent { MessageId = messageId, ItemId = itemId, AdditionalNoteId = additionalNoteId, NoteContent = c.Content ?? "" });
+                        var contentStr = n.Contents != null ? string.Join(", ", n.Contents.Select(c => c.Content)) : "";
+                        _context.TabMessageThphytoItemAdditionalNoteContents.Add(new TabMessageThphytoItemAdditionalNoteContent { MessageId = messageId, ItemId = itemId, AdditionalNoteId = additionalNoteId, NoteContent = contentStr });
                     }
                 }
             }
@@ -461,6 +566,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
 
         private void MapItemsFromAsw(List<AswDetail> items, string messageId)
         {
+            if (items == null) return;
             foreach (var item in items)
             {
                 string itemId = Guid.NewGuid().ToString();
@@ -490,85 +596,36 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 {
                     foreach (var oc in item.OriginCountries)
                     {
-                        _context.TabMessageThphytoItemOriginCountries.Add(new TabMessageThphytoItemOriginCountry
-                        {
-                            MessageId = messageId,
-                            ItemId = itemId,
-                            CountryId = oc.OriginCountryCode ?? "",
-                            CountryName = oc.OriginCountryName,
-                            SubDivisionId = oc.OriginProvinceCode,
-                            SubDivisionName = oc.OriginProvinceName,
-                            HeirachiLevel = oc.OriginHierarchiLevel,
-                            AuthorizePartyId = oc.ProducerCode,
-                            AuthorizePartyName = oc.ProducerName,
-                            AuthorizeRoleCode = oc.ProducerRole
-                        });
+                        _context.TabMessageThphytoItemOriginCountries.Add(new TabMessageThphytoItemOriginCountry { MessageId = messageId, ItemId = itemId, CountryId = oc.OriginCountryCode ?? "", CountryName = oc.OriginCountryName, SubDivisionId = oc.OriginProvinceCode, SubDivisionName = oc.OriginProvinceName, HeirachiLevel = oc.OriginHierarchiLevel, AuthorizePartyId = oc.ProducerCode, AuthorizePartyName = oc.ProducerName, AuthorizeRoleCode = oc.ProducerRole });
                     }
                 }
 
-                // New: Map Common Name
-                if (!string.IsNullOrEmpty(item.ProductName))
-                {
-                    _context.TabMessageThphytoItemCommonNames.Add(new TabMessageThphytoItemCommonName
-                    {
-                        MessageId = messageId,
-                        ItemId = itemId,
-                        ProudctCommonName = item.ProductName
-                    });
-                }
-
-                // New: Map Intended Use
-                if (!string.IsNullOrEmpty(item.ProductIntendedUse))
-                {
-                    _context.TabMessageThphytoItemIntendeds.Add(new TabMessageThphytoItemIntended
-                    {
-                        MessageId = messageId,
-                        ItemId = itemId,
-                        ProductIntendUse = item.ProductIntendedUse
-                    });
-                }
-
-                // New: Map Classifications
                 if (item.Classifications != null)
                 {
                     foreach (var c in item.Classifications)
                     {
-                        _context.TabMessageThphytoItemApplicableClassifications.Add(new TabMessageThphytoItemApplicableClassification
-                        {
-                            MessageId = messageId,
-                            ItemId = itemId,
-                            SystemName = c.SystemName ?? "",
-                            ClassCode = c.ClassCode ?? "",
-                            ClassName = c.ClassName ?? ""
-                        });
+                        _context.TabMessageThphytoItemApplicableClassifications.Add(new TabMessageThphytoItemApplicableClassification { MessageId = messageId, ItemId = itemId, SystemName = c.SystemName ?? "", ClassCode = c.ClassCode ?? "", ClassName = c.ClassName ?? "" });
                     }
                 }
 
-                // New: Map Transport Equipments
                 if (item.TransportEquipments != null)
                 {
                     foreach (var te in item.TransportEquipments)
                     {
-                        _context.TabMessageThphytoItemTransportEquipments.Add(new TabMessageThphytoItemTransportEquipment
-                        {
-                            MessageId = messageId,
-                            ItemId = itemId,
-                            TransportId = te.EquipmentId ?? "",
-                            SealNumber = te.SealNumber ?? ""
-                        });
+                        _context.TabMessageThphytoItemTransportEquipments.Add(new TabMessageThphytoItemTransportEquipment { MessageId = messageId, ItemId = itemId, TransportId = te.EquipmentId ?? "", SealNumber = te.SealNumber ?? "" });
                     }
                 }
 
                 if (!string.IsNullOrEmpty(item.PackageLevel) || !string.IsNullOrEmpty(item.PackageType))
                 {
-                    _context.TabMessageThphytoItemPhysicalPackages.Add(new TabMessageThphytoItemPhysicalPackage
-                    {
-                        MessageId = messageId,
-                        ItemId = itemId,
-                        LevelCode = item.PackageLevel ?? "",
-                        TypeCode = item.PackageType ?? "",
-                        ShippingMarks = item.ShippingMarks ?? "",
-                        Quantity = (int?)item.PackageAmount
+                    _context.TabMessageThphytoItemPhysicalPackages.Add(new TabMessageThphytoItemPhysicalPackage 
+                    { 
+                        MessageId = messageId, 
+                        ItemId = itemId, 
+                        LevelCode = item.PackageLevel ?? "", 
+                        TypeCode = item.PackageType ?? "", 
+                        ShippingMarks = item.ShippingMarks ?? "", 
+                        Quantity = (int?)item.PackageAmount 
                     });
                 }
 
@@ -577,65 +634,14 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                     foreach (var p in item.Processes)
                     {
                         string processId = Guid.NewGuid().ToString();
-                        _context.TabMessageThphytoItemProcesses.Add(new TabMessageThphytoItemProcess
-                        {
-                            MessageId = messageId,
-                            ItemId = itemId,
-                            ProcessId = processId,
-                            TypeCode = p.ProcessType ?? "",
-                            StartDate = p.ProcessStartDate,
-                            EndDate = p.ProcessEndDate,
-                            Duration = (double?)(p.ProcessDuration),
-                            DurationUnit = p.ProcessDurationUnit ?? ""
-                        });
-
+                        _context.TabMessageThphytoItemProcesses.Add(new TabMessageThphytoItemProcess { MessageId = messageId, ItemId = itemId, ProcessId = processId, TypeCode = p.ProcessType ?? "", StartDate = p.ProcessStartDate, EndDate = p.ProcessEndDate, Duration = (double?)(p.ProcessDuration), DurationUnit = p.ProcessDurationUnit ?? "" });
                         if (p.Characteristics != null)
                         {
                             foreach (var ch in p.Characteristics)
                             {
-                                _logger.LogInformation("Mapping Characteristic: {Code} - {Desc}", ch.ProcessCharacterCode, ch.ProcessCharacterDesc);
-                                _context.TabMessageThphytoItemProcessCharacteristics.Add(new TabMessageThphytoItemProcessCharacteristic
-                                {
-                                    MessageId = messageId,
-                                    ItemId = itemId,
-                                    ProcessId = processId,
-                                    TypeCode = ch.ProcessCharacterType ?? "",
-                                    Description1 = ch.ProcessCharacterCode ?? "",
-                                    Description2 = ch.ProcessCharacterDesc ?? "",
-                                    ValueMeasure = ch.ProcessValue ?? "",
-                                    UnitCode = ch.ProcessValueUnit ?? ""
-                                });
+                                _context.TabMessageThphytoItemProcessCharacteristics.Add(new TabMessageThphytoItemProcessCharacteristic { MessageId = messageId, ItemId = itemId, ProcessId = processId, TypeCode = ch.ProcessCharacterType ?? "", Description1 = ch.ProcessCharacterCode ?? "", Description2 = ch.ProcessCharacterDesc ?? "", ValueMeasure = ch.ProcessValue ?? "", UnitCode = ch.ProcessValueUnit ?? "" });
                             }
                         }
-                    }
-                }
-
-                // New: Map Classifications (IPPC)
-                if (item.ApplicableClassifications != null)
-                {
-                    foreach (var c in item.ApplicableClassifications)
-                    {
-                        var firstClassName = c.ClassNames?.FirstOrDefault()?.ClassName ?? "";
-                        _context.TabMessageThphytoItemApplicableClassifications.Add(new TabMessageThphytoItemApplicableClassification
-                        {
-                            MessageId = messageId,
-                            ItemId = itemId,
-                            SystemName = c.SystemName ?? "",
-                            ClassCode = c.ClassCode ?? "",
-                            ClassName = firstClassName
-                        });
-                    }
-                }
-
-                // Additionals for IPPC (AdditionalNotes)
-                if (item.AdditionalNotes != null)
-                {
-                    foreach (var n in item.AdditionalNotes)
-                    {
-                        string additionalNoteId = Guid.NewGuid().ToString();
-                        _context.TabMessageThphytoItemAdditionalNotes.Add(new TabMessageThphytoItemAdditionalNote { MessageId = messageId, ItemId = itemId, AdditionalNoteId = additionalNoteId, Subject = n.Subject ?? "N/A" });
-                        var contentStr = n.Contents != null ? string.Join(", ", n.Contents.Select(c => c.Content)) : "";
-                        _context.TabMessageThphytoItemAdditionalNoteContents.Add(new TabMessageThphytoItemAdditionalNoteContent { MessageId = messageId, ItemId = itemId, AdditionalNoteId = additionalNoteId, NoteContent = contentStr });
                     }
                 }
             }
