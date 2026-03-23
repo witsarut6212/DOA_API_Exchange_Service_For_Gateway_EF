@@ -5,8 +5,7 @@
   "additionalProperties": false,
   "required": [
     "documentControl",
-    "details",
-    "payment"
+    "details"
   ],
   "properties": {
     "documentControl": {
@@ -55,13 +54,15 @@
       "additionalProperties": false,
       "required": [],
       "properties": {
+        "itemNumber": { "type": "integer", "minimum": 0, "maximum": 99 },
         "referenceNumber1": { "type": "string", "maxLength": 35 },
         "referenceNumber2": { "type": "string", "maxLength": 35 },
         "amount": { "type": "number" },
         "bankCode": { "type": "string", "maxLength": 3 },
         "compCode": { "type": "string", "maxLength": 35 },
         "message": { "type": "string", "maxLength": 200 },
-        "url": { "type": "string", "format": "uri", "maxLength": 256 }
+        "url": { "type": "string", "maxLength": 256 },
+        "billpayment": { "type": "string", "minLength": 1 }
       }
     }
   }

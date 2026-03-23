@@ -119,6 +119,9 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
 
         [JsonProperty("url")]
         public string? Url { get; set; }
+
+        [JsonProperty("billpayment")]
+        public string? Billpayment { get; set; }
     }
 
     public class AdditionalDocument
