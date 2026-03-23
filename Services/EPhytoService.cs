@@ -424,7 +424,15 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                     foreach (var c in item.ApplicableClassifications)
                     {
                         var firstClassName = c.ClassNames?.FirstOrDefault()?.ClassName ?? "";
-                        _context.TabMessageThphytoItemApplicableClassifications.Add(new TabMessageThphytoItemApplicableClassification { MessageId = messageId, ItemId = itemId, SystemName = c.SystemName ?? "", ClassCode = c.ClassCode ?? "", ClassName = firstClassName });
+                        _context.TabMessageThphytoItemApplicableClassifications.Add(new TabMessageThphytoItemApplicableClassification 
+                        { 
+                            MessageId = messageId, 
+                            ItemId = itemId, 
+                            ApplicableId = Guid.NewGuid().ToString(),
+                            SystemName = c.SystemName ?? "", 
+                            ClassCode = c.ClassCode ?? "", 
+                            ClassName = firstClassName 
+                        });
                     }
                 }
 
@@ -608,7 +616,15 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 {
                     foreach (var c in item.Classifications)
                     {
-                        _context.TabMessageThphytoItemApplicableClassifications.Add(new TabMessageThphytoItemApplicableClassification { MessageId = messageId, ItemId = itemId, SystemName = c.SystemName ?? "", ClassCode = c.ClassCode ?? "", ClassName = c.ClassName ?? "" });
+                        _context.TabMessageThphytoItemApplicableClassifications.Add(new TabMessageThphytoItemApplicableClassification 
+                        { 
+                            MessageId = messageId, 
+                            ItemId = itemId, 
+                            ApplicableId = Guid.NewGuid().ToString(),
+                            SystemName = c.SystemName ?? "", 
+                            ClassCode = c.ClassCode ?? "", 
+                            ClassName = c.ClassName ?? "" 
+                        });
                     }
                 }
 
