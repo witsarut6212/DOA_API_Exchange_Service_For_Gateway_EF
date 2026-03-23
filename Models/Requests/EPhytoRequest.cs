@@ -357,6 +357,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
         public string? StartDate { get; set; }
         [JsonProperty("end_date")]
         public string? EndDate { get; set; }
+        [JsonProperty("unit_code")]
+        public string? UnitCode { get; set; }
     }
 
     public class ReferenceDocRequest

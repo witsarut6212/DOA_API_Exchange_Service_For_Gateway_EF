@@ -393,10 +393,10 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                             ItemId = itemId, 
                             ProcessId = processId, 
                             TypeCode = p.TypeCode ?? "", 
-                            StartDate = p.CompletePeriod?.StartDate, 
-                            EndDate = p.CompletePeriod?.EndDate, 
+                            StartDate = DateTime.TryParse(p.CompletePeriod?.StartDate, out var ps) ? ps.ToString("yyyy-MM-dd") : p.CompletePeriod?.StartDate, 
+                            EndDate = DateTime.TryParse(p.CompletePeriod?.EndDate, out var pe) ? pe.ToString("yyyy-MM-dd") : p.CompletePeriod?.EndDate, 
                             Duration = duration, 
-                            DurationUnit = p.DurationMeasuerUnit ?? "" 
+                            DurationUnit = p.DurationMeasuerUnit ?? p.CompletePeriod?.UnitCode ?? "" 
                         });
 
                         if (p.Characteristics != null)
@@ -654,7 +654,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                     foreach (var p in item.Processes)
                     {
                         string processId = Guid.NewGuid().ToString();
-                        _context.TabMessageThphytoItemProcesses.Add(new TabMessageThphytoItemProcess { MessageId = messageId, ItemId = itemId, ProcessId = processId, TypeCode = p.ProcessType ?? "", StartDate = p.ProcessStartDate, EndDate = p.ProcessEndDate, Duration = (double?)(p.ProcessDuration), DurationUnit = p.ProcessDurationUnit ?? "" });
+                        _context.TabMessageThphytoItemProcesses.Add(new TabMessageThphytoItemProcess { MessageId = messageId, ItemId = itemId, ProcessId = processId, TypeCode = p.ProcessType ?? "", StartDate = DateTime.TryParse(p.ProcessStartDate, out var ps) ? ps.ToString("yyyy-MM-dd") : p.ProcessStartDate, EndDate = DateTime.TryParse(p.ProcessEndDate, out var pe) ? pe.ToString("yyyy-MM-dd") : p.ProcessEndDate, Duration = (double?)(p.ProcessDuration), DurationUnit = p.ProcessDurationUnit ?? "" });
                         if (p.Characteristics != null)
                         {
                             foreach (var ch in p.Characteristics)
