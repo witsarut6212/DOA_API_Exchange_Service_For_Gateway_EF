@@ -108,7 +108,7 @@
                   "items": {
                     "type": "object",
                     "properties": {
-                      "process_character_code": { "type": ["string", "null"], "maxLength": 3 },
+                      "process_character_code": { "type": ["string", "null"], "maxLength": 4 },
                       "process_character_desc": { "type": ["string", "null"], "maxLength": 512 },
                       "process_value": { "type": ["string", "number", "null"], "maxLength": 20 },
                       "process_value_unit": { "type": ["string", "null"], "maxLength": 3 }
