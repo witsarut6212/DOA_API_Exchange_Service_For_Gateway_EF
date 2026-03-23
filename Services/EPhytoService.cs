@@ -477,7 +477,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                                     MessageId = messageId,
                                     ItemId = itemId,
                                     ProcessId = processId,
-                                    TypeCode = null,
+                                    TypeCode = ch.ProcessCharacterType,
                                     Description1 = ch.ProcessCharacterCode,
                                     Description2 = ch.ProcessCharacterDesc,
                                     ValueMeasure = ch.ProcessValue,

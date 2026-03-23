@@ -275,6 +275,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
 
     public class AswCharacteristic
     {
+        [JsonProperty("process_character_type")] public string? ProcessCharacterType { get; set; }
         [JsonProperty("process_character_code")] public string? ProcessCharacterCode { get; set; }
         [JsonProperty("process_character_desc")] public string? ProcessCharacterDesc { get; set; }
         [JsonProperty("process_value")] public string? ProcessValue { get; set; }
