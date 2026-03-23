@@ -30,6 +30,7 @@
             "code": { "type": "string", "enum": [ "AC009" ], "maxLength": 5 }
           }
         },
+        "registrationId": { "type": "string", "maxLength": 35 },
         "messageType": { "type": "string", "maxLength": 35 },
         "remark": { "type": "string", "maxLength": 200 }
       }
@@ -41,7 +42,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [ "itemNumber", "reasonCode", "reasonDescription" ],
+        "required": [ "reasonCode", "reasonDescription" ],
         "properties": {
           "itemNumber": { "type": "integer", "minimum": 0, "maximum": 99 },
           "reasonCode": { "type": "string", "maxLength": 15 },

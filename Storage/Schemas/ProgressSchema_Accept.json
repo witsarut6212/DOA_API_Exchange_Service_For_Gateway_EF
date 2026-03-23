@@ -14,7 +14,6 @@
       "required": [
         "referenceNumber",
         "responseInfo",
-        "registrationId",
         "messageType",
         "remark"
       ],
@@ -43,7 +42,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [ "itemNumber", "reasonCode", "reasonDescription" ],
+        "required": [ "reasonCode", "reasonDescription" ],
         "properties": {
           "itemNumber": { "type": "integer", "minimum": 0, "maximum": 99 },
           "reasonCode": { "type": "string", "maxLength": 15 },

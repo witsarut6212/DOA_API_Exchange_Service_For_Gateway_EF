@@ -15,7 +15,6 @@
       "required": [
         "referenceNumber",
         "responseInfo",
-        "registrationId",
         "messageType",
         "remark"
       ],
@@ -44,9 +43,9 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [ "itemNumber", "reasonCode", "reasonDescription" ],
+        "required": [ "reasonCode", "reasonDescription" ],
         "properties": {
-          "itemNumber": { "type": "integer", "minimum": 0, "maximum": 99 },
+          "ItemNumber": { "type": "integer", "minimum": 0, "maximum": 99 },
           "reasonCode": { "type": "string", "maxLength": 15 },
           "reasonDescription": { "type": "string", "maxLength": 256 }
         }
@@ -59,13 +58,13 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [ "itemNumber", "documentInfo", "providerAuthority", "attachment" ],
+        "required": [ "documentInfo", "providerAuthority", "attachment" ],
         "properties": {
-          "itemNumber": { "type": "integer", "minimum": 0, "maximum": 99 },
+          "ItemNumber": { "type": "integer", "minimum": 0, "maximum": 99 },
           "documentInfo": {
             "type": "object",
             "additionalProperties": false,
-            "required": [ "typeCode", "name", "licenseNumber", "issueDate", "expireDate" ],
+            "required": [ "typeCode", "name", "issueDate", "expireDate" ],
             "properties": {
               "typeCode": { "type": "string", "maxLength": 3 },
               "name": { "type": "string", "maxLength": 70 },
