@@ -256,7 +256,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 UnloadingBasePortName = consignment.UnloadingBasePort?.Name,
                 AuthLocationId = authLocationId,
                 AuthLocationName = authLocationName,
-                AuthActualDateTime = doc.SignatoryAuthen?.ActualDatetime,
+                AuthActualDateTime = DateTime.TryParse(doc.SignatoryAuthen?.ActualDatetime, out var adv) ? adv.ToString("yyyy-MM-dd") : doc.SignatoryAuthen?.ActualDatetime,
                 AuthProviderId = doc.SignatoryAuthen?.ProviderParty?.Id,
                 AuthProviderName = doc.SignatoryAuthen?.ProviderParty?.Name,
                 AuthSpecifyPersonName = doc.SignatoryAuthen?.ProviderParty?.SpecfiedPersonName ?? doc.SignatoryAuthen?.ProviderParty?.SpecifiedPerson?.Name,
