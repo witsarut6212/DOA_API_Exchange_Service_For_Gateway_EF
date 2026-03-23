@@ -610,14 +610,32 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                     }
                 }
 
-                // Additionals for ASW (Keeping existing logic for ItemAdditionalNotes)
-                if (item.Additionals != null)
+                // New: Map Classifications (IPPC)
+                if (item.ApplicableClassifications != null)
                 {
-                    foreach (var n in item.Additionals)
+                    foreach (var c in item.ApplicableClassifications)
+                    {
+                        var firstClassName = c.ClassNames?.FirstOrDefault()?.ClassName ?? "";
+                        _context.TabMessageThphytoItemApplicableClassifications.Add(new TabMessageThphytoItemApplicableClassification
+                        {
+                            MessageId = messageId,
+                            ItemId = itemId,
+                            SystemName = c.SystemName ?? "",
+                            ClassCode = c.ClassCode ?? "",
+                            ClassName = firstClassName
+                        });
+                    }
+                }
+
+                // Additionals for IPPC (AdditionalNotes)
+                if (item.AdditionalNotes != null)
+                {
+                    foreach (var n in item.AdditionalNotes)
                     {
                         string additionalNoteId = Guid.NewGuid().ToString();
-                        _context.TabMessageThphytoItemAdditionalNotes.Add(new TabMessageThphytoItemAdditionalNote { MessageId = messageId, ItemId = itemId, AdditionalNoteId = additionalNoteId, Subject = n.NoteSubject ?? "N/A" });
-                        _context.TabMessageThphytoItemAdditionalNoteContents.Add(new TabMessageThphytoItemAdditionalNoteContent { MessageId = messageId, ItemId = itemId, AdditionalNoteId = additionalNoteId, NoteContent = n.NoteContent ?? "" });
+                        _context.TabMessageThphytoItemAdditionalNotes.Add(new TabMessageThphytoItemAdditionalNote { MessageId = messageId, ItemId = itemId, AdditionalNoteId = additionalNoteId, Subject = n.Subject ?? "N/A" });
+                        var contentStr = n.Contents != null ? string.Join(", ", n.Contents.Select(c => c.Content)) : "";
+                        _context.TabMessageThphytoItemAdditionalNoteContents.Add(new TabMessageThphytoItemAdditionalNoteContent { MessageId = messageId, ItemId = itemId, AdditionalNoteId = additionalNoteId, NoteContent = contentStr });
                     }
                 }
             }
