@@ -150,7 +150,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
 
                         MapIncludedNotesFromIppc(ippcReq.XcDocument?.IncludeNotes, messageId);
                         MapReferenceDocsFromIppc(ippcReq, messageId);
-                        MapTransportInfoFromIppc(ippcReq.Consignment, messageId);
+                        MapTransportFromIppc(ippcReq.Consignment, messageId);
+                        MapUtilizeTransportFromIppc(ippcReq.Consignment?.UtilizeTransport, messageId);
                         MapItemsFromIppc(ippcReq.Items, messageId);
                     }
                     else
@@ -271,6 +272,19 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 string contentStr = hn.Contents != null ? string.Join(", ", hn.Contents.Select(c => c.Content)) : "";
                 _context.TabMessageThphytoIncludedNotes.Add(new TabMessageThphytoIncludedNote { MessageId = messageId, Subject = hn.Subject ?? "N/A", Content = contentStr });
             }
+        }
+
+        private void MapUtilizeTransportFromIppc(UtilizeTransportRequest? transport, string messageId)
+        {
+            if (transport == null) return;
+            _context.TabMessageThphytoUtilizeTransports.Add(new TabMessageThphytoUtilizeTransport
+            {
+                MessageId = messageId,
+                EquipmentId = transport.EquipmentId ?? "",
+                SealNumber = transport.SealNumber ?? "",
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
+            });
         }
 
         private void MapReferenceDocsFromIppc(IppcRequest request, string messageId)
