@@ -65,6 +65,9 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
         [JsonProperty("auth_position_abb")]
         public string? AuthPositionAbb { get; set; }
 
+        [JsonProperty("exporter_id")]
+        public string? ExporterId { get; set; }
+
         [JsonProperty("exporter_name")]
         public string? ExporterName { get; set; }
 
@@ -98,6 +101,9 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
         [JsonProperty("exporter_address_type")]
         public string? ExporterAddressType { get; set; }
 
+        [JsonProperty("consignee_id")]
+        public string? ConsigneeId { get; set; }
+
         [JsonProperty("consignee_name")]
         public string? ConsigneeName { get; set; }
 
@@ -124,6 +130,12 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
 
         [JsonProperty("consignee_country_code")]
         public string? ConsigneeCountryCode { get; set; }
+
+        [JsonProperty("consignee_country_name")]
+        public string? ConsigneeCountryName { get; set; }
+
+        [JsonProperty("consignee_address_type")]
+        public string? ConsigneeAddressType { get; set; }
 
         [JsonProperty("export_country_code")]
         public string? ExportCountryCode { get; set; }
@@ -157,6 +169,9 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
 
         [JsonProperty("vessel_name")]
         public string? VesselName { get; set; }
+
+        [JsonProperty("exam_event_occur_location_name")]
+        public string? ExamEventOccurLocationName { get; set; }
 
         [JsonProperty("notes")]
         public List<AswNote> Notes { get; set; } = new();

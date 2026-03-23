@@ -48,10 +48,10 @@
               "required": ["name"]
             }
           },
-          "product_name": { "type": ["string", "null"], "maxLength": 512 },
-          "product_scient_name": { "type": ["string", "null"], "maxLength": 512 },
-          "product_batch_id": { "type": ["string", "null"], "maxLength": 35 },
-          "product_intended_use": { "type": ["string", "null"], "maxLength": 256 },
+          "product_name": { "type": ["string", "null"], "maxLength": 350 },
+          "product_scient_name": { "type": ["string", "null"], "maxLength": 200 },
+          "product_batch_id": { "type": ["string", "null"], "maxLength": 17 },
+          "product_intended_use": { "type": ["string", "null"], "maxLength": 35 },
           "net_weight": { "type": ["number", "integer"] },
           "net_weight_unit": { "type": ["string", "null"], "maxLength": 3 },
           "gross_weight": { "type": ["number", "integer", "null"] },
@@ -67,7 +67,7 @@
             "items": {
               "type": "object",
               "properties": {
-                "note_subject": { "type": "string", "maxLength": 35 },
+                "note_subject": { "type": "string", "maxLength": 8 },
                 "note_content": { "type": "string", "maxLength": 512 }
               }
             }
@@ -108,10 +108,10 @@
                   "items": {
                     "type": "object",
                     "properties": {
-                      "process_character_code": { "type": ["string", "null"], "maxLength": 35 },
+                      "process_character_code": { "type": ["string", "null"], "maxLength": 3 },
                       "process_character_desc": { "type": ["string", "null"], "maxLength": 512 },
-                      "process_value": { "type": ["string", "number", "null"], "maxLength": 35 },
-                      "process_value_unit": { "type": ["string", "null"], "maxLength": 35 }
+                      "process_value": { "type": ["string", "number", "null"], "maxLength": 20 },
+                      "process_value_unit": { "type": ["string", "null"], "maxLength": 3 }
                     }
                   }
                 }
@@ -140,6 +140,8 @@
     "auth_person": { "type": "string", "maxLength": 35 },
     "auth_position_name": { "type": "string", "maxLength": 35 },
     "auth_position_abb": { "type": ["string", "null"], "maxLength": 35 },
+    "auth_actual_date_time": { "type": ["string", "null"], "maxLength": 25 },
+    "exporter_id": { "type": ["string", "null"], "maxLength": 35 },
     "exporter_name": { "type": "string", "maxLength": 100 },
     "exporter_line1": { "type": ["string", "null"], "maxLength": 200 },
     "exporter_line2": { "type": ["string", "null"], "maxLength": 200 },
@@ -150,7 +152,8 @@
     "exporter_post_code": { "type": ["string", "null"], "maxLength": 17 },
     "exporter_country_code": { "type": ["string", "null"], "maxLength": 2 },
     "exporter_country_name": { "type": ["string", "null"], "maxLength": 35 },
-    "exporter_address_type": { "type": ["string", "null"] },
+    "exporter_address_type": { "type": ["string", "null"], "maxLength": 1 },
+    "consignee_id": { "type": ["string", "null"], "maxLength": 35 },
     "consignee_name": { "type": "string", "maxLength": 100 },
     "consignee_line1": { "type": ["string", "null"], "maxLength": 200 },
     "consignee_line2": { "type": ["string", "null"], "maxLength": 200 },
@@ -160,6 +163,8 @@
     "consignee_city_name": { "type": ["string", "null"], "maxLength": 256 },
     "consignee_post_code": { "type": ["string", "null"], "maxLength": 17 },
     "consignee_country_code": { "type": ["string", "null"], "maxLength": 2 },
+    "consignee_country_name": { "type": ["string", "null"], "maxLength": 35 },
+    "consignee_address_type": { "type": ["string", "null"], "maxLength": 1 },
     "export_country_code": { "type": "string", "maxLength": 2 },
     "export_country_name": { "type": "string", "maxLength": 35 },
     "reexport_country_code": { "type": ["string", "null"], "maxLength": 2 },
@@ -168,9 +173,10 @@
     "import_country_name": { "type": "string", "maxLength": 35 },
     "unloading_port_code": { "type": ["string", "null"], "maxLength": 35 },
     "unloading_port_name": { "type": ["string", "null"], "maxLength": 256 },
-    "transport_mode": { "type": ["string", "null"], "maxLength": 35 },
+    "transport_mode": { "type": ["string", "null"], "maxLength": 2 },
     "vessel_number": { "type": ["string", "null"], "maxLength": 35 },
     "vessel_name": { "type": ["string", "null"], "maxLength": 35 },
+    "exam_event_occur_location_name": { "type": ["string", "null"], "maxLength": 256 },
     "notes": {
       "type": "array",
       "items": {

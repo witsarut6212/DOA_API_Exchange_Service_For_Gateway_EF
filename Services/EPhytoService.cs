@@ -103,8 +103,11 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                         await _context.SaveChangesAsync();
 
                         MapIncludedNotesFromAsw(aswReq.Notes, messageId);
+                        MapClausesFromAsw(aswReq.Clauses, messageId);
+                        MapTransportFromAsw(aswReq, messageId);
                         MapItemsFromAsw(aswReq.Detail, messageId);
-                        // Add more ASW mapping if needed
+
+                        await _context.SaveChangesAsync();
                     }
                     else if (request is IppcRequest ippcReq)
                     {
@@ -308,22 +311,44 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 PhytoTo = "ASW",
                 DocName = request.DocName,
                 DocId = request.DocId ?? "N/A",
+                DocDescription = request.DocDescription,
                 DocType = request.DocType ?? "",
                 DocStatus = request.DocStatus ?? "",
                 IssueDateTime = DateTime.TryParse(request.RefIssueDatetime, out var dt) ? dt : DateTime.Now,
                 IssuerId = request.IssuerId,
                 IssuerName = request.IssuerName ?? "N/A",
                 RequestDateTime = DateTime.Now,
+                ConsignorId = request.ExporterId,
                 ConsignorName = request.ExporterName ?? "N/A",
                 ConsignorAddrLine1 = request.ExporterLine1,
+                ConsignorAddrLine2 = request.ExporterLine2,
+                ConsignorAddrLine3 = request.ExporterLine3,
+                ConsignorAddrLine4 = request.ExporterLine4,
+                ConsignorAddrLine5 = request.ExporterLine5,
+                ConsignorCityName = request.ExporterCityName,
+                ConsignorPostcode = request.ExporterPostCode,
+                ConsignorCountryId = request.ExporterCountryCode,
+                ConsignorCounrtyName = request.ExporterCountryName,
+                ConsignorTypeCode = request.ExporterAddressType,
+                ConsigneeId = request.ConsigneeId,
                 ConsigneeName = request.ConsigneeName ?? "N/A",
                 ConsigneeAddrLine1 = request.ConsigneeLine1,
+                ConsigneeAddrLine2 = request.ConsigneeLine2,
+                ConsigneeAddrLine3 = request.ConsigneeLine3,
+                ConsigneeAddrLine4 = request.ConsigneeLine4,
+                ConsigneeAddrLine5 = request.ConsigneeLine5,
+                ConsigneeCityName = request.ConsigneeCityName,
+                ConsigneePostcode = request.ConsigneePostCode,
+                ConsigneeCountryId = request.ConsigneeCountryCode,
+                ConsigneeCountryName = request.ConsigneeCountryName,
+                ConsigneeAddressType = request.ConsigneeAddressType,
                 ExportCountryId = request.ExportCountryCode ?? "",
                 ExportCountryName = request.ExportCountryName,
                 ImportCountryId = request.ImportCountryCode ?? "",
                 ImportCountryName = request.ImportCountryName,
                 UnloadingBasePortId = request.UnloadingPortCode,
                 UnloadingBasePortName = request.UnloadingPortName,
+                ExamEventOccrurLocationName = request.ExamEventOccurLocationName,
                 AuthLocationId = request.AuthLocationId,
                 AuthLocationName = request.AuthLocationName,
                 AuthProviderId = request.AuthProviderId,
@@ -349,17 +374,121 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             }
         }
 
+        private void MapClausesFromAsw(List<AswClause> clauses, string messageId)
+        {
+            if (clauses == null) return;
+            foreach (var c in clauses)
+            {
+                _context.TabMessageThphytoIncludedClauses.Add(new TabMessageThphytoIncludedClause { MessageId = messageId, ClauseId = c.ClauseId, Content = c.ClauseContent });
+            }
+        }
+
+        private void MapTransportFromAsw(AswNormalRequest request, string messageId)
+        {
+            if (!string.IsNullOrEmpty(request.VesselName) || !string.IsNullOrEmpty(request.TransportMode))
+            {
+                _context.TabMessageThphytoMainCarriages.Add(new TabMessageThphytoMainCarriage
+                {
+                    MessageId = messageId,
+                    TransportModeCode = request.TransportMode,
+                    TransportMeanName = request.VesselName ?? request.VesselNumber
+                });
+            }
+        }
+
         private void MapItemsFromAsw(List<AswDetail> items, string messageId)
         {
             foreach (var item in items)
             {
                 string itemId = Guid.NewGuid().ToString();
-                _context.TabMessageThphytoItems.Add(new TabMessageThphytoItem { MessageId = messageId, ItemId = itemId, SequenceNo = item.ItemNo, ProductScientName = item.ProductScientName });
+                _context.TabMessageThphytoItems.Add(new TabMessageThphytoItem
+                {
+                    MessageId = messageId,
+                    ItemId = itemId,
+                    SequenceNo = item.ItemNo,
+                    ProductScientName = item.ProductScientName,
+                    ProductBatchId = item.ProductBatchId,
+                    NetWeight = item.NetWeight,
+                    NetWeightUnit = item.NetWeightUnit,
+                    GrossWeight = item.GrossWeight,
+                    GrossWeightUnit = item.GrossWeightUnit
+                });
 
                 if (item.Descriptions != null)
                     foreach (var d in item.Descriptions) _context.TabMessageThphytoItemDescriptions.Add(new TabMessageThphytoItemDescription { MessageId = messageId, ItemId = itemId, ProductDescription = d.Name ?? "" });
 
-                // Additionals for ASW
+                if (!string.IsNullOrEmpty(item.ProductName))
+                    _context.TabMessageThphytoItemCommonNames.Add(new TabMessageThphytoItemCommonName { MessageId = messageId, ItemId = itemId, ProudctCommonName = item.ProductName });
+
+                if (!string.IsNullOrEmpty(item.ProductIntendedUse))
+                    _context.TabMessageThphytoItemIntendeds.Add(new TabMessageThphytoItemIntended { MessageId = messageId, ItemId = itemId, ProductIntendUse = item.ProductIntendedUse });
+
+                if (item.OriginCountries != null)
+                {
+                    foreach (var oc in item.OriginCountries)
+                    {
+                        _context.TabMessageThphytoItemOriginCountries.Add(new TabMessageThphytoItemOriginCountry
+                        {
+                            MessageId = messageId,
+                            ItemId = itemId,
+                            CountryId = oc.OriginCountryCode ?? "",
+                            HeirachiLevel = oc.OriginHierarchiLevel
+                        });
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(item.PackageLevel) || !string.IsNullOrEmpty(item.PackageType))
+                {
+                    _context.TabMessageThphytoItemPhysicalPackages.Add(new TabMessageThphytoItemPhysicalPackage
+                    {
+                        MessageId = messageId,
+                        ItemId = itemId,
+                        LevelCode = item.PackageLevel,
+                        TypeCode = item.PackageType,
+                        ShippingMarks = item.ShippingMarks,
+                        Quantity = (int?)item.PackageAmount
+                    });
+                }
+
+                if (item.Processes != null)
+                {
+                    foreach (var p in item.Processes)
+                    {
+                        string processId = Guid.NewGuid().ToString();
+                        _context.TabMessageThphytoItemProcesses.Add(new TabMessageThphytoItemProcess
+                        {
+                            MessageId = messageId,
+                            ItemId = itemId,
+                            ProcessId = processId,
+                            TypeCode = p.ProcessType,
+                            StartDate = p.ProcessStartDate,
+                            EndDate = p.ProcessEndDate,
+                            Duration = (double?)(p.ProcessDuration),
+                            DurationUnit = p.ProcessDurationUnit
+                        });
+
+                        if (p.Characteristics != null)
+                        {
+                            foreach (var ch in p.Characteristics)
+                            {
+                                _logger.LogInformation("Mapping Characteristic: {Code} - {Desc}", ch.ProcessCharacterCode, ch.ProcessCharacterDesc);
+                                _context.TabMessageThphytoItemProcessCharacteristics.Add(new TabMessageThphytoItemProcessCharacteristic
+                                {
+                                    MessageId = messageId,
+                                    ItemId = itemId,
+                                    ProcessId = processId,
+                                    TypeCode = ch.ProcessCharacterCode?.Length > 3 ? ch.ProcessCharacterCode.Substring(0, 3) : ch.ProcessCharacterCode,
+                                    Description1 = null,
+                                    Description2 = ch.ProcessCharacterDesc,
+                                    ValueMeasure = ch.ProcessValue,
+                                    UnitCode = ch.ProcessValueUnit
+                                });
+                            }
+                        }
+                    }
+                }
+
+                // Additionals for ASW (Keeping existing logic for ItemAdditionalNotes)
                 if (item.Additionals != null)
                 {
                     foreach (var n in item.Additionals)

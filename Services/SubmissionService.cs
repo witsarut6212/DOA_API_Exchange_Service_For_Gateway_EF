@@ -140,7 +140,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 }
             });
         }
-        public async Task<bool> IsDocumentNumberDuplicateAsync(string documentNumber)
+        public async Task<bool> IsDocumentNumberDuplicateAsync(string? documentNumber)
         {
             if (string.IsNullOrEmpty(documentNumber)) return false;
             
@@ -316,15 +316,15 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
 
             return new TabMessageResponseSubmission
             {
-                ResponseType = docControl.ResponseInfo.Status,
-                ReferenceNumber = docControl.ReferenceNumber,
+                ResponseType = docControl.ResponseInfo.Status ?? "",
+                ReferenceNumber = docControl.ReferenceNumber ?? "N/A",
                 DocumentNumber = docControl.DocumentNumber ?? Guid.NewGuid().ToString("N").Substring(0, 20).ToUpper(),
                 MessageType = docControl.MessageType ?? "PHYTOCERT",
-                ResponseCode = docControl.ResponseInfo.Code,
+                ResponseCode = docControl.ResponseInfo.Code ?? "",
                 ResponseMessage = docControl.Remark ?? "e-Phyto Progress Update",
                 ResponseDateTime = docControl.ResponseInfo.DateTime,
                 RegistrationId = effectiveRegId,
-                ResponseToId = docControl.ReferenceNumber,
+                ResponseToId = docControl.ReferenceNumber ?? "N/A",
                 QueueStatus = ApiConstants.QueueStatus.Wait,
                 SystemTime = DateTime.Now,
                 ResponsePayloadId = payloadId,
@@ -370,7 +370,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 ResponseMessage = $"Submission of {docControl.FormType?.ToUpper() ?? "Certificate"} as DRAFT",
                 ResponseDateTime = DateTime.Now,
                 RegistrationId = docControl.RegistrationID ?? "",
-                ResponseToId = docControl.ReferenceNumber,
+                ResponseToId = docControl.ReferenceNumber ?? "N/A",
                 QueueStatus = ApiConstants.QueueStatus.Wait,
                 SystemTime = DateTime.Now,
                 ResponsePayloadId = payloadId,
