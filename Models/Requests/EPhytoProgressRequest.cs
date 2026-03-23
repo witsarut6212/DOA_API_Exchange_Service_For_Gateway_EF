@@ -117,10 +117,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
         [JsonProperty("message")]
         public string? Message { get; set; }
 
-        [JsonProperty("url")]
-        public string? Url { get; set; }
-
-        [JsonProperty("billpayment")]
+        [JsonProperty("base64")]
         public string? Billpayment { get; set; }
     }
 

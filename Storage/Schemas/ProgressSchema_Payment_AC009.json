@@ -61,8 +61,11 @@
         "bankCode": { "type": "string", "maxLength": 3 },
         "compCode": { "type": "string", "maxLength": 35 },
         "message": { "type": "string", "maxLength": 200 },
-        "url": { "type": "string", "maxLength": 256 },
-        "billpayment": { "type": "string", "minLength": 1 }
+        "base64": { 
+          "type": ["string", "null"], 
+          "contentEncoding": "base64",
+          "contentMediaType": "application/pdf"
+        }
       }
     }
   }
