@@ -33,9 +33,9 @@
             "provider_party": {
               "type": "object",
               "properties": {
-                "id": { "type": ["string"] },
-                "name": { "type": ["string"], "maxLength": 256 },
-                "specfied_person_name": { "type": ["string"], "maxLength": 256 }
+                "id": { "type": ["string", "null"] },
+                "name": { "type": ["string", "null"], "maxLength": 256 },
+                "specfied_person_name": { "type": ["string", "null"], "maxLength": 256 }
               },
               "required": ["name", "specfied_person_name"]
             },

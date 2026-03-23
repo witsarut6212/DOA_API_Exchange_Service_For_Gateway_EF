@@ -3,6 +3,8 @@ using DOA_API_Exchange_Service_For_Gateway.Models.Entities;
 using DOA_API_Exchange_Service_For_Gateway.Models.Requests;
 using DOA_API_Exchange_Service_For_Gateway.Helpers;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 
 namespace DOA_API_Exchange_Service_For_Gateway.Services
 {
@@ -13,14 +15,16 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
         private readonly ILogService _logService;
         private readonly IPreSaveLogger _preSaveLogger;
         private readonly IConfiguration _configuration;
+        private readonly IWebHostEnvironment _env;
 
-        public EPhytoService(AppDbContext context, ILogger<EPhytoService> logger, ILogService logService, IPreSaveLogger preSaveLogger, IConfiguration configuration)
+        public EPhytoService(AppDbContext context, ILogger<EPhytoService> logger, ILogService logService, IPreSaveLogger preSaveLogger, IConfiguration configuration, IWebHostEnvironment env)
         {
             _context = context;
             _logger = logger;
             _logService = logService;
             _preSaveLogger = preSaveLogger;
             _configuration = configuration;
+            _env = env;
         }
 
         public async Task<bool> IsDocumentExists(string docType, string docStatus, string docId)
@@ -108,6 +112,22 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                         MapReferenceDocsFromAsw(aswReq, messageId);
                         MapTransportFromAsw(aswReq, messageId);
                         MapItemsFromAsw(aswReq.Detail, messageId);
+
+                        // --- DEV ONLY: AUDIT LOG ---
+                        if (_env.IsDevelopment())
+                        {
+                            var auditInfo = new {
+                                MessageId = messageId,
+                                DocId = aswReq.DocId ?? "N/A",
+                                NotesCount = aswReq.Notes?.Count ?? 0,
+                                ClausesCount = aswReq.Clauses?.Count ?? 0,
+                                TransitsCount = aswReq.Transits?.Count ?? 0,
+                                ItemsCount = aswReq.Detail?.Count ?? 0,
+                                FirstItemDescriptions = aswReq.Detail?.FirstOrDefault()?.Descriptions?.Count ?? 0,
+                                Summary = "ASW Mapping Completed successfully. Ready to persist."
+                            };
+                            await _preSaveLogger.LogAsync(docIdForLog, "ASW_AUDIT_MAPPING", messageId, auditInfo);
+                        }
 
                         await _context.SaveChangesAsync();
                     }

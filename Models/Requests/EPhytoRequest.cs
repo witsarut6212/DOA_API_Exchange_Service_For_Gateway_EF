@@ -99,6 +99,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
         public string? Id { get; set; }
         [JsonProperty("name")]
         public string? Name { get; set; }
+        [JsonProperty("specfied_person_name")]
+        public string? SpecfiedPersonName { get; set; }
         [JsonProperty("specfied_person")]
         public SpecifiedPerson? SpecifiedPerson { get; set; }
     }

@@ -47,10 +47,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 var json = JsonConvert.SerializeObject(logEntry, Formatting.Indented);
                 var line = json + Environment.NewLine + "---" + Environment.NewLine;
 
-                lock (_lock)
-                {
-                    File.AppendAllText(filePath, line);
-                }
+                await File.AppendAllTextAsync(filePath, line);
             }
             catch (Exception ex)
             {
