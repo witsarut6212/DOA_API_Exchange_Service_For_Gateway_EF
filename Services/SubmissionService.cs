@@ -333,17 +333,6 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             };
         }
 
-        private TabMessageResponseSubmission CreateSubmissionRecord(int payloadId, EPhytoProgressRequest request, string source)
-        {
-            // Marked as Obsolete, call async version if possible
-            return CreateSubmissionRecordAsync(payloadId, request, source).GetAwaiter().GetResult();
-        }
-
-        private async Task<string> GetEffectiveRegistrationIdAsync(string? requestRegId)
-        {
-            return await _commonService.GetEffectiveRegistrationIdAsync(requestRegId);
-        }
-
         private TabMessageTxnOutbound CreateOutboundRecord(int submissionId, string referenceNumber, string source)
         {
             return new TabMessageTxnOutbound
