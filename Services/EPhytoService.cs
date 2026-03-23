@@ -104,6 +104,8 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
 
                         MapIncludedNotesFromAsw(aswReq.Notes, messageId);
                         MapClausesFromAsw(aswReq.Clauses, messageId);
+                        MapTransitsFromAsw(aswReq.Transits, messageId);
+                        MapReferenceDocsFromAsw(aswReq, messageId);
                         MapTransportFromAsw(aswReq, messageId);
                         MapItemsFromAsw(aswReq.Detail, messageId);
 
@@ -356,7 +358,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                 AuthSpecifyPersonName = request.AuthPerson,
                 AuthAttainedQualificationName = request.AuthPositionName,
                 AuthAbbrevName = request.AuthPositionAbb,
-                AuthActualDateTime = null, // Will map from notes if needed
+                AuthActualDateTime = request.AuthActualDateTime, 
                 ResponseStatus = "0101",
                 TimeStamp = DateTime.Now,
                 LastUpdate = DateTime.Now,
@@ -380,6 +382,35 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
             foreach (var c in clauses)
             {
                 _context.TabMessageThphytoIncludedClauses.Add(new TabMessageThphytoIncludedClause { MessageId = messageId, ClauseId = c.ClauseId, Content = c.ClauseContent });
+            }
+        }
+
+        private void MapTransitsFromAsw(List<AswTransit> transits, string messageId)
+        {
+            if (transits == null) return;
+            foreach (var t in transits)
+            {
+                _context.TabMessageThphytoTransitCountries.Add(new TabMessageThphytoTransitCountry
+                {
+                    MessageId = messageId,
+                    CountryId = t.CountryCode ?? "",
+                    CountryName = t.CountryName
+                });
+            }
+        }
+
+        private void MapReferenceDocsFromAsw(AswNormalRequest request, string messageId)
+        {
+            if (!string.IsNullOrEmpty(request.RefId))
+            {
+                _context.TabMessageThphytoReferenceDocs.Add(new TabMessageThphytoReferenceDoc
+                {
+                    MessageId = messageId,
+                    RefDocId = request.RefId ?? "N/A",
+                    TypeCode = request.RefType,
+                    RelationTypeCode = request.RefRelation,
+                    Information = request.RefInfo
+                });
             }
         }
 
@@ -432,7 +463,66 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                             MessageId = messageId,
                             ItemId = itemId,
                             CountryId = oc.OriginCountryCode ?? "",
-                            HeirachiLevel = oc.OriginHierarchiLevel
+                            CountryName = oc.OriginCountryName,
+                            SubDivisionId = oc.OriginProvinceCode,
+                            SubDivisionName = oc.OriginProvinceName,
+                            HeirachiLevel = oc.OriginHierarchiLevel,
+                            AuthorizePartyId = oc.ProducerCode,
+                            AuthorizePartyName = oc.ProducerName,
+                            AuthorizeRoleCode = oc.ProducerRole
+                        });
+                    }
+                }
+
+                // New: Map Common Name
+                if (!string.IsNullOrEmpty(item.ProductName))
+                {
+                    _context.TabMessageThphytoItemCommonNames.Add(new TabMessageThphytoItemCommonName
+                    {
+                        MessageId = messageId,
+                        ItemId = itemId,
+                        ProudctCommonName = item.ProductName
+                    });
+                }
+
+                // New: Map Intended Use
+                if (!string.IsNullOrEmpty(item.ProductIntendedUse))
+                {
+                    _context.TabMessageThphytoItemIntendeds.Add(new TabMessageThphytoItemIntended
+                    {
+                        MessageId = messageId,
+                        ItemId = itemId,
+                        ProductIntendUse = item.ProductIntendedUse
+                    });
+                }
+
+                // New: Map Classifications
+                if (item.Classifications != null)
+                {
+                    foreach (var c in item.Classifications)
+                    {
+                        _context.TabMessageThphytoItemApplicableClassifications.Add(new TabMessageThphytoItemApplicableClassification
+                        {
+                            MessageId = messageId,
+                            ItemId = itemId,
+                            SystemName = c.SystemName ?? "",
+                            ClassCode = c.ClassCode ?? "",
+                            ClassName = c.ClassName ?? ""
+                        });
+                    }
+                }
+
+                // New: Map Transport Equipments
+                if (item.TransportEquipments != null)
+                {
+                    foreach (var te in item.TransportEquipments)
+                    {
+                        _context.TabMessageThphytoItemTransportEquipments.Add(new TabMessageThphytoItemTransportEquipment
+                        {
+                            MessageId = messageId,
+                            ItemId = itemId,
+                            TransportId = te.EquipmentId ?? "",
+                            SealNumber = te.SealNumber ?? ""
                         });
                     }
                 }
@@ -443,9 +533,9 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                     {
                         MessageId = messageId,
                         ItemId = itemId,
-                        LevelCode = item.PackageLevel,
-                        TypeCode = item.PackageType,
-                        ShippingMarks = item.ShippingMarks,
+                        LevelCode = item.PackageLevel ?? "",
+                        TypeCode = item.PackageType ?? "",
+                        ShippingMarks = item.ShippingMarks ?? "",
                         Quantity = (int?)item.PackageAmount
                     });
                 }
@@ -460,11 +550,11 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                             MessageId = messageId,
                             ItemId = itemId,
                             ProcessId = processId,
-                            TypeCode = p.ProcessType,
+                            TypeCode = p.ProcessType ?? "",
                             StartDate = p.ProcessStartDate,
                             EndDate = p.ProcessEndDate,
                             Duration = (double?)(p.ProcessDuration),
-                            DurationUnit = p.ProcessDurationUnit
+                            DurationUnit = p.ProcessDurationUnit ?? ""
                         });
 
                         if (p.Characteristics != null)
@@ -477,11 +567,11 @@ namespace DOA_API_Exchange_Service_For_Gateway.Services
                                     MessageId = messageId,
                                     ItemId = itemId,
                                     ProcessId = processId,
-                                    TypeCode = ch.ProcessCharacterType,
-                                    Description1 = ch.ProcessCharacterCode,
-                                    Description2 = ch.ProcessCharacterDesc,
-                                    ValueMeasure = ch.ProcessValue,
-                                    UnitCode = ch.ProcessValueUnit
+                                    TypeCode = ch.ProcessCharacterType ?? "",
+                                    Description1 = ch.ProcessCharacterCode ?? "",
+                                    Description2 = ch.ProcessCharacterDesc ?? "",
+                                    ValueMeasure = ch.ProcessValue ?? "",
+                                    UnitCode = ch.ProcessValueUnit ?? ""
                                 });
                             }
                         }

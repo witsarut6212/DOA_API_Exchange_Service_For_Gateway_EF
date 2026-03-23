@@ -72,8 +72,27 @@
               }
             }
           },
-          "classifications": { "type": ["array", "null"] },
-          "transport_equipments": { "type": ["array", "null"] },
+          "classifications": {
+            "type": ["array", "null"],
+            "items": {
+              "type": "object",
+              "properties": {
+                "system_name": { "type": "string", "maxLength": 35 },
+                "class_code": { "type": "string", "maxLength": 35 },
+                "class_name": { "type": "string", "maxLength": 256 }
+              }
+            }
+          },
+          "transport_equipments": {
+            "type": ["array", "null"],
+            "items": {
+              "type": "object",
+              "properties": {
+                "equipment_id": { "type": "string", "maxLength": 35 },
+                "seal_number": { "type": "string", "maxLength": 35 }
+              }
+            }
+          },
           "origin_countries": {
             "type": "array",
             "minItems": 1,
@@ -205,6 +224,15 @@
         }
       }
     },
-    "transits": { "type": "array" }
+    "transits": {
+      "type": ["array", "null"],
+      "items": {
+        "type": "object",
+        "properties": {
+          "transit_country_code": { "type": "string", "maxLength": 2 },
+          "transit_country_name": { "type": "string", "maxLength": 35 }
+        }
+      }
+    }
   }
 }

@@ -65,6 +65,9 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
         [JsonProperty("auth_position_abb")]
         public string? AuthPositionAbb { get; set; }
 
+        [JsonProperty("auth_actual_date_time")]
+        public string? AuthActualDateTime { get; set; }
+
         [JsonProperty("exporter_id")]
         public string? ExporterId { get; set; }
 
@@ -180,7 +183,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
         public List<AswClause> Clauses { get; set; } = new();
 
         [JsonProperty("transits")]
-        public List<object> Transits { get; set; } = new();
+        public List<AswTransit> Transits { get; set; } = new();
     }
 
     public class AswDetail
@@ -241,6 +244,31 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
 
         [JsonProperty("processes")]
         public List<AswProcess> Processes { get; set; } = new();
+
+        [JsonProperty("classifications")]
+        public List<AswClassification> Classifications { get; set; } = new();
+
+        [JsonProperty("transport_equipments")]
+        public List<AswTransportEquipment> TransportEquipments { get; set; } = new();
+    }
+
+    public class AswClassification
+    {
+        [JsonProperty("system_name")] public string? SystemName { get; set; }
+        [JsonProperty("class_code")] public string? ClassCode { get; set; }
+        [JsonProperty("class_name")] public string? ClassName { get; set; }
+    }
+
+    public class AswTransportEquipment
+    {
+        [JsonProperty("equipment_id")] public string? EquipmentId { get; set; }
+        [JsonProperty("seal_number")] public string? SealNumber { get; set; }
+    }
+
+    public class AswTransit
+    {
+        [JsonProperty("transit_country_code")] public string? CountryCode { get; set; }
+        [JsonProperty("transit_country_name")] public string? CountryName { get; set; }
     }
 
     public class NameEntry { [JsonProperty("name")] public string? Name { get; set; } }
