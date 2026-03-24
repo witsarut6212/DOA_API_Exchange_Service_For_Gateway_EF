@@ -27,6 +27,13 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
                    DocumentControl?.ResponseInfo?.Code == "AC015";
         }
 
+        // จะแสดง certificateInfo เฉพาะเมื่อเป็น ACCEPT และ AC015 เท่านั้น
+        public bool ShouldSerializeCertificateInfo()
+        {
+            return DocumentControl?.ResponseInfo?.Status == "ACCEPT" &&
+                   DocumentControl?.ResponseInfo?.Code == "AC015";
+        }
+
         // จะแสดง payment เฉพาะเมื่อเป็น ACCEPT และ AC009 เท่านั้น
         public bool ShouldSerializePayment()
         {
@@ -85,7 +92,13 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
     public class ProgressDetail
     {
         [JsonProperty("itemNumber")]
-        public int? ItemNumber { get; set; }
+        public int? itemNumber { get; set; }
+
+        [JsonProperty("ItemNumber")]
+        public int? ItemNumberPascal { get; set; }
+
+        [JsonIgnore]
+        public int? ItemNumber => itemNumber ?? ItemNumberPascal;
 
         [JsonProperty("reasonCode")]
         public string? ReasonCode { get; set; }
@@ -124,10 +137,19 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
     public class AdditionalDocument
     {
         [JsonProperty("itemNumber")]
-        public int? ItemNumber { get; set; }
+        public int? itemNumber { get; set; }
+
+        [JsonProperty("ItemNumber")]
+        public int? ItemNumberPascal { get; set; }
+
+        [JsonIgnore]
+        public int? ItemNumber => itemNumber ?? ItemNumberPascal;
 
         [JsonProperty("documentInfo")]
         public DocumentInfo? DocumentInfo { get; set; }
+
+        [JsonProperty("certificateInfo")]
+        public CertificateInfo? CertificateInfo { get; set; }
 
         [JsonProperty("detail")]
         public AdditionalDocumentDetail? Detail { get; set; }
@@ -161,6 +183,18 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
 
         [JsonProperty("expireDate")]
         public string? ExpireDate { get; set; }
+    }
+
+    public class CertificateInfo
+    {
+        [JsonProperty("licenseNumber")]
+        public string? LicenseNumber { get; set; }
+
+        [JsonProperty("docType")]
+        public string? DocType { get; set; }
+
+        [JsonProperty("docStatus")]
+        public string? DocStatus { get; set; }
     }
 
 

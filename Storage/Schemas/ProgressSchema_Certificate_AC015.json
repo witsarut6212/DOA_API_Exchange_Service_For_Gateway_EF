@@ -31,7 +31,6 @@
             "code": { "type": "string", "enum": [ "AC015" ], "maxLength": 5 }
           }
         },
-        "registrationId": { "type": "string", "maxLength": 35 },
         "messageType": { "type": "string", "maxLength": 35 },
         "remark": { "type": "string", "maxLength": 200 }
       }
@@ -60,6 +59,7 @@
         "additionalProperties": false,
         "required": [ "documentInfo", "providerAuthority", "attachment" ],
         "properties": {
+          "itemNumber": { "type": "integer", "minimum": 0, "maximum": 99 },
           "ItemNumber": { "type": "integer", "minimum": 0, "maximum": 99 },
           "documentInfo": {
             "type": "object",
@@ -71,6 +71,16 @@
               "licenseNumber": { "type": "string", "maxLength": 35 },
               "issueDate": { "type": "string", "format": "date" },
               "expireDate": { "type": "string", "format": "date" }
+            }
+          },
+          "certificateInfo": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [ "licenseNumber" ],
+            "properties": {
+              "licenseNumber": { "type": "string", "maxLength": 35 },
+              "docType": { "type": "string", "enum": [ "851", "657" ], "maxLength": 3 },
+              "docStatus": { "type": "string", "enum": [ "70", "40" ], "maxLength": 2 }
             }
           },
           "detail": {
