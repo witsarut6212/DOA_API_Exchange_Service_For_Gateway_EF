@@ -44,7 +44,7 @@
         "additionalProperties": false,
         "required": [ "reasonCode", "reasonDescription" ],
         "properties": {
-          "ItemNumber": { "type": "integer", "minimum": 0, "maximum": 99 },
+          "itemNumber": { "type": "integer", "minimum": 0, "maximum": 99 },
           "reasonCode": { "type": "string", "maxLength": 15 },
           "reasonDescription": { "type": "string", "maxLength": 256 }
         }
@@ -59,18 +59,41 @@
         "additionalProperties": false,
         "required": [ "documentInfo", "providerAuthority", "attachment" ],
         "properties": {
-          "itemNumber": { "type": "integer", "minimum": 0, "maximum": 99 },
-          "ItemNumber": { "type": "integer", "minimum": 0, "maximum": 99 },
+          "itemNumber": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 99
+          },
+          "itemNumber": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 99
+          },
           "documentInfo": {
             "type": "object",
             "additionalProperties": false,
             "required": [ "typeCode", "name", "issueDate", "expireDate" ],
             "properties": {
-              "typeCode": { "type": "string", "maxLength": 3 },
-              "name": { "type": "string", "maxLength": 70 },
-              "licenseNumber": { "type": "string", "maxLength": 35 },
-              "issueDate": { "type": "string", "format": "date" },
-              "expireDate": { "type": "string", "format": "date" }
+              "typeCode": {
+                "type": "string",
+                "maxLength": 3
+              },
+              "name": {
+                "type": "string",
+                "maxLength": 70
+              },
+              "licenseNumber": {
+                "type": "string",
+                "maxLength": 35
+              },
+              "issueDate": {
+                "type": "string",
+                "format": "date"
+              },
+              "expireDate": {
+                "type": "string",
+                "format": "date"
+              }
             }
           },
           "certificateInfo": {
@@ -78,16 +101,31 @@
             "additionalProperties": false,
             "required": [ "licenseNumber" ],
             "properties": {
-              "licenseNumber": { "type": "string", "maxLength": 35 },
-              "docType": { "type": "string", "enum": [ "851", "657" ], "maxLength": 3 },
-              "docStatus": { "type": "string", "enum": [ "70", "40" ], "maxLength": 2 }
+              "licenseNumber": {
+                "type": "string",
+                "maxLength": 35
+              },
+              "docType": {
+                "type": "string",
+                "enum": [ "851", "657" ],
+                "maxLength": 3
+              },
+              "docStatus": {
+                "type": "string",
+                "enum": [ "70", "40" ],
+                "maxLength": 2
+              }
             }
           },
           "detail": {
             "type": "object",
             "additionalProperties": false,
             "properties": {
-              "itemNumber": { "type": "integer", "minimum": 0, "maximum": 9999 }
+              "itemNumber": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9999
+              }
             }
           },
           "providerAuthority": {
@@ -95,7 +133,10 @@
             "additionalProperties": false,
             "required": [ "taxNumber" ],
             "properties": {
-              "taxNumber": { "type": "string", "maxLength": 17 }
+              "taxNumber": {
+                "type": "string",
+                "maxLength": 17
+              }
             }
           },
           "attachment": {
@@ -103,12 +144,30 @@
             "additionalProperties": false,
             "required": [ "filename", "fileType", "fileBase64" ],
             "properties": {
-              "filename": { "type": "string", "maxLength": 100 },
-              "fileType": { "type": "string", "maxLength": 15 },
-              "fileID": { "type": "string", "maxLength": 40 },
-              "fileURL": { "type": "string", "maxLength": 255 },
-              "fileBase64": { "type": "string", "minLength": 1 },
-              "remark": { "type": "string", "maxLength": 255 }
+              "filename": {
+                "type": "string",
+                "maxLength": 100
+              },
+              "fileType": {
+                "type": "string",
+                "maxLength": 15
+              },
+              "fileID": {
+                "type": "string",
+                "maxLength": 40
+              },
+              "fileURL": {
+                "type": "string",
+                "maxLength": 255
+              },
+              "fileBase64": {
+                "type": "string",
+                "minLength": 1
+              },
+              "remark": {
+                "type": "string",
+                "maxLength": 255
+              }
             }
           }
         }
