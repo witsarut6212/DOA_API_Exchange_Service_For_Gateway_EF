@@ -92,13 +92,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
     public class ProgressDetail
     {
         [JsonProperty("itemNumber")]
-        public int? itemNumber { get; set; }
-
-        [JsonProperty("ItemNumber")]
-        public int? ItemNumberPascal { get; set; }
-
-        [JsonIgnore]
-        public int? ItemNumber => itemNumber ?? ItemNumberPascal;
+        public int? ItemNumber { get; set; }
 
         [JsonProperty("reasonCode")]
         public string? ReasonCode { get; set; }
@@ -137,13 +131,7 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
     public class AdditionalDocument
     {
         [JsonProperty("itemNumber")]
-        public int? itemNumber { get; set; }
-
-        [JsonProperty("ItemNumber")]
-        public int? ItemNumberPascal { get; set; }
-
-        [JsonIgnore]
-        public int? ItemNumber => itemNumber ?? ItemNumberPascal;
+        public int? ItemNumber { get; set; }
 
         [JsonProperty("documentInfo")]
         public DocumentInfo? DocumentInfo { get; set; }
@@ -190,11 +178,11 @@ namespace DOA_API_Exchange_Service_For_Gateway.Models.Requests
         [JsonProperty("licenseNumber")]
         public string? LicenseNumber { get; set; }
 
-        [JsonProperty("docType")]
-        public string? DocType { get; set; }
+        [JsonProperty("licenseType")]
+        public string? LicenseType { get; set; }
 
-        [JsonProperty("docStatus")]
-        public string? DocStatus { get; set; }
+        [JsonProperty("licenseStatus")]
+        public string? LicenseStatus { get; set; }
     }
 
 

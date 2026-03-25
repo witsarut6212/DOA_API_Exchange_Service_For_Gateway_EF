@@ -64,11 +64,6 @@
             "minimum": 0,
             "maximum": 99
           },
-          "itemNumber": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 99
-          },
           "documentInfo": {
             "type": "object",
             "additionalProperties": false,
@@ -105,14 +100,20 @@
                 "type": "string",
                 "maxLength": 35
               },
-              "docType": {
+              "licenseType": {
                 "type": "string",
-                "enum": [ "851", "657" ],
+                "enum": [
+                  "851",
+                  "657"
+                ],
                 "maxLength": 3
               },
-              "docStatus": {
+              "licenseStatus": {
                 "type": "string",
-                "enum": [ "70", "40" ],
+                "enum": [
+                  "70",
+                  "40"
+                ],
                 "maxLength": 2
               }
             }
